@@ -11,20 +11,31 @@ public class SelectedPets : ExternalProtocol
 
     public override void Run(string[] message)
     {
-        var pets = message[6].Split(',');
-        var enemyPets = message[7].Split(',');
+        var pets = message[6].Split(",");
+        var enemyPets = message[7].Split(",");
 
         if (pets == null || enemyPets == null)
             return;
 
-        var petId = pets[0];
-        var petId2 = pets[1];
-        var petId3 = pets[2];
+        var model = Player.TempData.PetBattleModel;
 
-        var enemyPetId = enemyPets[0];
-        var enemyPetId2 = enemyPets[1];
-        var enemyPetId3 = enemyPets[2];
+        if (model == null)
+            return;
 
-        SendXt("BP", "0", petId, petId2, petId3, enemyPetId, enemyPetId2, enemyPetId3);
+        foreach (var pet in pets)
+        {
+            var battlePet = PetBattlePets.GetPetEvolutionFamily(int.Parse(pet)).FirstOrDefault(x => x.itemId == int.Parse(pet));
+
+            model.Pets.Add(battlePet);
+        }
+
+        foreach (var pet in enemyPets)
+        {
+            var battlePet = PetBattlePets.GetPetEvolutionFamily(int.Parse(pet)).FirstOrDefault(x => x.itemId == int.Parse(pet));
+
+            model.Pets.Add(battlePet);
+        }
+
+        Player.SendXt("BP", model.IsChallenger ? "1" : "0", model.Pets[0].itemId, model.Pets[1].itemId, model.Pets[2].itemId, model.Pets[3].itemId, model.Pets[4].itemId, model.Pets[5].itemId);
     }
 }

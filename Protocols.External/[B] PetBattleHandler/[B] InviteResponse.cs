@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using Server.Base.Core.Abstractions;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
+using Server.Reawakened.Players.Models.Pets;
+using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
 
 namespace Protocols.External._B__PetBattleHandler;
@@ -26,6 +27,10 @@ public class PetBattleInviteResponse : ExternalProtocol
 
         if (status)
         {
+            Player.TempData.PetBattleModel = new PetBattleModel(Player, false, false, [], Player.GetLevelId());
+
+            inviter.TempData.PetBattleModel = new PetBattleModel(inviter, true, false, [], inviter.GetLevelId());
+
             inviter.SendXt("BB", characterName, Player.CharacterName);
 
             ChangeLevel(inviter);

@@ -1,5 +1,5 @@
-﻿using Server.Reawakened.Network.Extensions;
-using Server.Reawakened.Network.Protocols;
+﻿using Server.Reawakened.Network.Protocols;
+using Server.Reawakened.Players.Models.Pets;
 
 namespace Protocols.External._B__PetBattleHandler;
 public class InitBattle : ExternalProtocol
@@ -9,11 +9,12 @@ public class InitBattle : ExternalProtocol
     public override void Run(string[] message)
     {
         var characterName = message[5];
-        var challenger = Player.PlayerContainer.GetPlayerByName(characterName);
 
-        if (challenger == null)
-            return;
+        var model = Player.TempData.PetBattleModel;
 
-        SendXt("BI", "1", characterName, Player.CharacterName);
+        if (model == null)
+            Player.TempData.PetBattleModel = new PetBattleModel(Player, true, true, [], 47);
+
+         SendXt("BI", "1", characterName, Player.CharacterName);
     }
 }
