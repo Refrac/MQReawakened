@@ -32,11 +32,8 @@ public class BattleAttack : ExternalProtocol
 
         // Knockout target pet
         if (targetPet.health <= 0)
-        {
-            model.Pets.Remove(targetPet);
             Player.SendXt("Bk", target, "0");
-        }
 
-        Player.SendXt("BT", model.Pets.Count >= 3 ? "1" : "0");
+        Player.SendXt("BT", pet >= 3 ? "1" : "0");
     }
 }
