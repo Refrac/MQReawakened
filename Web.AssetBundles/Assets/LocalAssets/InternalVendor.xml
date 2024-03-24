@@ -2,7 +2,6 @@
 <VendorCatalog>
     <!-- Crossroads Tribe -->
     <Level name="Clock Tower Square" id="47">
-        <!-- 2014 -->
         <Vendor objectId="98648" name="Mogri" descriptionId="0" numberOfIdolsToAccessBackStore="0" idolLevelId="0" vendorType="Pets" dialogId="1090" greetingConversationId="3028" leavingConversationId="3027">
             <Item prefabName="PF_PET_Rig02_Enzo01" />
             <Item prefabName="PF_PET_Rig01_Pheonix01" />
@@ -325,7 +324,6 @@
             <Item prefabName="Add_COM_Armor01_LS01" />
         </Vendor>
         <Vendor objectId="98648" name="Mogri" descriptionId="0" numberOfIdolsToAccessBackStore="0" idolLevelId="0" vendorType="Pets" dialogId="1090" greetingConversationId="3028" leavingConversationId="3027">
-            <!-- speculation -->
             <Item prefabName="PF_PET_Rig01_Pheonix01" />
             <Item prefabName="PF_PET_Rig02_Tiger01" />
             <Item prefabName="PF_PET_Rig01_Dragon01" />
