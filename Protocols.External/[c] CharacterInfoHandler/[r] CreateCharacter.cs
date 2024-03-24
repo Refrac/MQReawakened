@@ -28,24 +28,11 @@ public class CreateCharacter : ExternalProtocol
     {
         // Early 2012 doesn't split the names
         var firstName = message[5];
-        var middleName = string.Empty;
-        var lastName = string.Empty;
-        Gender gender;
-        CharacterDataModel characterData;
+        var middleName = message[6];
+        var lastName = message[7];
+        var gender = (Gender)int.Parse(message[8]);
+        var characterData = new CharacterDataModel(message[9]);
         var tribe = TribeType.Invalid;
-
-        if (ServerConfig.GameVersion >= GameVersion.vPets2012)
-        {
-            middleName = message[6];
-            lastName = message[7];
-            gender = (Gender)int.Parse(message[8]);
-            characterData = new CharacterDataModel(message[9]);
-        }
-        else
-        {
-            gender = (Gender)int.Parse(message[6]);
-            characterData = new CharacterDataModel(message[7]);
-        }
 
         if (ServerConfig.GameVersion >= GameVersion.v2014)
             tribe = (TribeType)int.Parse(message[10]);
