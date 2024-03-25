@@ -45,45 +45,10 @@ public class RoomUpdate : ExternalProtocol
     {
         var sb = new SeparatedStringBuilder('&');
 
-        if (Config.GameVersion >= GameVersion.vEarly2013)
-        {
-            foreach (var gameObject in room.GetEntities().Where(e => e.Value != null).Select(GetEntity)
-                         .Where(gameObject => gameObject.Split('~').Length > 1))
-                if (!string.IsNullOrEmpty(gameObject))
-                    sb.Append(gameObject);
-        }
-        else
-        {
-            foreach (var gameObject in room.GetEntities().Where(e => e.Value != null))
-            {
-                var entityId = gameObject.Key;
-                var entityComponents = gameObject.Value;
-
-                if (entityComponents == null)
-                    continue;
-
-                var componentData = entityComponents.Select(x => x.GetInitData(Player))
-                    .Where(x => x != null)
-                    .Where(x => x.Length > 0)
-                    .ToArray();
-
-                if (componentData.Length <= 0)
-                    continue;
-
-                if (componentData.Length > 1)
-                    Logger.LogError("Too many components for {EntityId}!", entityId);
-
-                var sbEntity = new SeparatedStringBuilder('|');
-
-                sbEntity.Append(entityId);
-
-                var component = componentData.FirstOrDefault();
-
-                sbEntity.Append(string.Join('!', component.Select(x => x.ToString())));
-
-                sb.Append(sbEntity.ToString());
-            }
-        }
+        foreach (var gameObject in room.GetEntities().Where(e => e.Value != null).Select(GetEntity)
+                        .Where(gameObject => gameObject.Split('~').Length > 1))
+            if (!string.IsNullOrEmpty(gameObject))
+                sb.Append(gameObject);
 
         return sb.ToString();
     }
