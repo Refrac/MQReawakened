@@ -578,9 +578,9 @@
                 <Item itemName="Add_COM_Lara01_LS01" count="1" />
                 <Item itemName="Add_COM_HoopEarrings02_E02" count="1" />
                 <Item itemName="COL_RECIP_PurifiedGoldNugget01" count="1" />
-                <Item itemName="Add_COM_ScaleTail01_T01" count="1" />           
             </Items>
         </LootInfo>
+        <!--Chest-->
         <LootInfo objectId="7432" doLootWheel="True">
             <Items rewardAmount="1">
                 <Item itemName="COL_POT_Healing01" count="1" />

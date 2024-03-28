@@ -204,9 +204,11 @@ public class InternalAchievement : IBundledXml<InternalAchievement>
         {
             var loopedAchievements = Definitions.achievements.Where(x => x.categoryId == category.id);
 
+            currentCount += loopedAchievements.Any() ? loopedAchievements.Max(x => x.id) : 0;
+
             foreach (var achievement in loopedAchievements)
             {
-                achievement.sortOrder += currentCount;
+                achievement.sortOrder = currentCount - achievement.sortOrder;
 
                 foreach (var cond in achievement.conditions)
                 {
@@ -222,8 +224,6 @@ public class InternalAchievement : IBundledXml<InternalAchievement>
                         PossibleConditions[cond.typeId].Add(cond.description);
                 }
             }
-
-            currentCount += loopedAchievements.Count();
         }
     }
 

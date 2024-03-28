@@ -3,6 +3,7 @@ using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.Players.Models.Trade;
 using Server.Reawakened.Rooms.Models.Entities.ColliderType;
 using Server.Reawakened.Rooms.Models.Planes;
+using Timer = Server.Base.Timers.Timer;
 
 namespace Server.Reawakened.Players.Models;
 
@@ -16,6 +17,8 @@ public class TemporaryDataModel
     public bool Invincible { get; set; } = false;
     public bool Invisible { get; set; } = false;
     public bool OnGround { get; set; } = false;
+    public bool Underwater { get; set; } = false;
+    public Timer UnderwaterTimer { get; set; } = null;
     public bool BananaBoostsElixir { get; set; }
     public bool ReputationBoostsElixir { get; set; }
     public bool IsSuperStomping { get; set; } = false;
