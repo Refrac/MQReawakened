@@ -13,7 +13,7 @@ public class InitBattle : ExternalProtocol
         var model = Player.TempData.PetBattleModel;
 
         if (model == null)
-            Player.TempData.PetBattleModel = new PetBattleModel(Player, true, true, [], 47);
+            Player.TempData.PetBattleModel = new PetBattleModel(Player, true, true, [], Player.Room.LevelInfo.LevelId);
 
          SendXt("BI", "1", characterName, Player.CharacterName);
     }

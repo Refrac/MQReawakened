@@ -36,6 +36,8 @@ public class SelectedPets : ExternalProtocol
             model.Pets.Add(battlePet);
         }
 
-        Player.SendXt("BP", model.IsChallenger ? "1" : "0", model.Pets[0].itemId, model.Pets[1].itemId, model.Pets[2].itemId, model.Pets[3].itemId, model.Pets[4].itemId, model.Pets[5].itemId);
+        Player.SendXt("BP", model.IsChallenger ? "1" : "0", 
+            model.Pets[0].itemId, model.Pets[1].itemId, model.Pets[2].itemId,
+            model.Pets[3].itemId, model.Pets[4].itemId, model.Pets[5].itemId);
     }
 }
