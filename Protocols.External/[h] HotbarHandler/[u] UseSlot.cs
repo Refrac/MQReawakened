@@ -24,6 +24,7 @@ public class UseSlot : ExternalProtocol
     public TimerThread TimerThread { get; set; }
     public ILogger<PlayerStatus> Logger { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
+    public InternalPet InternalPet { get; set; }
 
     public override void Run(string[] message)
     {
@@ -77,6 +78,12 @@ public class UseSlot : ExternalProtocol
 
     private void HandlePet(ItemDescription usedItem)
     {
+        var pet = InternalPet.GetPetProfile(usedItem.ItemId);
+
+        Player.SendXt("Za", Player.UserId, pet.ToString());
+        Player.SendXt("Zg", Player.UserId, pet.Energy);
+        Player.SendXt("Zm", Player.UserId, "1");
+
         Player.SendXt("ZE", Player.UserId, usedItem.ItemId, 1);
         Player.Character.Data.PetItemId = usedItem.ItemId;
     }

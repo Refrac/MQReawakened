@@ -36,13 +36,24 @@ public class BattleAttack : ExternalProtocol
             var isAOEAttack = target == -1;
 
             if (isAOEAttack)
+            {
                 //[Fix later] Opponent AOE's will attack their own team.
-                foreach (var enemyPet in model.Pets.Skip(3))
-                {
-                    target = model.Pets.IndexOf(enemyPet);
-                    DamagePet(ability, enemyPet, model);
-                }
 
+                var isEnemy = model.Pets.IndexOf(battlePet) >= 3;
+
+                if (isEnemy)
+                    foreach (var enemyPet in model.Pets.SkipLast(3))
+                    {
+                        target = model.Pets.IndexOf(enemyPet);
+                        DamagePet(ability, enemyPet, model);
+                    }
+                else
+                    foreach (var enemyPet in model.Pets.Skip(3))
+                    {
+                        target = model.Pets.IndexOf(enemyPet);
+                        DamagePet(ability, enemyPet, model);
+                    }
+            }
             else
                 DamagePet(ability, model.Pets[target], model);
         }
