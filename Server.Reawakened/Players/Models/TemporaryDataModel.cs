@@ -1,4 +1,5 @@
 ﻿using Server.Reawakened.Players.Models.Groups;
+using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.Players.Models.Trade;
 using Server.Reawakened.Rooms.Models.Entities.ColliderType;
 using Server.Reawakened.Rooms.Models.Planes;
@@ -30,6 +31,7 @@ public class TemporaryDataModel
 
     public TradeModel TradeModel { get; set; }
     public GroupModel Group { get; set; }
+    public PetBattleModel PetBattleModel { get; set; }
 
     public Dictionary<int, List<string>> CurrentAchievements { get; set; } = [];
 
