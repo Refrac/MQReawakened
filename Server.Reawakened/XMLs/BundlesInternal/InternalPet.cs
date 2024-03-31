@@ -1,6 +1,6 @@
-﻿using A2m.Server;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Entities.Entity;
+using Server.Reawakened.Configs;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.XMLs.Abstractions;
@@ -26,6 +26,8 @@ public class InternalPet : IBundledXml<InternalPet>
 
     public void ReadDescription(string xml)
     {
+        var config = Services.GetRequiredService<ServerRConfig>();
+
         var xmlDocument = new XmlDocument();
         xmlDocument.LoadXml(xml);
 
@@ -41,6 +43,7 @@ public class InternalPet : IBundledXml<InternalPet>
                 var itemId = -1;
                 var typeId = -1;
                 var energy = -1;
+                var experience = -1;
                 var foodToConsume = -1;
                 var timeToConsume = -1;
                 var boostXp = -1;
@@ -61,6 +64,9 @@ public class InternalPet : IBundledXml<InternalPet>
                         case "energy":
                             energy = int.Parse(attribute.Value);
                             break;
+                        case "experience":
+                            experience = int.Parse(attribute.Value);
+                            break;
                         case "foodToConsume":
                             foodToConsume = int.Parse(attribute.Value);
                             break;
@@ -80,8 +86,10 @@ public class InternalPet : IBundledXml<InternalPet>
                     TypeId = typeId,
                     Energy = energy,
                     FoodToConsume = foodToConsume,
+                    Experience = experience,
                     TimeToConsume = timeToConsume,
-                    BoostXp = boostXp
+                    BoostXp = boostXp,
+                    GameVersion = config.GameVersion
                 };
 
                 PetsDictionary.TryAdd(itemId, model);
