@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PetAbilities>
-    <Ability prefab_id="" pet_ability_type_id="" elemental="" cooldownTime="" duration="" frequency="" initialDelayBeforeUse="" itemEffectStatRatio="" useCount="" maxHitCount="" damageAreaX="" damageAreaY="" damageAreaOffsetX="" damageAreaOffsetY="" detectionZoneX="" detectionZoneY="" detectionZoneOffsetX="" detectionZoneOffsetY="" applyOnHealthRatio="" defensiveBonusRatio="" />
+    <!-- Saberstrike -->
+    <Ability prefab_id="1730653899" pet_ability_type_id="1" elemental="2" cooldownTime="1" duration="1" frequency="1" initialDelayBeforeUse="30" itemEffectStatRatio="1" useCount="1" maxHitCount="2" damageAreaX="1" damageAreaY="1" damageAreaOffsetX="1" damageAreaOffsetY="1" detectionZoneX="1" detectionZoneY="1" detectionZoneOffsetX="1" detectionZoneOffsetY="1" applyOnHealthRatio="0" defensiveBonusRatio="0" />
 </PetAbilities>
