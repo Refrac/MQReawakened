@@ -11,7 +11,7 @@ public class PetProfileModel
     public int Energy { get; set; }
     public int Experience { get; set; }
     public int FoodToConsume { get; set; }
-    public int TimeToConsume { get; set; }
+    public long TimeToConsume { get; set; }
     public int BoostXp { get; set; }
     public GameVersion GameVersion = GameVersion.Unknown;
 

@@ -45,7 +45,7 @@ public class InternalPet : IBundledXml<InternalPet>
                 var energy = -1;
                 var experience = -1;
                 var foodToConsume = -1;
-                var timeToConsume = -1;
+                var timeToConsume = -1L;
                 var boostXp = -1;
 
                 foreach (XmlAttribute attribute in pet.Attributes)
@@ -71,7 +71,7 @@ public class InternalPet : IBundledXml<InternalPet>
                             foodToConsume = int.Parse(attribute.Value);
                             break;
                         case "timeToConsume":
-                            timeToConsume = int.Parse(attribute.Value);
+                            timeToConsume = long.Parse(attribute.Value);
                             break;
                         case "boostXp":
                             boostXp = int.Parse(attribute.Value);
