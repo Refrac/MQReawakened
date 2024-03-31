@@ -1,57 +1,57 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Pets>
     <Pet id="1" name="Saberstrike" itemId="1730653899" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="2" name="Mega Saberstrike" itemId="1686404863" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="3" name="Ultra Saberstrike" itemId="849952136" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="2" name="Mega Saberstrike" itemId="1686404863" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="3" name="Ultra Saberstrike" itemId="849952136" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="4" name="Fireswoop" itemId="263733362" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="5" name="Mega Fireswoop" itemId="2047911045" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="6" name="Ultra Fireswoop" itemId="306428132" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="5" name="Mega Fireswoop" itemId="2047911045" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="6" name="Ultra Fireswoop" itemId="306428132" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="7" name="Kraklin" itemId="1215678750" typeId="1" energy="10000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="8" name="Mega Kraklin" itemId="595861503" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="9" name="Ultra Kraklin" itemId="1978612903" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="8" name="Mega Kraklin" itemId="595861503" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="9" name="Ultra Kraklin" itemId="1978612903" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="10" name="Ripfin" itemId="156234756" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="11" name="Mega Ripfin" itemId="1942890878" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="12" name="Ultra Ripfin" itemId="1193668601" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="11" name="Mega Ripfin" itemId="1942890878" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="12" name="Ultra Ripfin" itemId="1193668601" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="13" name="Woofer" itemId="1745213651" typeId="1" energy="10000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="14" name="Mega Woofer" itemId="1158209011" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="15" name="Ultra Woofer" itemId="1261076662" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="14" name="Mega Woofer" itemId="1158209011" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="15" name="Ultra Woofer" itemId="1261076662" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="16" name="Blackfish" itemId="813045533" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="17" name="Mega Blackfish" itemId="1268750100" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="18" name="Ultra Blackfish" itemId="1847611353" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="17" name="Mega Blackfish" itemId="1268750100" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="18" name="Ultra Blackfish" itemId="1847611353" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="19" name="Enzo" itemId="2061554059" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="20" name="Mega Enzo" itemId="2121544388" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="21" name="Ultra Enzo" itemId="1437581284" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="20" name="Mega Enzo" itemId="2121544388" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="21" name="Ultra Enzo" itemId="1437581284" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="22" name="Pandril" itemId="831362013" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="23" name="Mega Pandril" itemId="651141688" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="24" name="Ultra Pandril" itemId="1156167104" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="23" name="Mega Pandril" itemId="651141688" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="24" name="Ultra Pandril" itemId="1156167104" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="25" name="Taifune" itemId="1550685233" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="26" name="Mega Taifune" itemId="184065209" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="27" name="Ultra Taifune" itemId="586330523" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="26" name="Mega Taifune" itemId="184065209" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="27" name="Ultra Taifune" itemId="586330523" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="28" name="Skyclaw" itemId="1229098113" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="29" name="Mega Skyclaw" itemId="146609883" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="30" name="Ultra Skyclaw" itemId="825379631" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="29" name="Mega Skyclaw" itemId="146609883" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="30" name="Ultra Skyclaw" itemId="825379631" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="31" name="Gravewing" itemId="462901961" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="32" name="Mega Gravewing" itemId="76230593" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="33" name="Ultra Gravewing" itemId="1483624492" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="32" name="Mega Gravewing" itemId="76230593" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="33" name="Ultra Gravewing" itemId="1483624492" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="34" name="Croaker" itemId="861994970" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="35" name="Mega Croaker" itemId="601556576" typeId="1" energy="3000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="36" name="Ultra Croaker" itemId="545027426" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="36" name="Ultra Croaker" itemId="545027426" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="37" name="Timberbeak" itemId="519098779" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="38" name="Mega Timberbeak" itemId="933541208" typeId="1" energy="3000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="39" name="Ultra Timberbeak" itemId="1612451081" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="39" name="Ultra Timberbeak" itemId="1612451081" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="40" name="Jax" itemId="838156663" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="41" name="Mega Jax" itemId="1571012710" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="42" name="Ultra Jax" itemId="1442524567" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="41" name="Mega Jax" itemId="1571012710" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="42" name="Ultra Jax" itemId="1442524567" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="43" name="Chilee" itemId="1289832645" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="44" name="Mega Chilee" itemId="83287814" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="45" name="Ultra Chilee" itemId="1077866891" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="44" name="Mega Chilee" itemId="83287814" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="45" name="Ultra Chilee" itemId="1077866891" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="46" name="Polarbite" itemId="1238453361" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="47" name="Mega Polarbite" itemId="1585922109" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="48" name="Ultra Polarbite" itemId="749097426" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="47" name="Mega Polarbite" itemId="1585922109" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="48" name="Ultra Polarbite" itemId="749097426" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="49" name="Winterstorm" itemId="1106293405" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="50" name="Mega Winterstorm" itemId="1948766736" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="51" name="Ultra Winterstorm" itemId="1499567936" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="50" name="Mega Winterstorm" itemId="1948766736" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="51" name="Ultra Winterstorm" itemId="1499567936" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="52" name="Wind-Up Gary" itemId="1459758504" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="53" name="Mega Wind-Up Gary" itemId="1232130807" typeId="1" energy="3500" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="54" name="Ultra Wind-Up Gary" itemId="1137214132" typeId="1" energy="5000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="53" name="Mega Wind-Up Gary" itemId="1232130807" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="54" name="Ultra Wind-Up Gary" itemId="1137214132" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
 </Pets>
