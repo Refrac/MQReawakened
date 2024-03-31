@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PetAbilities>
+    <Ability prefab_id="" pet_ability_type_id="" elemental="" cooldownTime="" duration="" frequency="" initialDelayBeforeUse="" itemEffectStatRatio="" useCount="" maxHitCount="" damageAreaX="" damageAreaY="" damageAreaOffsetX="" damageAreaOffsetY="" detectionZoneX="" detectionZoneY="" detectionZoneOffsetX="" detectionZoneOffsetY="" applyOnHealthRatio="" defensiveBonusRatio="" />
 </PetAbilities>
