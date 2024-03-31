@@ -25,6 +25,7 @@ public class UseSlot : ExternalProtocol
     public ILogger<PlayerStatus> Logger { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
     public InternalPet InternalPet { get; set; }
+    public WorldStatistics WorldStatistics { get; set; }
 
     public override void Run(string[] message)
     {
@@ -79,9 +80,10 @@ public class UseSlot : ExternalProtocol
     private void HandlePet(ItemDescription usedItem)
     {
         var pet = InternalPet.GetPetProfile(usedItem.ItemId);
+        var petEnergy = WorldStatistics.GetValue(ItemEffectType.PetEnergyValue, WorldStatisticsGroup.Pet, Player.Character.Data.GlobalLevel);
 
         Player.SendXt("Za", Player.UserId, pet.ToString());
-        Player.SendXt("Zg", Player.UserId, pet.Energy);
+        Player.SendXt("Zg", Player.UserId, petEnergy);
         Player.SendXt("Zm", Player.UserId, "1");
 
         Player.SendXt("ZE", Player.UserId, usedItem.ItemId, 1);
