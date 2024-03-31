@@ -5,13 +5,13 @@ using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Enums;
 using System.Xml;
 
-namespace Server.Reawakened.XMLs.BundlesInternal;
-public class InternalPetAbilities : PetAbilitiesXML, IBundledXml<InternalPetAbilities>
+namespace Server.Reawakened.XMLs.Bundles;
+public class PetAbilities : PetAbilitiesXML, IBundledXml<PetAbilities>
 {
     public string BundleName => "PetAbilities";
     public BundlePriority Priority => BundlePriority.Lowest;
 
-    public ILogger<InternalPetAbilities> Logger { get; set; }
+    public ILogger<PetAbilities> Logger { get; set; }
     public IServiceProvider Services { get; set; }
 
     public Dictionary<int, PetAbilityParams> AbilityData;
@@ -27,9 +27,9 @@ public class InternalPetAbilities : PetAbilitiesXML, IBundledXml<InternalPetAbil
     {
     }
 
-    public void ReadDescription(string xml) => 
+    public void ReadDescription(string xml) =>
         ReadDescriptionXml(xml);
 
-    public void FinalizeBundle() => 
+    public void FinalizeBundle() =>
         AbilityData = (Dictionary<int, PetAbilityParams>)this.GetField<PetAbilitiesXML>("_petAbilityData");
 }
