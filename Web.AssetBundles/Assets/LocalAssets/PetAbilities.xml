@@ -2,4 +2,6 @@
 <PetAbilities>
     <!-- Saberstrike -->
     <Ability prefab_id="1730653899" pet_ability_type_id="1" elemental="2" cooldownTime="1.0" duration="1.0" frequency="1.0" initialDelayBeforeUse="1.0" itemEffectStatRatio="1.0" useCount="1" maxHitCount="2" damageAreaX="1.0" damageAreaY="1.0" damageAreaOffsetX="1.0" damageAreaOffsetY="1.0" detectionZoneX="1.0" detectionZoneY="1.0" detectionZoneOffsetX="1.0" detectionZoneOffsetY="1.0" applyOnHealthRatio="0.0" defensiveBonusRatio="0.0" />
+    <Ability prefab_id="1686404863" pet_ability_type_id="1" elemental="2" cooldownTime="1.0" duration="1.0" frequency="1.0" initialDelayBeforeUse="1.0" itemEffectStatRatio="1.0" useCount="1" maxHitCount="2" damageAreaX="1.0" damageAreaY="1.0" damageAreaOffsetX="1.0" damageAreaOffsetY="1.0" detectionZoneX="1.0" detectionZoneY="1.0" detectionZoneOffsetX="1.0" detectionZoneOffsetY="1.0" applyOnHealthRatio="0.0" defensiveBonusRatio="0.0" />
+    <Ability prefab_id="849952136" pet_ability_type_id="1" elemental="2" cooldownTime="1.0" duration="1.0" frequency="1.0" initialDelayBeforeUse="1.0" itemEffectStatRatio="1.0" useCount="1" maxHitCount="2" damageAreaX="1.0" damageAreaY="1.0" damageAreaOffsetX="1.0" damageAreaOffsetY="1.0" detectionZoneX="1.0" detectionZoneY="1.0" detectionZoneOffsetX="1.0" detectionZoneOffsetY="1.0" applyOnHealthRatio="0.0" defensiveBonusRatio="0.0" />
 </PetAbilities>

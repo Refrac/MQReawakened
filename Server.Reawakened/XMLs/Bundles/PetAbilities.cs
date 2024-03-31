@@ -3,6 +3,7 @@ using PetDefines;
 using Server.Base.Core.Extensions;
 using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Enums;
+using System.Reflection;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.Bundles;
@@ -30,6 +31,25 @@ public class PetAbilities : PetAbilitiesXML, IBundledXml<PetAbilities>
     public void ReadDescription(string xml) =>
         ReadDescriptionXml(xml);
 
-    public void FinalizeBundle() =>
+    public void FinalizeBundle()
+    {
+        var field = typeof(GameFlow).GetField("_petAbilitiesXML",
+                    BindingFlags.Static |
+                    BindingFlags.NonPublic);
+
+        field.SetValue(null, this);
+
         AbilityData = (Dictionary<int, PetAbilityParams>)this.GetField<PetAbilitiesXML>("_petAbilityData");
+    }
+
+    public new PetAbilityParams GetAbilityData(int prefabID)
+    {
+        if (!AbilityData.TryGetValue(prefabID, out var value))
+        {
+            Logger.LogWarning("Pet with id {prefabId} does not exist in AbilityData", prefabID);
+            return null;
+        }
+
+        return value;
+    }
 }

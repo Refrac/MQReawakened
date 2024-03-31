@@ -34,10 +34,10 @@
     <Pet id="32" name="Mega Gravewing" itemId="76230593" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="33" name="Ultra Gravewing" itemId="1483624492" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="34" name="Croaker" itemId="861994970" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="35" name="Mega Croaker" itemId="601556576" typeId="1" energy="3000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="35" name="Mega Croaker" itemId="601556576" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="36" name="Ultra Croaker" itemId="545027426" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="37" name="Timberbeak" itemId="519098779" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
-    <Pet id="38" name="Mega Timberbeak" itemId="933541208" typeId="1" energy="3000" foodToConsume="0" timeToConsume="0" boostXp="0" />
+    <Pet id="38" name="Mega Timberbeak" itemId="933541208" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="39" name="Ultra Timberbeak" itemId="1612451081" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="40" name="Jax" itemId="838156663" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
     <Pet id="41" name="Mega Jax" itemId="1571012710" typeId="1" energy="1000" foodToConsume="0" timeToConsume="0" boostXp="0" />
