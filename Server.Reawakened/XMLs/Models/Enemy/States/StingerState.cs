@@ -1,7 +1,6 @@
 ﻿using Server.Reawakened.Entities.Components;
-using Server.Reawakened.Entities.Enemies.BehaviorEnemies;
+using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
 using Server.Reawakened.Entities.Enemies.BehaviorEnemies.BehaviourTypes;
-using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.XMLs.Models.Enemy.Abstractions;
 using Server.Reawakened.XMLs.Models.Enemy.Models;
 
@@ -17,7 +16,7 @@ public class StingerState(float speedForward, float speedBackward, float inDurat
     public float InDurationBackward { get; } = inDurationBackward;
     public float StingerDamageDistance { get; } = stingerDamageDistance;
 
-    public override AIBaseBehavior CreateBaseBehaviour(AIStatsGenericComp generic) => new AIBehaviorStinger(this);
+    protected override AIBaseBehavior GetBaseBehaviour(AIStatsGlobalComp globalComp, AIStatsGenericComp genericComp) => new AIBehaviorStinger(this);
 
     public override string[] GetStartArgs(BehaviorEnemy behaviorEnemy) =>
         [
@@ -30,19 +29,4 @@ public class StingerState(float speedForward, float speedBackward, float inDurat
             SpeedForward.ToString(),
             SpeedBackward.ToString()
         ];
-
-    public override string ToStateString(AIStatsGenericComp generic)
-    {
-        var sb = new SeparatedStringBuilder(';');
-
-        sb.Append(SpeedForward);
-        sb.Append(SpeedBackward);
-        sb.Append(InDurationForward);
-        sb.Append(AttackDuration);
-        sb.Append(DamageAttackTimeOffset);
-        sb.Append(InDurationBackward);
-        sb.Append(StingerDamageDistance);
-
-        return sb.ToString();
-    }
 }
