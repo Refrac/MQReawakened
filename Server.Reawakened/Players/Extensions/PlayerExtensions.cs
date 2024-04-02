@@ -1,5 +1,4 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Configs;
 using Server.Reawakened.Network.Extensions;
@@ -209,10 +208,6 @@ public static class PlayerExtensions
             error = e.Message;
         }
 
-        // this allows early 2012 to load 
-        // the empty string is displayLevelName in ILSpy
-        // _player.SendXt("lw", error, levelName, string.Empty, surroundingLevels);
-
         player.SendXt("lw", error, levelName, surroundingLevels);
     }
 
@@ -281,32 +276,16 @@ public static class PlayerExtensions
     }
 
     public static void CheckObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, QuestCatalog questCatalog)
-    {
-        var itemCatalog = questCatalog.Services.GetRequiredService<ItemCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog);
-    }
+        int count, QuestCatalog questCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, questCatalog.ItemCatalog);
 
     public static void CheckObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, ItemCatalog itemCatalog)
-    {
-        var questCatalog = itemCatalog.Services.GetRequiredService<QuestCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog);
-    }
+        int count, ItemCatalog itemCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, itemCatalog.QuestCatalog, itemCatalog);
 
     public static void SetObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, QuestCatalog questCatalog)
-    {
-        var itemCatalog = questCatalog.Services.GetRequiredService<ItemCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog, true);
-    }
+        int count, QuestCatalog questCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, questCatalog.ItemCatalog, true);
 
     public static void SetObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, ItemCatalog itemCatalog)
-    {
-        var questCatalog = itemCatalog.Services.GetRequiredService<QuestCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog, true);
-    }
+        int count, ItemCatalog itemCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, itemCatalog.QuestCatalog, itemCatalog, true);
 
     private static void CheckObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
         int count, QuestCatalog questCatalog, ItemCatalog itemCatalog, bool setObjective = false)
@@ -413,7 +392,7 @@ public static class PlayerExtensions
                                 var item = itemCatalog.GetItemFromId(obj.ItemId);
 
                                 if (player.Character.Data.Inventory.Items.TryGetValue(obj.ItemId, out var itemModel) && item != null)
-                                    player.CheckObjective(ObjectiveEnum.Deliver, gameObjectId, item.PrefabName, itemModel.Count, questCatalog);
+                                    player.CheckObjective(ObjectiveEnum.Deliver, gameObjectId, item.PrefabName, itemModel.Count, questCatalog, itemCatalog);
                             }
                             break;
                         case ObjectiveEnum.Deliver:

@@ -15,16 +15,15 @@ using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.XMLs.Enums;
 using Server.Reawakened.Configs;
-using Server.Reawakened.Entities.Enemies.Utils;
-using Server.Reawakened.Entities.Enemies.EnemyAI;
-using Server.Reawakened.Rooms.Models.Entities.ColliderType;
 using Server.Reawakened.Rooms.Models.Entities.Colliders;
+using Server.Reawakened.XMLs.Models.Enemy.Models;
+using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Extensions;
+using Server.Reawakened.Entities.Enemies.BehaviorEnemies;
 
 namespace Server.Reawakened.Entities.Enemies;
 
 public abstract class Enemy : IDestructible
 {
-
     public readonly ILogger<BehaviorEnemy> Logger;
     public readonly InternalAchievement InternalAchievement;
     public readonly QuestCatalog QuestCatalog;
@@ -105,7 +104,7 @@ public abstract class Enemy : IDestructible
         GenerateHitbox(BehaviorList.Hitbox);
 
         //This is just a dummy. AI_Stats_Global has no data, so these fields are populated in the specific Enemy classes
-        EnemyGlobalProps = new GlobalProperties(true, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Generic", "", false, false, 0);
+        EnemyGlobalProps = new GlobalProperties(true, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Generic", string.Empty, false, false, 0);
     }
 
     public virtual void Initialize() => Init = true;
@@ -131,31 +130,16 @@ public abstract class Enemy : IDestructible
 
     public void GenerateHitbox(HitboxModel box)
     {
-        var width = box.Width * EnemyController.Scale.X;
-        var height = box.Height * EnemyController.Scale.Y;
-        float offsetX;
-        float offsetY;
+        var width = box.Width * EnemyController.Scale.X * (EnemyController.Scale.X < 0 ? -1 : 1);
+        var height = box.Height * EnemyController.Scale.Y * (EnemyController.Scale.Y < 0 ? -1 : 1);
 
+        var offsetX = box.XOffset * EnemyController.Scale.X - width / 2 * (EnemyController.Scale.X < 0 ? -1 : 1);
 
-        if (EnemyController.Scale.X >= 0)
-            offsetX = box.XOffset * EnemyController.Scale.X - width / 2;
-        else
-        {
-            width *= -1;
-            offsetX = box.XOffset * -1 * EnemyController.Scale.X - width / 2;
-        }
+        var offsetY = box.YOffset * EnemyController.Scale.Y - height / 2 * (EnemyController.Scale.Y < 0 ? -1 : 1);
 
-        if (EnemyController.Scale.Y >= 0)
-            offsetY = box.YOffset * EnemyController.Scale.Y - height / 2;
-        else
-        {
-            height *= -1;
-            offsetY = box.YOffset * -1 * EnemyController.Scale.Y - height / 2;
-        }
+        var position = new Vector3Model { X = offsetX, Y = offsetY, Z = Position.z };
 
-
-        Hitbox = new EnemyCollider(Id, new Vector3Model { X = offsetX, Y = offsetY, Z = Position.z },
-             width, height, ParentPlane, Room)
+        Hitbox = new EnemyCollider(Id, position, width, height, ParentPlane, Room)
         {
             Position = new Vector3(Position.x, Position.y, Position.z)
         };
@@ -169,6 +153,7 @@ public abstract class Enemy : IDestructible
             return;
 
         var trueDamage = damage - GameFlow.StatisticData.GetValue(ItemEffectType.Defence, WorldStatisticsGroup.Enemy, Level);
+
         if (trueDamage <= 0)
             trueDamage = 1;
 

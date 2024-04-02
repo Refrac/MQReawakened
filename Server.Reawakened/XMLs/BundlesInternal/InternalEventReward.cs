@@ -1,5 +1,4 @@
 ﻿using Achievement.StaticData;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Players;
 using Server.Reawakened.XMLs.Abstractions;
@@ -10,29 +9,28 @@ using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
 
-public class InternalEventReward : IBundledXml<InternalEventReward>
+public class InternalEventReward : InternalXml
 {
-    public string BundleName => "InternalEventReward";
-    public BundlePriority Priority => BundlePriority.Lowest;
+    public override string BundleName => "InternalEventReward";
+    public override BundlePriority Priority => BundlePriority.Lowest;
 
     public ILogger<InternalEventReward> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
 
     public Dictionary<int, List<AchievementDefinitionRewards>> EventRewards;
 
-    public void InitializeVariables() => EventRewards = [];
+    public override void InitializeVariables() => EventRewards = [];
 
-    public void EditDescription(XmlDocument xml)
+    public void CheckEventReward(int eventId, Player player, InternalAchievement internalAchievement)
     {
+        if (!EventRewards.TryGetValue(eventId, out var eventRewards))
+            return;
+
+        eventRewards.RewardPlayer(player, internalAchievement, Logger);
     }
 
-    public void ReadDescription(string xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
-        var catalog = Services.GetRequiredService<ItemCatalog>();
-
         foreach (XmlNode eventRewardXml in xmlDocument.ChildNodes)
         {
             if (eventRewardXml.Name != "EventRewards") continue;
@@ -51,22 +49,10 @@ public class InternalEventReward : IBundledXml<InternalEventReward>
                             continue;
                     }
 
-                var rewards = tEvent.GetXmlRewards(Logger, catalog);
+                var rewards = tEvent.GetXmlRewards(Logger, ItemCatalog);
 
                 EventRewards.Add(eventId, rewards);
             }
         }
-    }
-
-    public void FinalizeBundle()
-    {
-    }
-
-    public void CheckEventReward(int eventId, ItemCatalog itemCatalog, Player player, InternalAchievement internalAchievement)
-    {
-        if (!EventRewards.TryGetValue(eventId, out var eventRewards))
-            return;
-
-        eventRewards.RewardPlayer(player, itemCatalog, internalAchievement, Logger);
     }
 }

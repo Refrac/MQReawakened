@@ -1,36 +1,21 @@
-﻿using Microsoft.Extensions.Logging;
-using Server.Reawakened.XMLs.Abstractions;
+﻿using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Enums;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
 
-public class InternalObjective : IBundledXml<InternalObjective>
+public class InternalObjective : InternalXml
 {
-    public string BundleName => "InternalObjective";
-    public BundlePriority Priority => BundlePriority.Highest;
-
-    public ILogger<InternalObjective> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public override string BundleName => "InternalObjective";
+    public override BundlePriority Priority => BundlePriority.Highest;
 
     public Dictionary<int, string> ObjectivePrefabs;
 
-    public InternalObjective()
-    {
-    }
-
-    public void InitializeVariables() =>
+    public override void InitializeVariables() =>
         ObjectivePrefabs = [];
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode objectiveXml in xmlDocument.ChildNodes)
         {
             if (!(objectiveXml.Name == "ObjectiveCatalogs")) continue;
@@ -56,9 +41,5 @@ public class InternalObjective : IBundledXml<InternalObjective>
                 ObjectivePrefabs.Add(itemId, prefabName);
             }
         }
-    }
-
-    public void FinalizeBundle()
-    {
     }
 }

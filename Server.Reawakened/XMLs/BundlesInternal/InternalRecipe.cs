@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Players.Models.Character;
 using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Bundles;
@@ -9,34 +8,28 @@ using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
 
-public class InternalRecipe : IBundledXml<InternalRecipe>
+public class InternalRecipe : InternalXml
 {
-    public string BundleName => "InternalRecipe";
-    public BundlePriority Priority => BundlePriority.Low;
+    public override string BundleName => "InternalRecipe";
+    public override BundlePriority Priority => BundlePriority.Low;
 
     public ILogger<InternalRecipe> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
 
     public Dictionary<int, RecipeModel> RecipeCatalog;
     public Dictionary<string, List<int>> RecipeTypeList;
 
-    public void InitializeVariables()
+    public override void InitializeVariables()
     {
         RecipeCatalog = [];
         RecipeTypeList = [];
     }
 
-    public void EditDescription(XmlDocument xml)
+    public RecipeModel GetRecipeById(int recipeId) =>
+        RecipeCatalog.TryGetValue(recipeId, out var recipeInfo) ? recipeInfo : RecipeCatalog[0];
+
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var itemCatalog = Services.GetRequiredService<ItemCatalog>();
-
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode recipeXml in xmlDocument.ChildNodes)
         {
             if (recipeXml.Name != "RecipeCatalog") continue;
@@ -75,7 +68,7 @@ public class InternalRecipe : IBundledXml<InternalRecipe>
                         }
                     }
 
-                    var itemList = recipeInfo.GetXmlItems(itemCatalog, Logger);
+                    var itemList = recipeInfo.GetXmlItems(ItemCatalog, Logger);
 
                     foreach (var item in itemList)
                     {
@@ -88,7 +81,7 @@ public class InternalRecipe : IBundledXml<InternalRecipe>
                         ingredients.Add(ingredientModel);
                     }
 
-                    var recipeItem = itemCatalog.GetItemFromPrefabName(recipeName);
+                    var recipeItem = ItemCatalog.GetItemFromPrefabName(recipeName);
 
                     if (recipeItem == null)
                     {
@@ -119,11 +112,4 @@ public class InternalRecipe : IBundledXml<InternalRecipe>
             }
         }
     }
-
-    public void FinalizeBundle()
-    {
-    }
-
-    public RecipeModel GetRecipeById(int recipeId) =>
-        RecipeCatalog.TryGetValue(recipeId, out var recipeInfo) ? recipeInfo : RecipeCatalog[0];
 }

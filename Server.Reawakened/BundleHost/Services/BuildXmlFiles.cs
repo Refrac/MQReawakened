@@ -27,18 +27,18 @@ public class BuildXmlFiles(AssetEventSink eventSink, IServiceProvider services,
 
         InternalDirectory.OverwriteDirectory(rConfig.XmlSaveDirectory);
 
-        var bundles = services.GetRequiredServices<IInternalBundledXml>(Modules)
+        var bundles = services.GetRequiredServices<IBundledXml>(Modules)
             .ToDictionary(x => x.BundleName, x => x);
 
         foreach (var bundle in bundles)
         {
-            bundle.Value.Services = services;
+            foreach (var property in bundle.Value.GetProperties())
+            {
+                var service = services.GetService(property.PropertyType);
 
-            const string loggerName = "Logger";
-
-            var loggerType = bundle.Value.GetPropertyType(loggerName);
-            var logger = services.GetService(loggerType);
-            bundle.Value.SetPropertyType(loggerName, logger);
+                if (service != null)
+                    property.SetValue(bundle.Value, service);
+            }
 
             bundle.Value.InitializeVariables();
         }
@@ -65,7 +65,7 @@ public class BuildXmlFiles(AssetEventSink eventSink, IServiceProvider services,
 
                 logger.LogTrace("Loading XML: {BundleName} ({DateTime})", asset.Name, time.Date.ToShortDateString());
 
-                if (bundle is IInternalLocalizationXml localizedXmlBundle)
+                if (bundle is ILocalizationXml localizedXmlBundle)
                 {
                     var localizedAsset = assets.FirstOrDefault(x =>
                         string.Equals(x.Name, localizedXmlBundle.LocalizationName,
@@ -96,14 +96,25 @@ public class BuildXmlFiles(AssetEventSink eventSink, IServiceProvider services,
                     XmlFiles.Add(localizedAsset.Name, locPath);
                 }
 
-                var xml = new XmlDocument();
-                xml.LoadXml(text);
+                var settings = new XmlReaderSettings() { IgnoreComments = true, IgnoreWhitespace = true };
+                var xmlDocument = new XmlDocument();
 
-                bundle.EditDescription(xml);
+                using var reader = XmlReader.Create(new StringReader(text), settings);
 
-                text = xml.WriteToString();
+                xmlDocument.Load(reader);
 
-                bundle.ReadDescription(text);
+                bundle.EditDescription(xmlDocument);
+
+                if (bundle is InternalXml internalXml)
+                {
+                    internalXml.ReadDescription(xmlDocument);
+                }
+                else
+                {
+                    text = xmlDocument.WriteToString();
+                    bundle.ReadDescription(text);
+                }
+
                 bundle.FinalizeBundle();
 
                 bundles.Remove(asset.Name);

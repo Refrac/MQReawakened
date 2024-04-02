@@ -1,7 +1,5 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Configs;
 using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.BundlesEdit;
@@ -11,40 +9,27 @@ using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
 
-public class InternalItem : IBundledXml<InternalItem>
+public class InternalItem : InternalXml
 {
-    public string BundleName => "InternalItem";
-    public BundlePriority Priority => BundlePriority.High;
+    public override string BundleName => "InternalItem";
+    public override BundlePriority Priority => BundlePriority.High;
 
-    public IServiceProvider Services { get; set; }
     public ILogger<InternalItem> Logger { get; set; }
+    public MiscTextDictionary MiscTextDictionary { get; set; }
+    public EditItem EditItem { get; set; }
+    public InternalObjective InternalObjective { get; set; }
 
     public Dictionary<int, ItemDescription> Items;
     public Dictionary<int, string> Descriptions;
 
-    public InternalItem()
-    {
-    }
-
-    public void InitializeVariables()
+    public override void InitializeVariables()
     {
         Items = [];
         Descriptions = [];
     }
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var miscDict = Services.GetRequiredService<MiscTextDictionary>();
-        var editItem = Services.GetRequiredService<EditItem>();
-        var config = Services.GetRequiredService<ServerRConfig>();
-
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode itemXml in xmlDocument.ChildNodes)
         {
             if (!(itemXml.Name == "Catalog")) continue;
@@ -238,20 +223,20 @@ public class InternalItem : IBundledXml<InternalItem>
 
                         var description = string.Empty;
 
-                        if (miscDict.LocalizationDict.TryGetValue(descriptionId, out var miscDescription))
+                        if (MiscTextDictionary.LocalizationDict.TryGetValue(descriptionId, out var miscDescription))
                         {
                             description = miscDescription;
                             Descriptions.TryAdd(descriptionId, description);
                         }
                         else
                         {
-                            var attributes = editItem.GetItemAttributes(prefabName);
+                            var attributes = EditItem.GetItemAttributes(prefabName);
 
                             if (attributes.TryGetValue("ingamedescription", out var attributeValue))
                             {
                                 var editedDescriptionId = int.Parse(attributeValue);
 
-                                if (miscDict.LocalizationDict.TryGetValue(editedDescriptionId, out var editedDescription))
+                                if (MiscTextDictionary.LocalizationDict.TryGetValue(editedDescriptionId, out var editedDescription))
                                 {
                                     Descriptions.TryAdd(editedDescriptionId, editedDescription);
                                     break;
@@ -259,11 +244,11 @@ public class InternalItem : IBundledXml<InternalItem>
                             }
                         }
 
-                        var nameId = miscDict.LocalizationDict.FirstOrDefault(x => x.Value == itemName);
+                        var nameId = MiscTextDictionary.LocalizationDict.FirstOrDefault(x => x.Value == itemName);
 
                         if (string.IsNullOrEmpty(nameId.Value))
                         {
-                            Logger.LogError("Could not find name for item {ItemName} in misc dictionary", itemName);
+                            Logger.LogError("Could not find name for item '{ItemName}' in misc dictionary", itemName);
                             continue;
                         }
 
@@ -271,7 +256,7 @@ public class InternalItem : IBundledXml<InternalItem>
 
                         if (!string.IsNullOrEmpty(prefabName))
                             if (Items.TryGetValue(itemId, out var itemDesc))
-                                Logger.LogError("Item {PrefabName} cannot be added as item {PrefabName} already exists with id {Id}", prefabName, itemDesc.PrefabName, itemId);
+                                Logger.LogError("Item '{PrefabName}' cannot be added as item '{PrefabName}' already exists with id '{Id}'", prefabName, itemDesc.PrefabName, itemId);
                             else
                                 Items.Add(itemId, new ItemDescription(itemId,
                                     tribe, itemCategoryType, subCategoryType, actionType,
@@ -286,11 +271,9 @@ public class InternalItem : IBundledXml<InternalItem>
             }
         }
 
-        var questObjs = Services.GetRequiredService<InternalObjective>();
-
         var maxDesc = Descriptions.Max(x => x.Key);
 
-        foreach (var obj in questObjs.ObjectivePrefabs)
+        foreach (var obj in InternalObjective.ObjectivePrefabs)
         {
             maxDesc++;
 
@@ -305,11 +288,7 @@ public class InternalItem : IBundledXml<InternalItem>
                     0, DateTime.Now, false, 0));
             }
             else
-                Logger.LogError("Objective with id {Id} and prefab {Name} already exists in item dictionary!", obj.Key, obj.Value);
+                Logger.LogError("Objective with id '{Id}' and prefab '{Name}' already exists in item dictionary!", obj.Key, obj.Value);
         }
-    }
-
-    public void FinalizeBundle()
-    {
     }
 }

@@ -1,5 +1,4 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Base.Timers.Extensions;
 using Server.Base.Timers.Services;
@@ -10,7 +9,6 @@ using Server.Reawakened.Players.Models;
 using Server.Reawakened.Players.Models.Character;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.XMLs.Bundles;
-using static LeaderBoardTopScoresJson;
 
 namespace Server.Reawakened.Players.Extensions;
 
@@ -109,14 +107,10 @@ public static class CharacterInventoryExtensions
     
     public static void AddItem(this Player player, ItemDescription item, int count, ItemCatalog itemCatalog)
     {
-        var characterData = player.Character;
-
-        if (item.InventoryCategoryID is not ItemFilterCategory.RecipesAndCraftingIngredients and not ItemFilterCategory.QuestItems)
-            if (!itemCatalog.Config.LoadedAssets.Contains(item.PrefabName))
-                return;
-
-        if (!itemCatalog.IconBank.HasIcon(item.PrefabName))
+        if (!itemCatalog.CanAddItem(item))
             return;
+
+        var characterData = player.Character;
 
         if (!characterData.Data.Inventory.Items.ContainsKey(item.ItemId))
             characterData.Data.Inventory.Items.Add(item.ItemId, new ItemModel

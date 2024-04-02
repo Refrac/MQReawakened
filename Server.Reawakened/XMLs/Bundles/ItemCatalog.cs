@@ -1,5 +1,4 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Base.Core.Extensions;
 using Server.Reawakened.Configs;
@@ -14,14 +13,11 @@ using System.Xml;
 
 namespace Server.Reawakened.XMLs.Bundles;
 
-public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
+public class ItemCatalog : ItemHandler, ILocalizationXml
 {
     public string BundleName => "ItemCatalog";
     public string LocalizationName => "ItemCatalogDict_en-US";
     public BundlePriority Priority => BundlePriority.Medium;
-
-    public ILogger<ItemCatalog> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
 
     private Dictionary<string, int> _itemNameDict;
     private Dictionary<ItemCategory, XmlNode> _itemCategories;
@@ -29,8 +25,13 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
 
     public Dictionary<int, ItemDescription> Items;
 
-    public ServerRConfig Config;
-    public ExtractIcons IconBank;
+    public ServerRConfig Config { get; set; }
+    public ExtractIcons IconBank { get; set; }
+    public InternalIgnoredItem IgnoredItems { get; set; }
+    public InternalItem InternalCatalog { get; set; }
+    public EditItem EditItem { get; set; }
+    public QuestCatalog QuestCatalog { get; set; }
+    public ILogger<ItemCatalog> Logger { get; set; }
 
     public ItemCatalog() : base(null)
     {
@@ -51,9 +52,6 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
         _itemSubCategories = [];
 
         Items = [];
-
-        Config = Services.GetRequiredService<ServerRConfig>();
-        IconBank = Services.GetRequiredService<ExtractIcons>();
     }
 
     public void EditLocalization(XmlDocument xml)
@@ -64,8 +62,6 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
 
         if (dicts != null)
         {
-            var internalCatalog = Services.GetRequiredService<InternalItem>();
-
             ReadLocalizationXml(xml.WriteToString());
             var localization = this.GetField<ItemHandler>("_localizationDict") as Dictionary<int, string>;
 
@@ -88,7 +84,7 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
             {
                 if (!(itemCatalogNode.Name == "ItemCatalogDict")) continue;
 
-                foreach (var item in internalCatalog.Descriptions)
+                foreach (var item in InternalCatalog.Descriptions)
                 {
                     var tryGetDict = _itemNameDict.FirstOrDefault(x => x.Value == item.Key);
 
@@ -135,9 +131,6 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
     {
         _itemCategories.Clear();
         _itemSubCategories.Clear();
-
-        var internalCatalog = Services.GetRequiredService<InternalItem>();
-        var editCatalog = Services.GetRequiredService<EditItem>();
 
         var items = new Dictionary<int, string>();
 
@@ -192,14 +185,14 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
 
                         items.Add(id, name);
 
-                        editCatalog.EditItemAttributes(name, item);
+                        EditItem.EditItemAttributes(name, item);
                     }
                 }
             }
 
             var smallestItemId = 0;
 
-            foreach (var itemKVP in internalCatalog.Items)
+            foreach (var itemKVP in InternalCatalog.Items)
             {
                 var item = itemKVP.Value;
 
@@ -290,7 +283,7 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
                 itemElement.SetAttribute("loot_id", item.LootId.ToString());
                 itemElement.SetAttribute("release_date", item.ReleaseDate == DateTime.UnixEpoch ? "None" : item.ReleaseDate.ToString());
 
-                editCatalog.EditItemAttributes(itemPrefabName, itemElement);
+                EditItem.EditItemAttributes(itemPrefabName, itemElement);
 
                 if (item.ItemEffects.Count > 0)
                 {
@@ -327,6 +320,8 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
         field.SetValue(null, this);
 
         Items = (Dictionary<int, ItemDescription>)this.GetField<ItemHandler>("_itemDescriptionCache");
+
+        IconBank.CheckDuplicatedIcons(this);
     }
 
     public new ItemDescription GetItemFromId(int id)
@@ -351,5 +346,14 @@ public class ItemCatalog : ItemHandler, ILocalizationXml<ItemCatalog>
                 itemList.Add(item.Value);
         }
         return itemList;
+    }
+
+    public bool CanAddItem(ItemDescription item)
+    {
+        if (item.InventoryCategoryID is not ItemFilterCategory.RecipesAndCraftingIngredients and not ItemFilterCategory.QuestItems)
+            if (!Config.LoadedAssets.Contains(item.PrefabName))
+                return false;
+
+        return IconBank.HasIcon(item.PrefabName) && !IgnoredItems.IsItemIgnored(item.PrefabName);
     }
 }

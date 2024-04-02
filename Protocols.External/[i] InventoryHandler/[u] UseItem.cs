@@ -11,7 +11,6 @@ using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.BundlesInternal;
 using Server.Reawakened.XMLs.Enums;
 using Server.Reawakened.Rooms.Models.Planes;
-using static LeaderBoardTopScoresJson;
 
 namespace Protocols.External._i__InventoryHandler;
 
@@ -161,11 +160,16 @@ public class UseItem : ExternalProtocol
 
     private void RemoveFromHotbar(CharacterModel character, ItemDescription item)
     {
-        character.Data.Inventory.Items[item.ItemId].Count--;
+        var itemModel = character.Data.Inventory.Items[item.ItemId];
 
-        if (character.Data.Inventory.Items[item.ItemId].Count <= 0)
-            if (character.Data.Inventory.Items[item.ItemId] != null)
-                character.Data.Inventory.Items.Remove(item.ItemId);
+        if (itemModel == null)
+            return;
+
+        if (itemModel.Count > 0)
+            itemModel.Count--;
+
+        else if (itemModel.Count <= 0)
+            character.Data.Inventory.Items.Remove(item.ItemId);
 
         Player.SendUpdatedInventory();
     }

@@ -1,7 +1,6 @@
 ﻿using Achievement.Categories;
 using Achievement.StaticData;
 using Achievement.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Icons.Services;
 using Server.Reawakened.XMLs.Abstractions;
@@ -11,18 +10,19 @@ using Server.Reawakened.XMLs.Extensions;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
-public class InternalAchievement : IBundledXml<InternalAchievement>
+public class InternalAchievement : InternalXml
 {
-    public string BundleName => "InternalAchievement";
-    public BundlePriority Priority => BundlePriority.Lowest;
+    public override string BundleName => "InternalAchievement";
+    public override BundlePriority Priority => BundlePriority.Lowest;
 
     public ILogger<InternalAchievement> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
+    public ExtractIcons ExtractIcons { get; set; }
 
     public AchievementStaticJson.AchievementDefinition Definitions { get; private set; }
     public Dictionary<int, List<string>> PossibleConditions { get; private set; }
 
-    public void InitializeVariables()
+    public override void InitializeVariables()
     {
         Definitions = new AchievementStaticJson.AchievementDefinition()
         {
@@ -41,18 +41,8 @@ public class InternalAchievement : IBundledXml<InternalAchievement>
         PossibleConditions = [];
     }
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
-        var catalog = Services.GetRequiredService<ItemCatalog>();
-        var icons = Services.GetRequiredService<ExtractIcons>();
-
         var enumValues = Enum.GetValues<RewardType>();
 
         foreach (var value in enumValues)
@@ -164,7 +154,7 @@ public class InternalAchievement : IBundledXml<InternalAchievement>
                         switch (achievementLists.Name)
                         {
                             case "Rewards":
-                                achRewards = achievementLists.GetXmlRewards(Logger, catalog, achId);
+                                achRewards = achievementLists.GetXmlRewards(Logger, ItemCatalog, achId);
                                 break;
                             case "Conditions":
                                 achConditions = achievementLists.GetXmlConditions(Logger, achId);
@@ -172,7 +162,7 @@ public class InternalAchievement : IBundledXml<InternalAchievement>
                         }
                     }
 
-                    if (!icons.HasIcon($"ACH_{achIconName}_ON"))
+                    if (!ExtractIcons.HasIcon($"ACH_{achIconName}_ON"))
                         continue;
 
                     if (aIds.Contains(achId))
@@ -234,9 +224,5 @@ public class InternalAchievement : IBundledXml<InternalAchievement>
                 }
             }
         }
-    }
-
-    public void FinalizeBundle()
-    {
     }
 }

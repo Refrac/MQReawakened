@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Configs;
 using Server.Reawakened.Players.Models.Character;
 using Server.Reawakened.XMLs.Abstractions;
@@ -10,35 +9,22 @@ using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
 
-public class InternalQuestItem : IBundledXml<InternalQuestItem>
+public class InternalQuestItem : InternalXml
 {
-    public string BundleName => "InternalQuestItem";
-    public BundlePriority Priority => BundlePriority.Low;
+    public override string BundleName => "InternalQuestItem";
+    public override BundlePriority Priority => BundlePriority.Low;
 
     public ILogger<InternalQuestItem> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
 
     public Dictionary<GameVersion, Dictionary<int, List<ItemModel>>> QuestItemList;
 
-    public InternalQuestItem()
-    {
-    }
-
-    public void InitializeVariables() =>
+    public override void InitializeVariables() =>
         QuestItemList = [];
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xml)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var itemCatalog = Services.GetRequiredService<ItemCatalog>();
-
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
-        foreach (XmlNode questItemXml in xmlDocument.ChildNodes)
+        foreach (XmlNode questItemXml in xml.ChildNodes)
         {
             if (!(questItemXml.Name == "QuestItems")) continue;
 
@@ -72,15 +58,11 @@ public class InternalQuestItem : IBundledXml<InternalQuestItem>
                                 break;
                         }
 
-                    var itemList = quest.GetXmlItems(itemCatalog, Logger);
+                    var itemList = quest.GetXmlItems(ItemCatalog, Logger);
 
                     QuestItemList[gameVersion].TryAdd(questId, itemList);
                 }
             }
         }
-    }
-
-    public void FinalizeBundle()
-    {
     }
 }

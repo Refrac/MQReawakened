@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Enums;
@@ -8,30 +7,28 @@ using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
 
-public class InternalDialog : IBundledXml<InternalDialog>
+public class InternalDialog : InternalXml
 {
-    public string BundleName => "InternalDialog";
-    public BundlePriority Priority => BundlePriority.Medium;
+    public override string BundleName => "InternalDialog";
+    public override BundlePriority Priority => BundlePriority.Medium;
 
     public ILogger<InternalDialog> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public MiscTextDictionary MiscTextDictionary { get; set; }
 
     // <Level Id, <Npc Id, Dialog Info>>
     public Dictionary<int, Dictionary<int, DialogInfo>> NpcDialogs;
 
-    public void InitializeVariables() => NpcDialogs = [];
+    public override void InitializeVariables() => NpcDialogs = [];
 
-    public void EditDescription(XmlDocument xml)
+    public DialogInfo GetDialogById(int levelId, int dialogId) =>
+        NpcDialogs.TryGetValue(levelId, out var levelInfo) ?
+        levelInfo.TryGetValue(dialogId, out var dialog) ?
+        dialog :
+        null :
+        null;
+
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var miscDict = Services.GetRequiredService<MiscTextDictionary>();
-
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode dialogXml in xmlDocument.ChildNodes)
         {
             if (dialogXml.Name != "DialogCatalog") continue;
@@ -107,8 +104,8 @@ public class InternalDialog : IBundledXml<InternalDialog>
                     }
 
                     var nameModel = nameId > 0 ?
-                        miscDict.LocalizationDict.FirstOrDefault(x => x.Key == nameId) :
-                        miscDict.LocalizationDict.FirstOrDefault(x => x.Value == name);
+                        MiscTextDictionary.LocalizationDict.FirstOrDefault(x => x.Key == nameId) :
+                        MiscTextDictionary.LocalizationDict.FirstOrDefault(x => x.Value == name);
 
                     if (!string.IsNullOrEmpty(nameModel.Value))
                     {
@@ -123,15 +120,4 @@ public class InternalDialog : IBundledXml<InternalDialog>
             }
         }
     }
-
-    public void FinalizeBundle()
-    {
-    }
-
-    public DialogInfo GetDialogById(int levelId, int dialogId) =>
-        NpcDialogs.TryGetValue(levelId, out var levelInfo) ?
-        levelInfo.TryGetValue(dialogId, out var dialog) ?
-        dialog :
-        null :
-        null;
 }

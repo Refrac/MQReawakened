@@ -4,7 +4,6 @@ using Server.Base.Timers.Extensions;
 using Server.Base.Timers.Services;
 using Server.Reawakened.Configs;
 using Server.Reawakened.Entities.Projectiles;
-using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
@@ -172,12 +171,12 @@ public class UseSlot : ExternalProtocol
 
     private void RemoveFromHotBar(CharacterModel character, ItemDescription item, int hotbarSlotId)
     {
-        character.Data.Inventory.Items[item.ItemId].Count--;
+        var itemModel = character.Data.Inventory.Items[item.ItemId];
+        itemModel.Count--;
 
-        if (character.Data.Inventory.Items[item.ItemId].Count <= 0)
+        if (itemModel.Count <= 0)
         {
             Player.RemoveHotbarSlot(hotbarSlotId, ItemCatalog);
-
             SendXt("hu", character.Data.Hotbar);
         }
 

@@ -1,7 +1,5 @@
 ﻿using Achievement.StaticData;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Configs;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Models.Character;
@@ -67,6 +65,9 @@ public static class GetInternalXml
                 }
 
                 itemId = itemModel.ItemId;
+
+                if (!itemCatalog.CanAddItem(itemModel))
+                    continue;
             }
 
             itemList.Add(
@@ -214,10 +215,13 @@ public static class GetInternalXml
         return conditionList;
     }
 
-    public static void RewardPlayer(this List<AchievementDefinitionRewards> rewards, Player player,
-        ItemCatalog itemCatalog, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger)
+    public static void RewardPlayer(this List<AchievementDefinitionRewards> rewards, Player player, InternalAchievement internalAchievement,
+        Microsoft.Extensions.Logging.ILogger logger)
     {
         var hasUpdatedItems = false;
+
+        var itemCatalog = internalAchievement.ItemCatalog;
+        var config = itemCatalog.Config;
 
         foreach (var reward in rewards)
             switch ((RewardType)reward.typeId)
@@ -241,7 +245,8 @@ public static class GetInternalXml
                     break;
                 case RewardType.Xp:
                     var xp = int.Parse(reward.value.ToString());
-                    player.AddReputation(xp, itemCatalog.Services.GetRequiredService<ServerRConfig>());
+
+                    player.AddReputation(xp, config);
                     break;
                 case RewardType.Title:
                     break;

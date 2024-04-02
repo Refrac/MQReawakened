@@ -2581,7 +2581,7 @@
                 <Item itemName="Add_COM_HawaiGirl01_LS02" count="1" />
             </Items>
         </LootInfo>
-        <!--Vases-->
+        <!--Barrels-->
         <LootInfo objectId="4109" doLootWheel="false">
             <Items rewardAmount="1">
                 <Item itemName="COL_ING_G_ShadowShard02" count="1" />

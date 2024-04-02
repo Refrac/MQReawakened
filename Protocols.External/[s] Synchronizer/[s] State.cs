@@ -86,12 +86,14 @@ public class State : ExternalProtocol
                     var collisionTarget = notifyCollisionEvent.CollisionTarget;
 
                     if (newPlayer.Room.ContainsEntity(collisionTarget))
+                    {
                         foreach (var component in Player.Room.GetEntitiesFromId<BaseComponent>(collisionTarget))
                             if (!Player.Room.IsObjectKilled(component.Id))
                                 component.NotifyCollision(notifyCollisionEvent, newPlayer);
-                            else
-                                Logger.LogWarning("Unhandled collision from {TargetId}, no entity for {EntityType}.",
-                                    collisionTarget, newPlayer.Room.GetUnknownComponentTypes(collisionTarget));
+                    }
+                    else
+                        Logger.LogWarning("Unhandled collision from {TargetId}, no entity for {EntityType}.",
+                            collisionTarget, newPlayer.Room.GetUnknownComponentTypes(collisionTarget));
                     break;
                 case SyncEvent.EventType.PhysicBasic:
                     var physicsBasicEvent = new PhysicBasic_SyncEvent(syncEvent);
@@ -120,25 +122,6 @@ public class State : ExternalProtocol
                     break;
                 case SyncEvent.EventType.RequestRespawn:
                     RequestRespawn(entityId, syncEvent.TriggerTime);
-                    break;
-                case SyncEvent.EventType.PhysicStatus:
-                    var physicStatusEvent = new PhysicStatus_SyncEvent(syncEvent);
-
-                    if (!physicStatusEvent.GravityEnabled)
-                    {
-                        if (Player.TempData.UnderwaterTimer != null)
-                            return;
-
-                        Player.TempData.Underwater = true;
-                        Player.StartUnderwaterTimer(Player.Character.Data.MaxLife / 10, TimerThread, ItemRConfig);
-                    }
-
-                    else
-                    {
-                        Player.TempData.Underwater = false;
-                        Player.StopUnderwaterTimer();
-                    }
-                   
                     break;
             }
 

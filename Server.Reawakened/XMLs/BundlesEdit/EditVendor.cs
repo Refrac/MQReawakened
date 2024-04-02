@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Configs;
 using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Bundles;
@@ -8,34 +7,22 @@ using Server.Reawakened.XMLs.Extensions;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesEdit;
-public class EditVendor : IBundledXml<EditVendor>
+public class EditVendor : InternalXml
 {
-    public string BundleName => "EditVendor";
-    public BundlePriority Priority => BundlePriority.Low;
+    public override string BundleName => "EditVendor";
+    public override BundlePriority Priority => BundlePriority.Low;
 
     public ILogger<EditVendor> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
+
 
     public Dictionary<GameVersion, Dictionary<string, List<string>>> EditedVendorAttributes;
 
-    public EditVendor()
-    {
-    }
-
-    public void InitializeVariables() =>
+    public override void InitializeVariables() =>
         EditedVendorAttributes = [];
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var itemCatalog = Services.GetRequiredService<ItemCatalog>();
-
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode items in xmlDocument.ChildNodes)
         {
             if (!(items.Name == "EditedVendors")) continue;
@@ -87,7 +74,7 @@ public class EditVendor : IBundledXml<EditVendor>
                                     break;
                             }
 
-                        var itemDesc = itemCatalog.GetItemFromPrefabName(prefabName);
+                        var itemDesc = ItemCatalog.GetItemFromPrefabName(prefabName);
 
                         if (itemDesc == null)
                             continue;
@@ -97,9 +84,5 @@ public class EditVendor : IBundledXml<EditVendor>
                 }
             }
         }
-    }
-
-    public void FinalizeBundle()
-    {
     }
 }

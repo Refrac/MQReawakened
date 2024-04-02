@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Configs;
 using Server.Reawakened.XMLs.Abstractions;
 using Server.Reawakened.XMLs.Enums;
@@ -7,36 +6,26 @@ using Server.Reawakened.XMLs.Extensions;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesEdit;
-public class EditItem : IBundledXml<EditItem>
+public class EditItem : InternalXml
 {
-    public string BundleName => "EditItem";
-    public BundlePriority Priority => BundlePriority.Highest;
+    public override string BundleName => "EditItem";
+    public override BundlePriority Priority => BundlePriority.Highest;
 
     public ILogger<EditItem> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ServerRConfig Config { get; set; }
 
     private Dictionary<GameVersion, Dictionary<string, Dictionary<string, string>>> _editedItemAttributes;
     private GameVersion[] _possibleVersions;
 
-    public EditItem()
-    {
-    }
-
-    public void InitializeVariables()
+    public override void InitializeVariables()
     {
         _editedItemAttributes = [];
         _possibleVersions = [];
     }
+    public GameVersion[] GetPossibleVersions() => [.. _editedItemAttributes.Keys.Where(v => v <= Config.GameVersion).OrderBy(v => v)];
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode items in xmlDocument.ChildNodes)
         {
             if (!(items.Name == "EditedItems")) continue;
@@ -126,12 +115,4 @@ public class EditItem : IBundledXml<EditItem>
 
         return attributes;
     }
-
-    public GameVersion[] GetPossibleVersions()
-    {
-        var config = Services.GetRequiredService<ServerRConfig>();
-        return [.. _editedItemAttributes.Keys.Where(v => v <= config.GameVersion).OrderBy(v => v)];
-    }
-
-    public void FinalizeBundle() { }
 }
