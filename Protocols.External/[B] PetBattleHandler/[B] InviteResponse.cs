@@ -33,18 +33,10 @@ public class PetBattleInviteResponse : ExternalProtocol
 
             inviter.SendXt("BB", characterName, Player.CharacterName);
 
-            ChangeLevel(inviter);
+            WorldHandler.ChangePlayerRoom(Player, 554);
+            WorldHandler.ChangePlayerRoom(inviter, 554);
         }
         else
             inviter.SendXt("BD", Player.CharacterName, status ? "1" : "0");
-    }
-
-    private void ChangeLevel(Player inviter)
-    {
-        Player.Character.SetLevel(554, Logger);
-        inviter.Character.SetLevel(554, Logger);
-
-        Player.SendLevelChange(WorldHandler);
-        inviter.SendLevelChange(WorldHandler);
     }
 }

@@ -8,10 +8,10 @@ using Server.Reawakened.XMLs.Enums;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
-public class InternalPet : IBundledXml<InternalPet>
+public class InternalPet : IBundledXml
 {
     public string BundleName => "InternalPet";
-    public BundlePriority Priority => BundlePriority.Lowest;
+    public BundlePriority Priority => BundlePriority.Low;
 
     public ILogger<InternalPet> Logger { get; set; }
     public IServiceProvider Services { get; set; }

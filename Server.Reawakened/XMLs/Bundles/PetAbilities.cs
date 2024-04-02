@@ -7,13 +7,12 @@ using System.Reflection;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.Bundles;
-public class PetAbilities : PetAbilitiesXML, IBundledXml<PetAbilities>
+public class PetAbilities : PetAbilitiesXML, IBundledXml
 {
     public string BundleName => "PetAbilities";
-    public BundlePriority Priority => BundlePriority.Lowest;
+    public BundlePriority Priority => BundlePriority.Medium;
 
     public ILogger<PetAbilities> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
 
     public Dictionary<int, PetAbilityParams> AbilityData;
 
@@ -42,11 +41,11 @@ public class PetAbilities : PetAbilitiesXML, IBundledXml<PetAbilities>
         AbilityData = (Dictionary<int, PetAbilityParams>)this.GetField<PetAbilitiesXML>("_petAbilityData");
     }
 
-    public new PetAbilityParams GetAbilityData(int prefabID)
+    public new PetAbilityParams GetAbilityData(int itemId)
     {
-        if (!AbilityData.TryGetValue(prefabID, out var value))
+        if (!AbilityData.TryGetValue(itemId, out var value))
         {
-            Logger.LogWarning("Pet with id {prefabId} does not exist in AbilityData", prefabID);
+            Logger.LogWarning("Pet with id {itemId} does not exist in AbilityData", itemId);
             return null;
         }
 

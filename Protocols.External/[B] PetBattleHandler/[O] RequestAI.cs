@@ -24,13 +24,6 @@ public class RequestAI : ExternalProtocol
 
         Player.TempData.PetBattleModel = new PetBattleModel(Player, true, true, [], Player.GetLevelId());
 
-        ChangeLevel();
-    }
-
-    private void ChangeLevel()
-    {
-        Player.Character.SetLevel(554, Logger);
-
-        Player.SendLevelChange(WorldHandler);
+        WorldHandler.ChangePlayerRoom(Player, 554);
     }
 }
