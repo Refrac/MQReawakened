@@ -24,7 +24,6 @@ public class UseSlot : ExternalProtocol
     public TimerThread TimerThread { get; set; }
     public ILogger<PlayerStatus> Logger { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
-    public InternalPet InternalPet { get; set; }
     public WorldStatistics WorldStatistics { get; set; }
 
     public override void Run(string[] message)
