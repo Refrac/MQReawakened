@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Configs;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Players.Models.Pets;
@@ -8,29 +7,20 @@ using Server.Reawakened.XMLs.Enums;
 using System.Xml;
 
 namespace Server.Reawakened.XMLs.BundlesInternal;
-public class InternalPet : IBundledXml
+public class InternalPet : InternalXml
 {
-    public string BundleName => "InternalPet";
-    public BundlePriority Priority => BundlePriority.Low;
+    public override string BundleName => "InternalPet";
+    public override BundlePriority Priority => BundlePriority.Low;
 
     public ILogger<InternalPet> Logger { get; set; }
-    public IServiceProvider Services { get; set; }
+    public ServerRConfig Config { get; set; }
 
     public Dictionary<int, PetProfileModel> PetsDictionary;
 
-    public void InitializeVariables() => PetsDictionary = [];
+    public override void InitializeVariables() => PetsDictionary = [];
 
-    public void EditDescription(XmlDocument xml)
+    public override void ReadDescription(XmlDocument xmlDocument)
     {
-    }
-
-    public void ReadDescription(string xml)
-    {
-        var config = Services.GetRequiredService<ServerRConfig>();
-
-        var xmlDocument = new XmlDocument();
-        xmlDocument.LoadXml(xml);
-
         foreach (XmlNode petXml in xmlDocument.ChildNodes)
         {
             if (petXml.Name != "Pets") continue;
@@ -89,16 +79,12 @@ public class InternalPet : IBundledXml
                     Experience = experience,
                     TimeToConsume = timeToConsume,
                     BoostXp = boostXp,
-                    GameVersion = config.GameVersion
+                    GameVersion = Config.GameVersion
                 };
 
                 PetsDictionary.TryAdd(itemId, model);
             }
         }
-    }
-
-    public void FinalizeBundle()
-    {
     }
 
     public PetProfileModel GetPetProfile(int itemId)
