@@ -80,6 +80,19 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
         EnemyModels = [];
         TemplateEnemyModels = [];
 
+        switch (ParentPlane)
+        {
+            case "Plane1":
+                Position.Z = 20;
+                break;
+            case "Plane0":
+                Position.Z = 0;
+                break;
+            default:
+                Logger.LogError("Unknown plane: '{Plane}' for spawner {Name}", ParentPlane, PrefabName);
+                break;
+        }
+
         AddEnemyModel(PrefabNameToSpawn1);
         AddEnemyModel(PrefabNameToSpawn2);
         AddEnemyModel(PrefabNameToSpawn3);

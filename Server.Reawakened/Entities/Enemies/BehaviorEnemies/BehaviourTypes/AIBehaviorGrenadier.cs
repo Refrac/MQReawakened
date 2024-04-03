@@ -15,9 +15,7 @@ public class AIBehaviorGrenadier(GrenadierState grenadierState) : AIBaseBehavior
     public float MaxHeight => grenadierState.MaxHeight;
 
     public override float ResetTime => GInTime + GLoopTime + GOutTime;
-
     protected override AI_Behavior GetBehaviour() => new AI_Behavior_Grenadier(GInTime, GLoopTime, GOutTime, IsTracking, ProjCount, ProjSpeed, MaxHeight);
-
     public override StateType GetBehavior() => StateType.Grenadier;
 
     public override object[] GetData() => [
