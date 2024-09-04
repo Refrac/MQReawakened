@@ -15,13 +15,10 @@
         <Folder Include="[x] ItemHandler\" />
         <Folder Include="[w] WarningMessageHandler\" />
         <Folder Include="[r] RoomHandler\" />
-        <Folder Include="[o] ReportMessageHandler\" />
-        <Folder Include="[Z] PetHandler\" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Server.Reawakened\Server.Reawakened.csproj" />
-        <ProjectReference Include="..\Web.AssetBundles\Web.AssetBundles.csproj" />
     </ItemGroup>
 
     <ItemGroup>

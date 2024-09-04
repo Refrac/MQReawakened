@@ -1,27 +1,40 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Core.Enums;
+using Server.Reawakened.Database.Characters;
+using Server.Reawakened.Database.Users;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.Players.Models;
-using Server.Reawakened.Players.Models.Character;
-using Server.Reawakened.Players.Services;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
-using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
 using static A2m.Server.QuestStatus;
 
 namespace Server.Reawakened.Players.Extensions;
 
 public static class PlayerExtensions
 {
-    public static void TeleportPlayer(this Player player, int x, int y, int z)
+    public static void AddGear(this Player currentPlayer, string gear, ItemCatalog itemCatalog)
     {
-        var isBackPlane = z == 1;
+        var item = itemCatalog.GetItemFromPrefabName(gear);
 
+        if (item != null)
+        {
+            if (!currentPlayer.Character.Inventory.Items.ContainsKey(item.ItemId))
+            {
+                currentPlayer.AddItem(item, 1, itemCatalog);
+                currentPlayer.SendUpdatedInventory();
+            }
+        }
+    }
+
+    public static void TeleportPlayer(this Player player, float x, float y, bool isBackPlane)
+    {
         var coordinates = new PhysicTeleport_SyncEvent(player.GameObjectId.ToString(),
-            player.Room.Time, player.TempData.Position.X + x, player.TempData.Position.Y + y, isBackPlane);
+            player.Room.Time, x, y, isBackPlane);
 
         player.SendSyncEventToPlayer(coordinates);
     }
@@ -64,30 +77,23 @@ public static class PlayerExtensions
         if (player == null)
             return;
 
-        var charData = player.Character.Data;
+        reputation *= (int)(1 + player.Character.StatusEffects.Get(ItemEffectType.ExperienceMultiplier) * 0.01);
+        reputation += player.Character.Reputation;
 
-        if (player.TempData.ReputationBoostsElixir)
-            reputation = Convert.ToInt32(reputation * 0.1);
-
-        reputation += charData.Reputation;
-
-        while (reputation > charData.ReputationForNextLevel)
+        while (reputation > player.Character.ReputationForNextLevel)
         {
-            player.Character.SetLevelXp(charData.GlobalLevel + 1);
+            var newLevel = player.Character.GlobalLevel + 1;
+
+            player.Character.SetLevelXp(newLevel, config);
             player.SendLevelUp();
         }
 
-        charData.Reputation = reputation;
+        player.Character.Write.Reputation = reputation;
 
-        if (config.GameVersion == GameVersion.v2014)
-            player.SendXt("cp", charData.Reputation, charData.ReputationForNextLevel);
-
-        else
-            player.SendXt("cp", charData.Reputation - charData.ReputationForCurrentLevel,
-                charData.ReputationForNextLevel - charData.ReputationForCurrentLevel);
+        player.SendXt("cp", player.Character.Reputation, player.Character.ReputationForNextLevel);
     }
 
-    public static void TradeWithPlayer(this Player origin, ItemCatalog itemCatalog)
+    public static void TradeWithPlayer(this Player origin, ItemCatalog itemCatalog, ItemRConfig config)
     {
         var tradeModel = origin.TempData.TradeModel;
 
@@ -101,11 +107,11 @@ public static class PlayerExtensions
             var itemDesc = itemCatalog.GetItemFromId(item.Key);
 
             tradeModel.TradingPlayer.AddItem(itemDesc, item.Value, itemCatalog);
-            origin.RemoveItem(itemDesc, item.Value, itemCatalog);
+            origin.RemoveItem(itemDesc, item.Value, itemCatalog, config);
         }
 
-        tradingPlayer.Character.Data.Cash += tradeModel.BananasInTrade;
-        origin.Character.Data.Cash -= tradeModel.BananasInTrade;
+        tradingPlayer.Character.Write.Cash += tradeModel.BananasInTrade;
+        origin.Character.Write.Cash -= tradeModel.BananasInTrade;
     }
 
     public static void RemoveTrade(this Player player)
@@ -124,61 +130,50 @@ public static class PlayerExtensions
             trade.TempData.TradeModel = null;
     }
 
-    public static void AddBananas(this Player player, int collectedBananas)
+    public static void AddBananas(this Player player, float collectedBananas, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger)
     {
-        var charData = player.Character.Data;
+        collectedBananas *= (float)(1 + player.Character.StatusEffects.Get(ItemEffectType.BananaMultiplier) * 0.01);
 
-        if (player.TempData.BananaBoostsElixir)
-            collectedBananas = Convert.ToInt32(collectedBananas * 0.1);
+        player.CheckAchievement(AchConditionType.CollectBanana, [], internalAchievement, logger, (int)Math.Floor(collectedBananas));
 
-        charData.Cash += collectedBananas;
+        player.Character.Write.Cash += collectedBananas;
         player.SendCashUpdate();
     }
 
     public static void RemoveBananas(this Player player, int collectedBananas)
     {
-        var charData = player.Character.Data;
-        charData.Cash -= collectedBananas;
+        player.Character.Write.Cash -= collectedBananas;
 
-        if (charData.Cash < 0)
-            charData.Cash = 0;
+        if (player.Character.Cash < 0)
+            player.Character.Write.Cash = 0;
 
         player.SendCashUpdate();
     }
 
     public static void AddNCash(this Player player, int collectedNCash)
     {
-        var charData = player.Character.Data;
-        charData.NCash += collectedNCash;
+        player.Character.Write.NCash += collectedNCash;
         player.SendCashUpdate();
     }
 
     public static void RemoveNCash(this Player player, int collectedNCash)
     {
-        var charData = player.Character.Data;
-        charData.NCash -= collectedNCash;
+        player.Character.Write.NCash -= collectedNCash;
 
-        if (charData.NCash < 0)
-            charData.NCash = 0;
+        if (player.Character.Write.NCash < 0)
+            player.Character.Write.NCash = 0;
 
         player.SendCashUpdate();
     }
 
     public static void AddPoints(this Player player)
     {
-        var charData = player.Character.Data;
-
-        charData.BadgePoints = 0;
-        charData.BadgePoints += 100;
-
+        player.Character.Write.BadgePoints += 100;
         player.SendLevelUp();
     }
 
-    public static void SendCashUpdate(this Player player)
-    {
-        var charData = player.Character.Data;
-        player.SendXt("ca", charData.Cash, charData.NCash);
-    }
+    public static void SendCashUpdate(this Player player) =>
+        player.SendXt("ca", Math.Floor(player.Character.Cash), Math.Floor(player.Character.NCash));
 
     public static void SendLevelChange(this Player player, WorldHandler worldHandler)
     {
@@ -205,39 +200,54 @@ public static class PlayerExtensions
             error = e.Message;
         }
 
-        // this allows early 2012 to load 
-        // the empty string is displayLevelName in ILSpy
-        // player.SendXt("lw", error, levelName, string.Empty, surroundingLevels);
-
-        player.SendXt("lw", error, levelName, surroundingLevels);
+        // Allows early 2012 to load
+        if (worldHandler.Config.GameVersion >= GameVersion.vMinigames2012)
+            player.SendXt("lw", error, levelName, surroundingLevels);
+        else
+            player.SendXt("lw", error, levelName, string.Empty, surroundingLevels);
     }
 
     public static void SetCharacterSelected(this Player player, CharacterModel character)
     {
         player.Character = character;
-        player.UserInfo.LastCharacterSelected = player.CharacterName;
+        player.NetState.Set(character);
+        player.UserInfo.Write.LastCharacterSelected = player.CharacterName;
     }
 
     public static void AddCharacter(this Player player, CharacterModel character) =>
         player.UserInfo.CharacterIds.Add(character.Id);
 
-    public static void DeleteCharacter(this Player player, int id, CharacterHandler characterHandler)
+    public static void DeleteCharacter(this CharacterHandler characterHandler, int id, UserInfoModel userInfo)
     {
-        player.UserInfo.CharacterIds.Remove(id);
+        userInfo.CharacterIds.Remove(id);
 
         characterHandler.Remove(id);
 
-        player.UserInfo.LastCharacterSelected = player.UserInfo.CharacterIds.Count > 0
-            ? characterHandler.Get(player.UserInfo.CharacterIds.First()).Data.CharacterName
-            : string.Empty;
+        if (userInfo.CharacterIds.Count > 0)
+        {
+            var character = characterHandler.GetCharacterFromId(userInfo.CharacterIds.First());
+
+            if (character != null)
+            {
+                userInfo.Write.LastCharacterSelected = character.CharacterName;
+                return;
+            }
+        }
+
+        userInfo.Write.LastCharacterSelected = string.Empty;
     }
 
-    public static void LevelUp(this Player player, int level, Microsoft.Extensions.Logging.ILogger logger)
+    public static void LevelUp(this Player player, int level, WorldStatistics worldStatistics,
+    ServerRConfig config, Microsoft.Extensions.Logging.ILogger logger)
     {
-        player.Character.SetLevelXp(level);
+        player.Character.SetLevelXp(level, config);
         player.SendLevelUp();
 
-        player.AddNCash(125); //Temporary way to earn NC upon level up.
+        if (player.Character.Pets.TryGetValue(player.GetEquippedPetId(config), out var pet))
+            pet.GainEnergy(player, player.GetMaxPetEnergy(worldStatistics, config));
+
+        //Temporary NCash reward until original level up system is implemented.
+        player.AddNCash(config.LevelUpNCashReward);
         player.SendCashUpdate();
         //(Needed for gameplay improvements as NC is currently unobtainable)
 
@@ -247,7 +257,16 @@ public static class PlayerExtensions
     public static void DiscoverTribe(this Player player, TribeType tribe)
     {
         if (player.Character.HasAddedDiscoveredTribe(tribe))
+        {
+            // Set tribe on 2011-2013
+            if (player.Character.Allegiance == TribeType.Invalid
+                && tribe is TribeType.Shadow
+                or TribeType.Outlaw or TribeType.Bone
+                or TribeType.Wild or TribeType.Grease)
+                player.Character.Write.Allegiance = tribe;
+
             player.SendXt("cB", (int)tribe);
+        }
     }
 
     public static void DiscoverAllTribes(this Player player)
@@ -256,53 +275,31 @@ public static class PlayerExtensions
             player.DiscoverTribe(tribe);
     }
 
-    public static void AddSlots(this Player player, bool hasPet)
+    public static void AddSlots(this Player player, bool hasPet, ItemRConfig config)
     {
-        var hotbarButtons = player.Character.Data.Hotbar.HotbarButtons;
+        var hotbarButtons = player.Character.Hotbar.HotbarButtons;
 
         for (var i = 0; i < (hasPet ? 5 : 4); i++)
         {
             if (!hotbarButtons.ContainsKey(i))
             {
-                var itemModel = new ItemModel()
-                {
-                    ItemId = 340,
-                    Count = 1,
-                    BindingCount = 1,
-                    DelayUseExpiry = DateTime.MinValue
-                };
+                var itemModel = config.EmptySlot;
                 hotbarButtons[i] = itemModel;
             }
         }
     }
 
     public static void CheckObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, QuestCatalog questCatalog)
-    {
-        var itemCatalog = questCatalog.Services.GetRequiredService<ItemCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog);
-    }
+        int count, QuestCatalog questCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, questCatalog.ItemCatalog);
 
     public static void CheckObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, ItemCatalog itemCatalog)
-    {
-        var questCatalog = itemCatalog.Services.GetRequiredService<QuestCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog);
-    }
+        int count, ItemCatalog itemCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, itemCatalog.QuestCatalog, itemCatalog);
 
     public static void SetObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, QuestCatalog questCatalog)
-    {
-        var itemCatalog = questCatalog.Services.GetRequiredService<ItemCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog, true);
-    }
+        int count, QuestCatalog questCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, questCatalog.ItemCatalog, true);
 
     public static void SetObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
-        int count, ItemCatalog itemCatalog)
-    {
-        var questCatalog = itemCatalog.Services.GetRequiredService<QuestCatalog>();
-        player.CheckObjective(type, gameObjectId, prefabName, count, questCatalog, itemCatalog, true);
-    }
+        int count, ItemCatalog itemCatalog) => player.CheckObjective(type, gameObjectId, prefabName, count, itemCatalog.QuestCatalog, itemCatalog, true);
 
     private static void CheckObjective(this Player player, ObjectiveEnum type, string gameObjectId, string prefabName,
         int count, QuestCatalog questCatalog, ItemCatalog itemCatalog, bool setObjective = false)
@@ -316,11 +313,9 @@ public static class PlayerExtensions
         if (player.Character == null || player.Room == null)
             return;
 
-        var character = player.Character.Data;
+        player.Room.Logger.LogDebug("Checking {Type} objective for '{Prefab}' ({Id}) of count {Count}.", type, prefabName, gameObjectId, count);
 
-        player.Room.Logger.LogDebug("Checking {type} objective for {prefab} id ({id}) of count {count}.", type, prefabName, gameObjectId, count);
-
-        foreach (var quest in character.QuestLog)
+        foreach (var quest in player.Character.QuestLog)
         {
             var hasObjComplete = false;
 
@@ -338,7 +333,7 @@ public static class PlayerExtensions
 
                 if (objective.GameObjectId > 0)
                     if (objective.GameObjectId.ToString() == gameObjectId &&
-                        objective.LevelId == player.Character.LevelData.LevelId)
+                        objective.LevelId == player.Character.LevelId)
                         meetsRequirement = true;
 
                 if (objective.ItemId > 0 && !meetsRequirement)
@@ -349,7 +344,7 @@ public static class PlayerExtensions
                         if (item.ItemId == objective.ItemId)
                             meetsRequirement = item.InventoryCategoryID is not ItemFilterCategory.None
                                                                         and not ItemFilterCategory.QuestItems
-                                               || objective.LevelId == player.Character.LevelData.LevelId;
+                                               || objective.LevelId == player.Character.LevelId;
                 }
 
                 if (objective.MultiScorePrefabs != null)
@@ -358,7 +353,7 @@ public static class PlayerExtensions
                             if (objective.LevelId > 0 && objective.LevelId == player.Room.LevelInfo.LevelId)
                                 meetsRequirement = true;
 
-                if (!meetsRequirement && objective.LevelId == player.Character.LevelData.LevelId && type == ObjectiveEnum.MinigameMedal)
+                if (!meetsRequirement && objective.LevelId == player.Character.LevelId && type == ObjectiveEnum.MinigameMedal)
                     meetsRequirement = true;
 
                 if (!meetsRequirement)
@@ -377,7 +372,7 @@ public static class PlayerExtensions
                 {
                     var item = itemCatalog.GetItemFromId(objective.ItemId);
 
-                    objective.CountLeft = player.Character.Data.Inventory.Items.TryGetValue(objective.ItemId, out var itemModel) && item != null
+                    objective.CountLeft = player.Character.Inventory.Items.TryGetValue(objective.ItemId, out var itemModel) && item != null
                         ? objective.Total - itemModel.Count
                         : 0;
                 }
@@ -408,8 +403,8 @@ public static class PlayerExtensions
                             {
                                 var item = itemCatalog.GetItemFromId(obj.ItemId);
 
-                                if (player.Character.Data.Inventory.Items.TryGetValue(obj.ItemId, out var itemModel) && item != null)
-                                    player.CheckObjective(ObjectiveEnum.Deliver, gameObjectId, item.PrefabName, itemModel.Count, questCatalog);
+                                if (player.Character.Inventory.Items.TryGetValue(obj.ItemId, out var itemModel) && item != null)
+                                    player.CheckObjective(ObjectiveEnum.Deliver, gameObjectId, item.PrefabName, itemModel.Count, questCatalog, itemCatalog);
                             }
                             break;
                         case ObjectiveEnum.Deliver:
@@ -417,7 +412,7 @@ public static class PlayerExtensions
 
                             if (deliveredItem != null)
                             {
-                                player.RemoveItem(deliveredItem, objective.Total, itemCatalog);
+                                player.RemoveItem(deliveredItem, objective.Total, itemCatalog, itemCatalog.ItemConfig);
                                 player.SendUpdatedInventory();
                             }
                             break;
@@ -450,14 +445,13 @@ public static class PlayerExtensions
         }
     }
 
-
     public static void UpdateEquipment(this Player sentPlayer)
     {
         foreach (
             var player in
-            from player in sentPlayer.Room.Players.Values
+            from player in sentPlayer.Room.GetPlayers()
             select player
         )
-            player.SendXt("iq", sentPlayer.UserId, sentPlayer.Character.Data.Equipment);
+            player.SendXt("iq", sentPlayer.UserId, sentPlayer.Character.Equipment);
     }
 }

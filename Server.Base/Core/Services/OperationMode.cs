@@ -21,7 +21,7 @@ public class OperationMode(EventSink eventSink, ServerConsole console, InternalR
         if (config.NetworkType == NetworkType.Unknown)
             ChangeNetworkType();
 
-        logger.LogInformation("Playing as: {Mode} connected to {Address}", config.NetworkType,
+        logger.LogInformation("Playing as: '{Mode}' connected to '{Address}'", config.NetworkType.ToString().ToLower(),
             config.GetHostAddress());
     }
 
@@ -33,9 +33,10 @@ public class OperationMode(EventSink eventSink, ServerConsole console, InternalR
 
     private void AskForChange()
     {
+        // This should not be changed as the default values should be set to run a server via docker.
         if (logger.Ask(
                 "Are you wanting to play the game, rather than host one?",
-                true
+                false
             ))
         {
             if (logger.Ask(
@@ -78,7 +79,7 @@ public class OperationMode(EventSink eventSink, ServerConsole console, InternalR
     public static async Task<IPAddress> GetExternalIpAddress()
     {
         var externalIpString = (await new HttpClient().GetStringAsync("http://icanhazip.com"))
-            .Replace("\\r\\n", "").Replace("\\n", "").Trim();
+            .Replace("\\r\\n", string.Empty).Replace("\\n", string.Empty)?.Trim();
 
         return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
@@ -89,7 +90,7 @@ public class OperationMode(EventSink eventSink, ServerConsole console, InternalR
         {
             logger.LogInformation("{Question}", question);
 
-            var serverAddress = Console.ReadLine();
+            var serverAddress = ConsoleExt.ReadOrEnv("SERVER_ADDRESS", logger);
 
             config.ServerAddress = serverAddress;
 

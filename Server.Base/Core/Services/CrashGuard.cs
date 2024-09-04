@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Base.Accounts.Models;
 using Server.Base.Core.Abstractions;
 using Server.Base.Core.Configs;
 using Server.Base.Core.Events;
 using Server.Base.Core.Events.Arguments;
 using Server.Base.Core.Extensions;
+using Server.Base.Database.Accounts;
 using Server.Base.Network.Services;
 using Server.Base.Worlds;
 using System.Diagnostics;
@@ -127,7 +127,7 @@ public class CrashGuard(NetStateHandler handler, ILogger<CrashGuard> logger, Eve
                     {
                         streamWriter.Write("+ {0}:", netState);
 
-                        var account = netState.Get<Account>();
+                        var account = netState.Get<AccountModel>();
 
                         if (account != null)
                             streamWriter.Write(" (Account = {0})", account.Username);

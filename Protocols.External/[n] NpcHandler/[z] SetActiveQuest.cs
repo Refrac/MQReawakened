@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Server.Base.Logging;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.XMLs.Bundles;
-using Server.Reawakened.XMLs.BundlesInternal;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
 
 namespace Protocols.External._n__NpcHandler;
 
@@ -22,11 +22,6 @@ public class SetActiveQuest : ExternalProtocol
 
     public override void Run(string[] message)
     {
-        var character = Player.Character;
-
-        if (character == null)
-            return;
-
         var activeQuest = int.Parse(message[5]);
 
         if (activeQuest is -1)
@@ -34,16 +29,16 @@ public class SetActiveQuest : ExternalProtocol
 
         if (activeQuest is 0)
         {
-            character.Data.ActiveQuestId = 0;
+            Player.Character.Write.ActiveQuestId = 0;
             return;
         }
 
-        if (character.Data.ActiveQuestId == activeQuest || character.Data.CompletedQuests.Contains(activeQuest))
+        if (Player.Character.ActiveQuestId == activeQuest || Player.Character.CompletedQuests.Contains(activeQuest))
             return;
 
         var newQuest = QuestCatalog.GetQuestData(activeQuest);
 
         if (newQuest != null)
-            Player.AddQuest(newQuest, QuestItems, Config.GameVersion, ItemCatalog, FileLogger, $"Active quest protocol", Logger);
+            Player.AddQuest(newQuest, QuestItems, ItemCatalog, FileLogger, $"Active quest protocol", Logger);
     }
 }

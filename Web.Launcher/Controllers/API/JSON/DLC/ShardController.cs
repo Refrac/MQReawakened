@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Server.Base.Accounts.Services;
 using Server.Base.Core.Configs;
 using Server.Base.Core.Services;
+using Server.Base.Database.Accounts;
+using Server.Reawakened.Database.Users;
 using Server.Reawakened.Network.Services;
-using Server.Reawakened.Players.Services;
 
 namespace Web.Launcher.Controllers.API.JSON.DLC;
 
@@ -17,7 +17,13 @@ public class ShardController(AccountHandler accHandler, UserInfoHandler userInfo
     [HttpPost]
     public IActionResult GetShardInfo([FromForm] string username, [FromForm] string authToken, [FromForm] int uuid)
     {
-        if (!accHandler.GetInternal().TryGetValue(uuid, out var account) || !userInfoHandler.GetInternal().TryGetValue(uuid, out var user))
+        username = username?.Trim();
+        authToken = authToken?.Trim();
+
+        var account = accHandler.GetAccountFromId(uuid);
+        var user = userInfoHandler.GetUserFromId(uuid);
+
+        if (account == null || user == null)
             return Unauthorized();
 
         if (account.Username != username || user.AuthToken != authToken)
@@ -25,8 +31,8 @@ public class ShardController(AccountHandler accHandler, UserInfoHandler userInfo
 
         var sId = keyGenerator.GetRandomKey<TemporaryDataStorage>(uuid.ToString());
 
-        temporaryDataStorage.AddData(sId, user);
-        temporaryDataStorage.AddData(sId, account);
+        temporaryDataStorage.AddData(sId, user.Write);
+        temporaryDataStorage.AddData(sId, account.Write);
 
         var json = new JObject
         {

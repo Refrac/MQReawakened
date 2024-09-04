@@ -1,12 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
-using Server.Reawakened.Entities.AbstractComponents;
+﻿using A2m.Server;
+using Microsoft.Extensions.Logging;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger.Interfaces;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Players.Models.Arenas;
-using Server.Reawakened.XMLs.BundlesInternal;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
 
 namespace Protocols.External._M__MinigameHandler;
 
@@ -14,6 +16,7 @@ public class FinishedMinigame : ExternalProtocol
 {
     public override string ProtocolName => "Mm";
 
+    public WorldStatistics WorldStatistics { get; set; }
     public InternalLoot LootCatalog { get; set; }
     public ILogger<FinishedMinigame> Logger { get; set; }
 
@@ -24,7 +27,9 @@ public class FinishedMinigame : ExternalProtocol
 
         Logger.LogInformation("Minigame with ID ({minigameId}) has completed.", arenaObjectId);
 
-        foreach (var player in Player.Room.Players.Values)
+        var players = Player.Room.GetPlayers();
+
+        foreach (var player in players)
             player.SendXt("Mt", arenaObjectId, Player.CharacterId, finishedRaceTime);
 
         if (Player.Character.BestMinigameTimes.TryGetValue(Player.Room.LevelInfo.Name, out var time))
@@ -50,13 +55,12 @@ public class FinishedMinigame : ExternalProtocol
             return;
         }
 
-        trigger.RemovePhysicalInteractor(Player.GameObjectId);
+        trigger.RemovePhysicalInteractor(Player, Player.GameObjectId);
 
         if (trigger.GetPhysicalInteractorCount() <= 0)
         {
-            var players = Player.Room.Players;
-            foreach (var player in players.Values)
-                FinishMinigame(player, arenaObjectId, players.Count);
+            foreach (var player in players)
+                FinishMinigame(player, arenaObjectId, players.Length);
 
             trigger.RunTrigger(Player);
             trigger.ResetTrigger();
@@ -67,8 +71,10 @@ public class FinishedMinigame : ExternalProtocol
     {
         player.SendSyncEventToPlayer(new TriggerUpdate_SyncEvent(minigameId, player.Room.Time, membersInRoom));
 
-        var rdmBananaReward = new Random().Next(7, 11 * player.Character.Data.GlobalLevel);
-        var xpReward = player.Character.Data.ReputationForNextLevel / 30;
+        var bananaReward = WorldStatistics.GetValue(ItemEffectType.BananaReward, WorldStatisticsGroup.Price, player.Character.GlobalLevel);
+        var xpReward = (player.Character.ReputationForNextLevel - player.Character.ReputationForCurrentLevel) *
+            WorldStatistics.GlobalStats[Globals.MinigameXPMultiplier] + WorldStatistics.GetValue(ItemEffectType.IncreaseExpFromMinigameLT16,
+            WorldStatisticsGroup.Player, player.Character.GlobalLevel);
 
         var lootedItems = ArenaModel.GrantLootedItems(LootCatalog, player.Room.LevelInfo.LevelId, minigameId);
         var lootableItems = ArenaModel.GrantLootableItems(LootCatalog, player.Room.LevelInfo.LevelId, minigameId);
@@ -76,7 +82,7 @@ public class FinishedMinigame : ExternalProtocol
         var sb = new SeparatedStringBuilder('<');
 
         sb.Append(membersInRoom.ToString());
-        sb.Append(rdmBananaReward.ToString());
+        sb.Append(bananaReward.ToString());
         sb.Append(xpReward.ToString());
         sb.Append(lootedItems.ToString());
         sb.Append(lootableItems.ToString());

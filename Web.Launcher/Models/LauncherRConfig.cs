@@ -1,5 +1,6 @@
 ﻿using Server.Base.Core.Abstractions;
-using Server.Reawakened.Configs;
+using Server.Base.Core.Extensions;
+using Server.Reawakened.Core.Enums;
 
 namespace Web.Launcher.Models;
 
@@ -29,6 +30,8 @@ public class LauncherRConfig : IRConfig
 
     public bool Fullscreen { get; }
     public bool OnGameClosePopup { get; }
+
+    public string GameFolder { get; }
 
     public LauncherRConfig()
     {
@@ -66,5 +69,7 @@ public class LauncherRConfig : IRConfig
 
         Fullscreen = false;
         OnGameClosePopup = false;
+
+        GameFolder = InternalDirectory.GetDirectory("Game");
     }
 }

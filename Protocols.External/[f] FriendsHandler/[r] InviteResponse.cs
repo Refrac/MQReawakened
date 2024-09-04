@@ -1,11 +1,18 @@
-﻿using Server.Reawakened.Network.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
+using Server.Reawakened.Players.Extensions;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
 
 namespace Protocols.External._f__FriendsHandler;
 
 public class InviteResponse : ExternalProtocol
 {
     public override string ProtocolName => "fr";
+
+    public InternalAchievement InternalAchievement { get; set; }
+    public ILogger<InviteResponse> Logger { get; set; }
 
     public override void Run(string[] message)
     {
@@ -20,16 +27,19 @@ public class InviteResponse : ExternalProtocol
 
         if (accepted)
         {
-            friender.Character.Data.Friends.Add(Player.CharacterId);
-            Player.Character.Data.Friends.Add(friender.CharacterId);
+            friender.CheckAchievement(AchConditionType.AddFriend, [], InternalAchievement, Logger);
+            Player.CheckAchievement(AchConditionType.AddFriend, [], InternalAchievement, Logger);
 
-            var playerData = friender.Character.Data.GetFriends().PlayerList.First(x => x.CharacterId == Player.CharacterId);
+            friender.Character.Friends.Add(Player.CharacterId);
+            Player.Character.Friends.Add(friender.CharacterId);
+
+            var playerData = friender.Character.GetFriends().PlayerList.First(x => x.CharacterId == Player.CharacterId);
 
             friender.SendXt("fr", friender.CharacterName, Player.CharacterName, playerData);
 
             const bool isSuccess = true;
 
-            var friendData = Player.Character.Data.GetFriends().PlayerList.First(x => x.CharacterId == friender.CharacterId);
+            var friendData = Player.Character.GetFriends().PlayerList.First(x => x.CharacterId == friender.CharacterId);
 
             Player.SendXt("fa", friendData, isSuccess ? "1" : "0");
         }

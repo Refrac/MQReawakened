@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Server.Base.Core.Abstractions;
+using Server.Base.Core.Events;
+using Server.Base.Core.Extensions;
 using Server.Base.Logging;
 using Server.Web.Abstractions;
 using System;
 using System.Threading.Tasks;
+using Module = Server.Base.Core.Abstractions.Module;
 
 namespace Init;
 
@@ -32,11 +36,17 @@ public class Initialize
             logger.LogInformation("Application built");
 
             logger.LogDebug("Configuring application");
+            AddMigrations(modules, app, logger);
             ConfigureApp(modules, app, logger);
 
             logger.LogInformation("======== Running Application =======");
 
-            await app.RunAsync();
+            await app.StartAsync();
+
+            var eventSink = app.Services.GetRequiredService<EventSink>();
+            eventSink.InvokeServerHosted();
+
+            await app.WaitForShutdownAsync();
         }
 
         catch (Exception ex)
@@ -50,15 +60,7 @@ public class Initialize
         var modules = ImportModules.GetModules();
 
         foreach (var module in modules)
-        {
             logger.LogInformation("Imported {ModuleInfo}", module.GetModuleInformation());
-
-            if (module.Contributors.Length <= 0)
-                continue;
-
-            logger.LogTrace("    Contributed By:      ");
-            logger.LogTrace("        {Contributors}", string.Join(", ", module.Contributors));
-        }
 
         logger.LogInformation("Fetched {ModuleCount} modules", modules.Length);
 
@@ -71,6 +73,11 @@ public class Initialize
         foreach (var startup in modules)
             startup.AddLogging(builder.Logging);
         logger.LogInformation("Successfully initialized logging");
+
+        logger.LogDebug("Initializing databases");
+        foreach (var startup in modules)
+            startup.AddDatabase(builder.Services, modules);
+        logger.LogInformation("Successfully initialized databases");
 
         logger.LogDebug("Initializing services");
         foreach (var startup in modules)
@@ -95,6 +102,25 @@ public class Initialize
         }
 
         logger.LogInformation("Successfully initialized web services");
+    }
+
+    private static void AddMigrations(Module[] modules, WebApplication app, ILogger logger)
+    {
+        logger.LogInformation("Heads up! This might take a while on a first install...");
+
+        using (var scope = app.Services.CreateScope())
+        {
+            foreach (var dataContext in modules.GetServices<DbContext>())
+            {
+                logger.LogTrace("Adding migrations for {Name}", dataContext.Name);
+
+                var db = scope.ServiceProvider.GetRequiredService(dataContext) as DbContext;
+
+                db.Database.Migrate();
+            }
+        }
+
+        logger.LogDebug("Successfully added migrations to databases");
     }
 
     private static void ConfigureApp(Module[] modules, WebApplication app, ILogger logger)

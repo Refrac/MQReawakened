@@ -1,16 +1,16 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
 using Server.Base.Timers.Services;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.Players.Models;
-using Server.Reawakened.XMLs.Bundles;
-using Server.Reawakened.XMLs.BundlesInternal;
-using Server.Reawakened.XMLs.Enums;
-using Server.Reawakened.Rooms.Models.Planes;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
+using UnityEngine;
 
 namespace Protocols.External._i__InventoryHandler;
 
@@ -21,10 +21,11 @@ public class UseItem : ExternalProtocol
     public VendorCatalog VendorCatalog { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public InternalRecipe RecipeCatalog { get; set; }
+    public ItemRConfig ItemRConfig { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
     public TimerThread TimerThread { get; set; }
-    public ILogger<PlayerStatus> Logger { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
+    public ILogger<PlayerStatus> Logger { get; set; }
 
     public override void Run(string[] message)
     {
@@ -61,6 +62,9 @@ public class UseItem : ExternalProtocol
             case ItemSubCategory.SuperPack:
                 HandleSuperPack(usedItem);
                 break;
+            case ItemSubCategory.Pets:
+                HandlePet(usedItem);
+                break;
             default:
                 Logger.LogWarning("Could not find use for item {ItemId}, type {ItemType}.",
                     itemId, usedItem.SubCategoryId);
@@ -70,12 +74,18 @@ public class UseItem : ExternalProtocol
         Player.SendUpdatedInventory();
     }
 
-    private void HandleBomb(ItemDescription usedItem, Vector3Model position, int direction)
+    private void HandlePet(ItemDescription usedItem)
     {
-        Player.CheckAchievement(AchConditionType.Bomb, string.Empty, InternalAchievement, Logger);
-        Player.CheckAchievement(AchConditionType.Bomb, usedItem.PrefabName, InternalAchievement, Logger);
+        var itemModel = Player.Character.Inventory.Items[usedItem.ItemId];
+        Player.SetHotbarSlot(ServerRConfig.PetHotbarIndex, itemModel, ItemRConfig);
+        SendXt("hs", Player.Character.Hotbar);
+    }
 
-        Player.HandleDrop(ServerRConfig, TimerThread, Logger, usedItem, position, direction);
+    private void HandleBomb(ItemDescription usedItem, Vector3 position, int direction)
+    {
+        Player.CheckAchievement(AchConditionType.Bomb, [usedItem.PrefabName], InternalAchievement, Logger);
+
+        Player.HandleDrop(ItemRConfig, TimerThread, Logger, usedItem, position, direction);
 
         var removeFromHotbar = true;
 
@@ -90,18 +100,17 @@ public class UseItem : ExternalProtocol
 
     private void HandleConsumable(ItemDescription usedItem)
     {
-        if (usedItem.ItemActionType == ItemActionType.Eat)
+        switch (usedItem.ItemActionType)
         {
-            Player.CheckAchievement(AchConditionType.Consumable, string.Empty, InternalAchievement, Logger);
-            Player.CheckAchievement(AchConditionType.Consumable, usedItem.PrefabName, InternalAchievement, Logger);
-        }
-        else if (usedItem.ItemActionType == ItemActionType.Drink)
-        {
-            Player.CheckAchievement(AchConditionType.Drink, string.Empty, InternalAchievement, Logger);
-            Player.CheckAchievement(AchConditionType.Drink, usedItem.PrefabName, InternalAchievement, Logger);
+            case ItemActionType.Eat:
+                Player.CheckAchievement(AchConditionType.Consumable, [usedItem.PrefabName], InternalAchievement, Logger);
+                break;
+            case ItemActionType.Drink:
+                Player.CheckAchievement(AchConditionType.Drink, [usedItem.PrefabName], InternalAchievement, Logger);
+                break;
         }
 
-        Player.HandleItemEffect(usedItem, TimerThread, ServerRConfig, Logger);
+        Player.HandleItemEffect(usedItem, TimerThread, ItemRConfig, ServerRConfig, Logger);
 
         var removeFromHotbar = true;
 
@@ -116,11 +125,11 @@ public class UseItem : ExternalProtocol
 
     private void HandleRecipe(ItemDescription usedItem)
     {
-        Player.RemoveItem(usedItem, 1, ItemCatalog);
+        Player.RemoveItem(usedItem, 1, ItemCatalog, ItemRConfig);
 
         var recipe = RecipeCatalog.GetRecipeById(usedItem.RecipeParentItemID);
 
-        Player.Character.Data.RecipeList.RecipeList.Add(recipe);
+        Player.Character.RecipeList.RecipeList.Add(recipe);
 
         Player.SendXt("cz", recipe);
     }
@@ -150,11 +159,16 @@ public class UseItem : ExternalProtocol
 
     private void RemoveFromHotbar(CharacterModel character, ItemDescription item)
     {
-        character.Data.Inventory.Items[item.ItemId].Count--;
+        var itemModel = character.Inventory.Items[item.ItemId];
 
-        if (character.Data.Inventory.Items[item.ItemId].Count <= 0)
-            if (character.Data.Inventory.Items[item.ItemId] != null)
-                character.Data.Inventory.Items.Remove(item.ItemId);
+        if (itemModel == null)
+            return;
+
+        if (itemModel.Count > 0)
+            itemModel.Count--;
+
+        else if (itemModel.Count <= 0)
+            character.Inventory.Items.Remove(item.ItemId);
 
         Player.SendUpdatedInventory();
     }

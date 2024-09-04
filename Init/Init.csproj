@@ -17,14 +17,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Protocols.External\Protocols.External.csproj" />
         <ProjectReference Include="..\Protocols.System\Protocols.System.csproj" />
         <ProjectReference Include="..\Server.Base\Server.Base.csproj" />
         <ProjectReference Include="..\Server.Reawakened\Server.Reawakened.csproj" />
         <ProjectReference Include="..\Server.Web\Server.Web.csproj" />
         <ProjectReference Include="..\Web.Apps\Web.Apps.csproj" />
-        <ProjectReference Include="..\Web.AssetBundles\Web.AssetBundles.csproj" />
-        <ProjectReference Include="..\Web.Icons\Web.Icons.csproj" />
         <ProjectReference Include="..\Web.Launcher\Web.Launcher.csproj" />
         <ProjectReference Include="..\Web.Razor\Web.Razor.csproj" />
         <ProjectReference Include="..\Web.WebPlayer\Web.WebPlayer.csproj" />

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using Server.Base.Core.Abstractions;
 using Server.Web.Abstractions;
 using Server.Web.Middleware;
@@ -18,19 +19,15 @@ namespace Server.Web;
 
 public class Web(ILogger<Web> logger) : WebModule(logger)
 {
-    public override string[] Contributors { get; } = ["Ferox"];
-
     public override void AddServices(IServiceCollection services, Module[] modules)
     {
         services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
         services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-        services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();;
+        services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>(); ;
 
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
-
+        services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "MQR API", Version = "v1" }));
         services.AddRazorPages();
     }
 
@@ -66,11 +63,10 @@ public class Web(ILogger<Web> logger) : WebModule(logger)
         {
             app.UseDeveloperExceptionPage();
 
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            app.UseSwaggerUI(c =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.RoutePrefix = string.Empty;
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "MQR API V1");
+                c.RoutePrefix = "api-docs"; // Custom route for Swagger UI
             });
 
             app.UseHsts();
@@ -85,8 +81,6 @@ public class Web(ILogger<Web> logger) : WebModule(logger)
         app.UseIpRateLimiting();
 
         app.UseMiddleware<RequestMiddleware>();
-
-        app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();

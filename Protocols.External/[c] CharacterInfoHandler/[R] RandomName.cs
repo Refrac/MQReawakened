@@ -1,7 +1,7 @@
-﻿using Server.Reawakened.Network.Protocols;
+﻿using Server.Reawakened.Database.Characters;
+using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Enums;
 using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.Players.Services;
 
 namespace Protocols.External._c__CharacterInfoHandler;
 

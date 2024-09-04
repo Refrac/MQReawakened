@@ -1,63 +1,67 @@
 ﻿using Microsoft.Extensions.Logging;
-using Server.Base.Accounts.Models;
-using Server.Base.Core.Extensions;
 using Server.Base.Core.Models;
+using Server.Base.Database.Accounts;
 using Server.Base.Network;
-using Server.Base.Network.Services;
+using Server.Reawakened.Database.Characters;
+using Server.Reawakened.Database.Users;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.Players.Models;
-using Server.Reawakened.Players.Services;
+using Server.Reawakened.Players.Models.Misc;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
 
 namespace Server.Reawakened.Players;
 
-public class Player(Account account, UserInfo userInfo, NetState state, WorldHandler worldHandler, PlayerContainer playerContainer, CharacterHandler characterHandler) : INetStateData
+public class Player(AccountModel account, UserInfoModel userInfo, NetState state, WorldHandler worldHandler, PlayerContainer playerContainer, CharacterHandler characterHandler) : INetStateData
 {
-    public Account Account => account;
+    public AccountModel Account => account;
+    public UserInfoModel UserInfo => userInfo;
+    public CharacterModel Character { get; set; }
+
     public NetState NetState => state;
-    public UserInfo UserInfo => userInfo;
+    public TemporaryDataModel TempData { get; set; } = new TemporaryDataModel();
+    public Room Room { get; set; }
+
     public PlayerContainer PlayerContainer => playerContainer;
     public CharacterHandler CharacterHandler => characterHandler;
 
-    public TemporaryDataModel TempData { get; set; } = new TemporaryDataModel();
-    public CharacterModel Character { get; set; }
-    public Room Room { get; set; }
-
     public int UserId => userInfo.Id;
     public int CharacterId => Character != null ? Character.Id : -1;
-    public string CharacterName => Character != null ? Character.Data.CharacterName : string.Empty;
+    public string CharacterName => Character != null ? Character.CharacterName : string.Empty;
     public string GameObjectId => TempData.GameObjectId;
 
-    public bool FirstLogin { get; set; } = true;
-    public long CurrentPing { get; set; } = GetTime.GetCurrentUnixMilliseconds();
+    private bool _hasLoggedOut = false;
 
-    public void RemovedState(NetState state, NetStateHandler handler,
+    public void RemovedState(NetState _, IServiceProvider services,
         Microsoft.Extensions.Logging.ILogger logger) => Remove(logger);
 
     public void Remove(Microsoft.Extensions.Logging.ILogger logger)
     {
-        lock (playerContainer.Lock)
+        if (_hasLoggedOut)
+            return;
+
+        _hasLoggedOut = true;
+
+        lock (PlayerContainer.Lock)
             playerContainer.RemovePlayer(this);
 
         this.RemoveFromGroup();
 
         if (Character != null)
         {
-            lock (playerContainer.Lock)
+            lock (PlayerContainer.Lock)
             {
                 foreach (var player in playerContainer.GetPlayersByFriend(CharacterId))
-                    player.SendXt("fz", Character.Data.CharacterName);
+                    player.SendXt("fz", Character.CharacterName);
             }
 
             if (TempData.TradeModel != null)
             {
                 var tradingPlayer = TempData.TradeModel.TradingPlayer;
                 tradingPlayer.TempData.TradeModel = null;
-                tradingPlayer.SendXt("tc", Character.Data.CharacterName);
+                tradingPlayer.SendXt("tc", Character.CharacterName);
             }
 
             Character = null;
@@ -78,8 +82,11 @@ public class Player(Account account, UserInfo userInfo, NetState state, WorldHan
 
         try
         {
+            NetState.RemoveAllData();
             NetState.Dispose();
         }
-        catch (Exception) { }
+        catch (Exception e) {
+            logger.LogError(e, "Error when disposing on logout");
+        }
     }
 }

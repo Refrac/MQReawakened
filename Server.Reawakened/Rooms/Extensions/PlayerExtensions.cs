@@ -1,46 +1,34 @@
 ﻿using Server.Base.Accounts.Extensions;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.Players.Models;
 using Server.Reawakened.Players.Models.Protocol;
 using Server.Reawakened.Rooms.Enums;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.Rooms.Services;
-using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
 using WorldGraphDefines;
 
 namespace Server.Reawakened.Rooms.Extensions;
 
 public static class PlayerExtensions
 {
-    private static void JoinRoom(this Player player, Room room, bool useOriginalRoom, out JoinReason reason)
+    private static void JoinRoom(this Player player, Room room, out JoinReason reason)
     {
-        player.Room?.RemoveClient(player, useOriginalRoom);
+        player.Room?.RemoveClient(player);
         player.Room = room;
         player.Room.AddClient(player, out reason);
     }
 
-    public static void QuickJoinRoom(this Player player, int id, WorldHandler worldHandler, out JoinReason reason)
-    {
-        var useOriginalRoom = false;
-
-        if (player.Room != null)
-            if (player.Room.LevelInfo.LevelId == id)
-                useOriginalRoom = true;
-
-        var room = useOriginalRoom ? player.Room :
-            worldHandler.GetRoomFromLevelId(id, player);
-
-        player.JoinRoom(room, useOriginalRoom, out reason);
-    }
+    public static void QuickJoinRoom(this Player player, int id, WorldHandler worldHandler, out JoinReason reason) =>
+        player.JoinRoom(worldHandler.GetRoomFromLevelId(id, player), out reason);
 
     public static string GetPlayersPlaneString(this Player player)
-        => player.TempData.Position.Z > 0 ? "Plane1" : "Plane0";
+        => player.TempData.Position.z > 0 ? "Plane1" : "Plane0";
 
     public static int GetLevelId(this Player player) =>
-        player.Character?.LevelData.LevelId ?? -1;
+        player.Character?.LevelId ?? -1;
 
     public static void SentEntityTriggered(this Room room, string id, Player player, bool success, bool active)
     {
@@ -69,9 +57,9 @@ public static class PlayerExtensions
 
         var info = type switch
         {
-            CharacterInfoType.Lite => character.Data.GetLightCharacterData(),
-            CharacterInfoType.Portals => character.Data.BuildPortalData(),
-            CharacterInfoType.Detailed => character.Data.ToString(),
+            CharacterInfoType.Lite => character.GetLightCharacterData(),
+            CharacterInfoType.Portals => character.BuildPortalData(),
+            CharacterInfoType.Detailed => character.ToString(),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
@@ -82,25 +70,25 @@ public static class PlayerExtensions
     {
         var levelUpData = new LevelUpDataModel
         {
-            Level = player.Character.Data.GlobalLevel,
-            IncPowerJewel = player.Character.Data.BadgePoints,
+            Level = player.Character.GlobalLevel,
+            IncPowerJewel = player.Character.BadgePoints,
         };
 
-        foreach (var currentPlayer in player.Room.Players.Values)
+        foreach (var currentPlayer in player.Room.GetPlayers())
             currentPlayer.SendXt("ce", levelUpData, player.UserId);
 
         //Temporary way to earn NC upon level up.
         //(Needed for gameplay improvements as NC is currently unobtainable)
         player.AddNCash(125);
-      
+
         player.SendSyncEventToPlayer(new Health_SyncEvent(player.GameObjectId.ToString(), player.Room.Time,
-            player.Character.Data.MaxLife, player.Character.Data.MaxLife, player.GameObjectId.ToString()));
+            player.Character.MaxLife, player.Character.MaxLife, player.GameObjectId.ToString()));
     }
 
     public static void SendStartPlay(this Player player, CharacterModel character,
-        LevelInfo levelInfo, EventPrefabs eventPrefabs, ServerRConfig config)
+        LevelInfo levelInfo, EventPrefabs eventPrefabs)
     {
-        character.Data.SetDynamicData(player, config);
+        character.SetPlayerData(player);
         player.SetCharacterSelected(character);
         player.PlayerContainer.AddPlayer(player);
         player.SendCharacterInfoDataTo(player, CharacterInfoType.Detailed, levelInfo);
@@ -108,7 +96,7 @@ public static class PlayerExtensions
 
         foreach (var friend in player.PlayerContainer.GetPlayersByFriend(player.CharacterId)
                      .Where(p =>
-                         player.Character.Data.Friends
+                         player.Character.Friends
                              .Any(x => x == p.Character.Id)
                      )
                 )
@@ -120,7 +108,24 @@ public static class PlayerExtensions
 
     public static List<GameObjectModel> GetPlaneEntities(this Player player)
     {
-        var planeName = player.TempData.Position.Z > 10 ? "Plane1" : "Plane0";
+        var planeName = player.TempData.Position.z > 10 ? "Plane1" : "Plane0";
         return [.. player.Room.Planes[planeName].GameObjects.Values.SelectMany(x => x)];
     }
+
+    public static void GroupMemberRoomChanged(this Room room, Player player)
+    {
+        if (player.TempData.Group == null)
+            return;
+
+        foreach (var groupMember in player.TempData.Group.GetMembers())
+        {
+            groupMember.SendXt(
+                "pm",
+                player.CharacterName,
+                room.LevelInfo.Name,
+                room.ToString()
+            );
+        }
+    }
+
 }

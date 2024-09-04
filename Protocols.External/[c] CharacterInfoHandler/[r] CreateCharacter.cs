@@ -1,15 +1,13 @@
 ﻿using A2m.Server;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Enums;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.Players.Models;
-using Server.Reawakened.Players.Models.Character;
-using Server.Reawakened.Players.Services;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
-using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
 
 namespace Protocols.External._c__CharacterInfoHandler;
 
@@ -26,16 +24,14 @@ public class CreateCharacter : ExternalProtocol
 
     public override void Run(string[] message)
     {
-        // Early 2012 doesn't split the names
         var firstName = message[5];
         var middleName = message[6];
         var lastName = message[7];
-        var gender = (Gender)int.Parse(message[8]);
-        var characterData = new CharacterDataModel(message[9]);
-        var tribe = TribeType.Invalid;
 
-        if (ServerConfig.GameVersion >= GameVersion.v2014)
-            tribe = (TribeType)int.Parse(message[10]);
+        var gender = (Gender)int.Parse(message[8]);
+        var characterEntry = new CharacterDbEntry(message[9]);
+
+        var tribe = TribeType.Invalid;
 
         var names = new[] { firstName, middleName, lastName };
 
@@ -51,30 +47,26 @@ public class CreateCharacter : ExternalProtocol
         }
         else
         {
-            characterData.Allegiance = tribe;
-            characterData.CharacterName = string.Join(string.Empty, names);
-            characterData.UserUuid = Player.UserId;
+            characterEntry.Allegiance = tribe;
+            characterEntry.CharacterName = string.Join(string.Empty, names);
+            characterEntry.UserUuid = Player.UserId;
+            
+            characterEntry.Registered = true;
 
-            if (ServerConfig.GameVersion >= GameVersion.v2014)
-                characterData.CompletedQuests.Add(ServerConfig.TutorialTribe2014[tribe]);
+            characterEntry.LevelId = WorldGraph.NewbZone;
+            characterEntry.SpawnPointId = string.Empty;
 
-            characterData.Registered = true;
+            CharacterHandler.Add(characterEntry);
 
-            var levelUpData = new LevelData
-            {
-                LevelId = ServerConfig.GameVersion >= GameVersion.v2014 ? WorldGraph.DefaultLevel : WorldGraph.NewbZone,
-                SpawnPointId = ""
-            };
+            var characterData = CharacterHandler.GetCharacterFromName(characterEntry.CharacterName);
 
-            var model = CharacterHandler.Create(characterData, levelUpData);
+            characterData.SetLevelXp(1, ServerConfig);
 
-            model.SetLevelXp(1);
+            Player.AddCharacter(characterData);
 
-            Player.AddCharacter(model);
+            var levelInfo = WorldHandler.GetLevelInfo(characterData.LevelId);
 
-            var levelInfo = WorldHandler.GetLevelInfo(model.LevelData.LevelId);
-
-            Player.SendStartPlay(model, levelInfo, EventPrefabs, ServerConfig);
+            Player.SendStartPlay(characterData, levelInfo, EventPrefabs);
         }
     }
 }

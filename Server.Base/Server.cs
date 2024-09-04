@@ -2,21 +2,40 @@
 using Microsoft.Extensions.Logging;
 using Server.Base.Accounts.Helpers;
 using Server.Base.Core.Abstractions;
-using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Services;
 using Server.Base.Core.Workers;
+using Server.Base.Database.Abstractions;
 using Server.Base.Logging;
 using Server.Base.Network.Helpers;
 using Server.Base.Timers.Helpers;
-using Server.Base.Timers.Services;
-using Server.Base.Worlds;
 
 namespace Server.Base;
 
 public class Server(ILogger<Server> logger) : Module(logger)
 {
-    public override string[] Contributors { get; } = ["Ferox", "ServUO"];
+    public override void AddDatabase(IServiceCollection services, Module[] modules)
+    {
+        Logger.LogDebug("Loading database locks");
+
+        foreach (var service in modules.GetServices<DbLock>())
+        {
+            Logger.LogTrace("Loaded: {ServiceName}", service.Name);
+            services.AddSingleton(service);
+        }
+
+        Logger.LogInformation("Loaded database locks");
+
+        Logger.LogDebug("Loading database contexts");
+
+        foreach (var type in modules.GetServices<IDataContextInitialize>())
+        {
+            Logger.LogTrace("Loaded: {ServiceName}", type.Name);
+            type.GetMethod("AddContextToServiceProvider")?.Invoke(null, [services]);
+        }
+
+        Logger.LogInformation("Loaded database contexts");
+    }
 
     public override void AddLogging(ILoggingBuilder loggingBuilder)
     {
@@ -30,7 +49,7 @@ public class Server(ILogger<Server> logger) : Module(logger)
 
         {
             services.AddHostedService<ServerWorker>();
-            Logger.LogTrace("   Loaded: Service Worker");
+            Logger.LogTrace("Loaded: Service Worker");
         }
 
         Logger.LogInformation("Loaded hosted services");
@@ -39,7 +58,7 @@ public class Server(ILogger<Server> logger) : Module(logger)
 
         foreach (var service in modules.GetServices<IService>())
         {
-            Logger.LogTrace("   Loaded: {ServiceName}", service.Name);
+            Logger.LogTrace("Loaded: {ServiceName}", service.Name);
             services.AddSingleton(service);
         }
 
@@ -49,7 +68,7 @@ public class Server(ILogger<Server> logger) : Module(logger)
 
         foreach (var eventSink in modules.GetServices<IEventSink>())
         {
-            Logger.LogTrace("   Loaded: {EventSink}", eventSink.Name);
+            Logger.LogTrace("Loaded: {EventSink}", eventSink.Name);
             services.AddSingleton(eventSink);
         }
 
@@ -58,7 +77,7 @@ public class Server(ILogger<Server> logger) : Module(logger)
         Logger.LogDebug("Loading modules");
         foreach (var service in modules.GetServices<Module>())
         {
-            Logger.LogTrace("   Loaded: {ServiceName}", service.Name);
+            Logger.LogTrace("Loaded: {ServiceName}", service.Name);
             services.AddSingleton(service);
         }
 
@@ -80,10 +99,6 @@ public class Server(ILogger<Server> logger) : Module(logger)
 
         services
             .AddSingleton<Random>()
-            .AddSingleton<ServerHandler>()
-            .AddSingleton<EventSink>()
-            .AddSingleton<World>()
-            .AddSingleton<TimerThread>()
             .AddSingleton<TimerChangePool>()
             .AddSingleton<AccountAttackLimiter>()
             .AddSingleton<PasswordHasher>()

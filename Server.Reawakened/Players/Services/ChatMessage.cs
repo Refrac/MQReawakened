@@ -27,12 +27,10 @@ public class ChatMessage(ServerConsole serverConsole,
 
     public void SendConsoleMessage(string message)
     {
-        lock (playerContainer.Lock)
+        lock (PlayerContainer.Lock)
         {
             foreach (var player in playerContainer.GetAllPlayers())
-            {
-                player.Chat(CannedChatChannel.Tell, "Console", message);
-            }
+                player?.Chat(CannedChatChannel.Tell, "Console", message);
         }
     }
 }
