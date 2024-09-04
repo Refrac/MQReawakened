@@ -7,6 +7,7 @@ using Server.Base.Accounts.Helpers;
 using Server.Base.Core.Configs;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Services;
+using Server.Base.Database.Abstractions;
 using Server.Base.Logging;
 using Server.Base.Network;
 using Server.Base.Network.Helpers;
@@ -47,8 +48,24 @@ public class AccountHandler(PasswordHasher hasher, AccountAttackLimiter attackLi
     public AccountModel GetAccountFromUsername(string username) =>
         GetAccountFromId(GetIdFromUserName(username));
 
+    public AccountModel GetAccountFromEmail(string email) =>
+        GetAccountFromId(GetIdFromEmail(email));
+
     public static AccountModel GetAccountFromModel(AccountDbEntry model) =>
         model != null ? new(model) : null;
+
+    protected int GetIdFromEmail(string email)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BaseDatabase>();
+
+        lock (DbLock.Lock)
+        {
+            var account = db.Accounts.AsNoTracking().FirstOrDefault(a => a.Email == email);
+
+            return account == null ? -1 : account.Id;
+        }
+    }
 
     protected int GetIdFromUserName(string username)
     {
