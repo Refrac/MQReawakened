@@ -75,12 +75,6 @@ public class State : ExternalProtocol
                     var superStompDamage = (int)Math.Ceiling(WorldStatistics.GetValue(ItemEffectType.AbilityPower, WorldStatisticsGroup.Player, Player.Character.GlobalLevel) +
                         WorldStatistics.GlobalStats[Globals.StompDamageBonus]) * 2;
 
-                    // Needed because early 2012's ChargeAttack_SyncEvent is different
-                    // without it this causes a vs error
-                    // not fixable in reawakened it would require using the 2012 codebase
-                    if (ServerRConfig.GameVersion <= GameVersion.vPets2012)
-                        return;
-
                     Logger.LogTrace("Super attack is charging: '{Charging}' at ({X}, {Y}) in time: {Delay} " +
                         "at speed ({X}, {Y}) with max pos ({X}, {Y}) for item id: '{Id}' and zone: {Zone}",
                         attack.IsCharging, attack.PosX, attack.PosY, attack.StartDelay,
