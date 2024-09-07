@@ -16,8 +16,13 @@ public class MysticCharmTargetComp : Component<MysticCharmTarget>
 
     private int _charmItemId;
 
-    public override void InitializeComponent() =>
+    public override void InitializeComponent()
+    {
+        if (ItemCatalog.GetItemFromPrefabName("ABIL_MysticCharm01") == null)
+            return;
+
         _charmItemId = ItemCatalog.GetItemFromPrefabName("ABIL_MysticCharm01").ItemId;
+    }
 
     public override void RunSyncedEvent(SyncEvent syncEvent, Player player)
     {
