@@ -1,26 +1,22 @@
-﻿using Microsoft.Extensions.Logging;
-using Server.Base.Accounts.Enums;
-using Server.Base.Logging;
+﻿using Server.Base.Accounts.Enums;
 using Server.Reawakened.Chat.Models;
 using Server.Reawakened.Players;
-using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.XMLs.Bundles.Base;
-using Server.Reawakened.XMLs.Bundles.Internal;
 using Server.Reawakened.XMLs.Data.Commands;
 
 namespace Server.Reawakened.Chat.Commands.Quest;
-public class AddQuest : SlashCommand
+public class AddAndCompleteQuest : SlashCommand
 {
-    public override string CommandName => "/addquest";
+    public override string CommandName => "/addandcompletequest";
 
-    public override string CommandDescription => "Add the provided quest by id.";
+    public override string CommandDescription => "This marks the provided quest as completed.";
 
     public override List<ParameterModel> Parameters =>
     [
         new ParameterModel()
         {
-            Name = "id",
-            Description = "The provided quest id.",
+            Name = "name",
+            Description = "The quest name to be marked as completed. (i.e. OOTU_0_07)",
             Optional = false
         }
     ];
@@ -28,13 +24,12 @@ public class AddQuest : SlashCommand
     public override AccessLevel AccessLevel => AccessLevel.Player;
 
     public QuestCatalog QuestCatalog { get; set; }
-    public InternalQuestItem InternalQuestItem { get; set; }
-    public ItemCatalog ItemCatalog { get; set; }
-    public FileLogger FileLogger { get; set; }
-    public ILogger<AddQuest> Logger { get; set; }
 
     public override void Execute(Player player, string[] args)
     {
+        if (args.Length != 2)
+            return;
+
         var questData = GetQuest(player, args);
 
         if (questData == null)
@@ -43,13 +38,10 @@ public class AddQuest : SlashCommand
         var questModel = player.Character.QuestLog.FirstOrDefault(x => x.Id == questData.Id);
 
         if (questModel != null)
-        {
-            Log("Quest is already in progress.", player);
-            return;
-        }
+            player.Character.QuestLog.Remove(questModel);
 
-        player.AddQuest(questData, InternalQuestItem, ItemCatalog, FileLogger, "Slash command", Logger);
-        Log($"Added quest {questData.Name} with id {questData.Id}.", player);
+        player.Character.CompletedQuests.Add(questData.Id);
+        Log($"Added quest {questData.Name} with id {questData.Id} to completed quests.", player);
     }
 
     public QuestDescription GetQuest(Player player, string[] args)
@@ -64,6 +56,7 @@ public class AddQuest : SlashCommand
             return null;
 
         var questId = QuestCatalog.GetQuestIdFromName(args[1]);
+
         var questData = QuestCatalog.GetQuestData(questId);
 
         if (questData == null)
