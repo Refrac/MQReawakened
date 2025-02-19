@@ -1,23 +1,31 @@
 ﻿using A2m.Server;
+using Server.Base.Core.Abstractions;
 using Server.Base.Timers.Extensions;
 using Server.Base.Timers.Services;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Rooms.Extensions;
-
+using Server.Reawakened.Rooms.Models.Timers;
+using Server.Reawakened.XMLs.Bundles.Base;
 
 namespace Server.Reawakened.Players.Extensions;
 
 public static class PlayerStatusEffectExtensions
 {
-    public static void ApplySlowEffect(this Player player, string hazardId, int damage) => 
+    public static void ApplySlowEffect(this Player player, string hazardId, int damage) =>
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
         (int)ItemEffectType.SlowStatusEffect, damage, 1, true, hazardId, false));
 
     //Doesn't seem to apply fast enough.
     public static void NullifySlowStatusEffect(this Player player, string hazardId) =>
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-                (int)ItemEffectType.NullifySlowStatusEffect, 1, 1, true, hazardId, false));
+                (int)ItemEffectType.NullifySlowStatusEffect, 1, 1, true, hazardId, true));
 
-    public static void StartPoisonDamage(this Player player, string hazardId, int damage, int hurtLength, TimerThread timerThread)
+    public static bool HasNullifyEffect(this Player player, ItemCatalog itemCatalog) =>
+     player.Character.Equipment.EquippedItems
+         .Select(x => itemCatalog.GetItemFromId(x.Value))
+         .Any(item => item != null && item.ItemEffects.Any(effect => effect.Type == ItemEffectType.NullifySlowStatusEffect));
+
+    public static void StartPoisonDamage(this Player player, string hazardId, int damage, int hurtLength, ServerRConfig serverRConfig, TimerThread timerThread)
     {
         if (player == null || player.TempData.Invincible)
             return;
@@ -25,60 +33,39 @@ public static class PlayerStatusEffectExtensions
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
         (int)ItemEffectType.PoisonDamage, damage, hurtLength, true, hazardId, false));
 
-        player.ApplyCharacterDamage(damage, hurtLength, timerThread);
+        player.ApplyCharacterDamage(damage, hazardId, hurtLength, serverRConfig, timerThread);
     }
 
-    public class InvisibiltyData()
-    {
-        public Player Player;
-        public bool IsInvisibile;
-        public float Duration;
-    }
-
-    public static void TemporaryInvisibility(this Player player, float duration, TimerThread timerThread)
-    {
-        player.TempData.Invisible = true;
-
-        var disableInvisibilityData = new InvisibiltyData()
-        {
-            Player = player,
-            IsInvisibile = false,
-            Duration = duration
-        };
-
-        timerThread.DelayCall(DisableInvisibility, disableInvisibilityData,
-            TimeSpan.FromSeconds(duration), TimeSpan.Zero, 1);
-    }
-
-    public static void DisableInvisibility(object data)
-    {
-        var invisibilityData = (InvisibiltyData)data;
-
-        invisibilityData.Player.TempData.Invisible = false;
-    }
-
-    public class InvincibiltyData()
-    {
-        public Player Player;
-        public bool IsInvincible;
-    }
-
-    public static void TemporaryInvincibility(this Player player, TimerThread timerThread, double durationInSeconds)
+    public static void TemporaryInvincibility(this Player player, TimerThread timerThread,
+        ServerRConfig serverRConfig, double durationInSeconds)
     {
         player.TempData.Invincible = true;
 
-        var invinsibleData = new InvincibiltyData()
+        //ItemEffectType Invincibility doesn't exist <= Late 2012.
+        var effectType = serverRConfig.GameVersion > Core.Enums.GameVersion.vLate2012 ? ItemEffectType.Invincibility : ItemEffectType.Unknown;
+
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+                 (int)effectType, 0, (int)durationInSeconds, true, player.CharacterName, true));
+
+        var invincibleData = new InvincibilityData()
         {
             Player = player,
             IsInvincible = false
         };
 
-        timerThread.DelayCall(DisableInvincibility, invinsibleData, TimeSpan.FromSeconds(durationInSeconds), TimeSpan.Zero, 1);
+        timerThread.RunDelayed(DisableInvincibility, invincibleData, TimeSpan.FromSeconds(durationInSeconds));
     }
 
-    public static void DisableInvincibility(object data)
+    public class InvincibilityData() : PlayerTimer
     {
-        var invinsibleData = (InvincibiltyData)data;
-        invinsibleData.Player.TempData.Invincible = false;
+        public bool IsInvincible;
+    }
+
+    public static void DisableInvincibility(ITimerData data)
+    {
+        if (data is not InvincibilityData invincible)
+            return;
+
+        invincible.Player.TempData.Invincible = false;
     }
 }

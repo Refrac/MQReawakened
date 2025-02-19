@@ -1,13 +1,13 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Configs;
-using Server.Reawakened.Entities.AbstractComponents;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Entities.Components.GameObjects.Items.Abstractions;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Rooms.Extensions;
-using Server.Reawakened.XMLs.Bundles;
-using Server.Reawakened.XMLs.BundlesInternal;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
 
 namespace Server.Reawakened.Entities.Components.GameObjects.Items;
 
@@ -26,7 +26,7 @@ public class ChestControllerComp : BaseChestControllerComp<ChestController>
         ChestState = DailiesState.Active;
 
         if (player.Character.CurrentCollectedDailies != null &&
-            PrefabName.Contains(ServerRConfig.DailyBoxName) || IsLoyaltyChest == true)
+             PrefabName.Contains(ServerRConfig.DailyBoxName) || IsLoyaltyChest == true)
             if (!CanActivateDailies(player, Id))
                 ChestState = DailiesState.Collected;
 
@@ -45,23 +45,33 @@ public class ChestControllerComp : BaseChestControllerComp<ChestController>
         //Temp way for adding bananas to empty chests to create a better user experience.
         if (string.IsNullOrEmpty(LootCatalog.GetLootById(player.Room.LevelInfo.LevelId, Id).ObjectId))
         {
-            var bananaReward = new Random().Next(30, 55);
+            var bananaReward = RandomBananaReward(player);
 
             player.AddBananas(bananaReward, InternalAchievement, Logger);
             triggerEvent.EventDataList[0] = bananaReward;
         }
 
         if (PrefabName.Contains(ServerRConfig.DailyBoxName) || IsLoyaltyChest == true)
-        {
-            player.SendSyncEventToPlayer(triggerEvent);
-            player.SendSyncEventToPlayer(triggerReceiver);
-
             player.Character.CurrentCollectedDailies.TryAdd(Id, SetDailyHarvest(Id, Room.LevelInfo.LevelId, DateTime.Now));
-
-            return;
-        }
 
         Room.SendSyncEvent(triggerEvent);
         Room.SendSyncEvent(triggerReceiver);
+    }
+
+    //Temporary for chests without loot tables. Could be used for banana rewards in the future.
+    public int RandomBananaReward(Player player)
+    {
+        var random = new Random();
+        var bananaReward = PrefabName switch
+        {
+            var prefab when prefab.Contains(ServerRConfig.BlueChestName) => random.Next(85, 155),
+            var prefab when prefab.Contains(ServerRConfig.PurpleChestName) => random.Next(295, 500),
+            _ => random.Next(45, 70),
+        };
+
+        if (player.Character.GlobalLevel > ServerRConfig.DoubleChestRewardsLevel)
+            bananaReward *= 2;
+
+        return bananaReward;
     }
 }

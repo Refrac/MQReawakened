@@ -1,14 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 using Server.Base.Core.Extensions;
+using Server.Reawakened.BundleHost.Configs;
 using Server.Reawakened.BundleHost.Models;
 using Server.Reawakened.BundleHost.Services;
+using Server.Reawakened.Core.Configs;
 
 namespace Server.Reawakened.BundleHost.Extensions;
 
 public static class AssetDictionaryExtensions
 {
     public static void AddModifiedAssets(this Dictionary<string, InternalAssetInfo> assets,
-        AssetBundleRConfig config)
+        AssetBundleRConfig config, ServerRConfig serverConfig)
     {
         var assetsToAdd = new Dictionary<string, InternalAssetInfo>();
 
@@ -19,12 +21,17 @@ public static class AssetDictionaryExtensions
                 assetsToAdd.AddChangedNameToDict(assetName, assets[oldAsset]);
             }
 
-        foreach (var replacement in config.AssetRenames)
-            foreach (var oldAsset in assets.Keys.Where(a => a.Contains(replacement.Key)))
+        foreach (var version in config.AssetRenames)
+        {
+            if (version.Key > serverConfig.GameVersion)
+                continue;
+
+            foreach (var replacement in version.Value)
             {
-                var assetName = oldAsset.Replace(replacement.Key, replacement.Value);
-                assetsToAdd.AddChangedNameToDict(assetName, assets[oldAsset]);
+                foreach (var oldAsset in assets.Where(a => a.Key == replacement.Key))
+                    assetsToAdd.AddChangedNameToDict(replacement.Value, oldAsset.Value);
             }
+        }
 
         foreach (var asset in assetsToAdd
                      .Where(asset => !assets.ContainsKey(asset.Key)))
@@ -46,6 +53,8 @@ public static class AssetDictionaryExtensions
     public static void AddLocalXmlFiles(this Dictionary<string, InternalAssetInfo> assets,
         ILogger<BuildAssetList> logger, AssetBundleRConfig config)
     {
+        logger.LogInformation("Loading local XML files from '{LocalAssetsDirectory}'", config.LocalAssetsDirectory);
+
         foreach (var asset in Directory
                      .GetFiles(config.LocalAssetsDirectory, "*.xml")
                      .Select(file => new InternalAssetInfo
@@ -57,19 +66,19 @@ public static class AssetDictionaryExtensions
                          Path = file,
                          Version = 0
                      })
-                     .Where(a =>
-                     {
-                         if (assets.ContainsKey(a.Name))
-                         {
-                             if (!config.ForceLocalAsset.Contains(a.Name))
-                                 return false;
-                             assets.Remove(a.Name);
-                         }
+                    .Where(a =>
+                    {
+                        if (assets.ContainsKey(a.Name))
+                        {
+                            if (!config.ForceLocalAsset.Contains(a.Name))
+                                return false;
 
-                         logger.LogTrace("Adding asset {Name} from local assets.", a.Name);
-                         return true;
-                     }))
+                            assets.Remove(a.Name);
+                        }
 
+                        logger.LogTrace("Adding asset {Name} from local assets.", a.Name);
+                        return true;
+                    }))
             assets.Add(asset.Name, asset);
     }
 }

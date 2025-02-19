@@ -1,4 +1,4 @@
-﻿namespace Server.Reawakened.Rooms.Models.Entities;
+﻿namespace Server.Reawakened.Entities.Colliders.Enums;
 public enum ColliderType
 {
     Default,
@@ -10,5 +10,8 @@ public enum ColliderType
     Player,
     AiAttack,
     Mesh,
-    Hazard
+    Hazard,
+    Stomper,
+    MovingPlatform,
+    TriggerReceiver
 }

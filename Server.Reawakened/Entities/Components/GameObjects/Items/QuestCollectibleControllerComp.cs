@@ -2,10 +2,10 @@
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
-using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
 using static CollectibleController;
 
-namespace Server.Reawakened.Entities.Components;
+namespace Server.Reawakened.Entities.Components.GameObjects.Items;
 public class QuestCollectibleControllerComp : Component<QuestCollectibleController>
 {
     public CollectibleState CollectedState;
@@ -23,7 +23,7 @@ public class QuestCollectibleControllerComp : Component<QuestCollectibleControll
 
         _questItem = ItemCatalog.GetItemFromPrefabName(PrefabName);
 
-        foreach (var objective in player.Character.Data.QuestLog.SelectMany(x => x.Objectives.Values).Where
+        foreach (var objective in player.Character.QuestLog.SelectMany(x => x.Objectives.Values).Where
             (x => x.GameObjectId.ToString() == Id || _questItem != null && x.ItemId == _questItem.ItemId))
             CollectedState = CollectibleState.Active;
 
@@ -62,9 +62,8 @@ public class QuestCollectibleControllerComp : Component<QuestCollectibleControll
     {
         var questItem = ItemCatalog.GetItemFromPrefabName(PrefabName);
 
-        foreach (var objective in player.Character.Data.QuestLog.SelectMany(x => x.Objectives.Values).Where
+        foreach (var objective in player.Character.QuestLog.SelectMany(x => x.Objectives.Values).Where
             (x => x.GameObjectId.ToString() == Id || questItem != null && x.ItemId == questItem.ItemId))
-        {
             switch (collectedState)
             {
                 case CollectibleState.NotActive:
@@ -82,7 +81,6 @@ public class QuestCollectibleControllerComp : Component<QuestCollectibleControll
                         true, player.GameObjectId.ToString(), false));
                     break;
             }
-        }
 
         return (int)collectedState;
     }

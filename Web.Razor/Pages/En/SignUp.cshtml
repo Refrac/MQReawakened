@@ -1,12 +1,12 @@
 ﻿@page
 @model Web.Razor.Pages.En.SignUpModel
 
-@section Stylesheets {
-    <link href="~/_content/Web.Razor/SignUp/style.css" rel="stylesheet" />
-}
-
 @{
     ViewData["Title"] = "Sign Up";
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 }
 
 @if (!string.IsNullOrEmpty(Model.StatusMessage))
@@ -21,67 +21,67 @@
     </script>
 }
 
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body class="align">
-    <div class="grid align_item">
-        <div class="register">
-            <img class="site_logo" src="~/_content/Web.Razor/SignUp/logo.png", alt="Site Logo"/>
-            <h2>Sign Up</h2>
-            <form asp- method="post" class="form">
-                <div asp-validation-summary="All" class="text-danger"></div>
-                
-                <div class="form_field">
-                    <label asp-for="Username"></label>
-                    <input asp-for="Username" class="border" placeholder="XXX_Monkey_King_XXX">
-                    <span asp-validation-for="Username" class="text-danger"></span>
-                </div>
-                
-                <div class="form_field">
-                    <label asp-for="Password"></label>
-                    <input asp-for="Password" class="border" placeholder="Enter Password Here">
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-                
-                <div class="form_field">
-                    <label asp-for="ConfirmPassword"></label>
-                    <input asp-for="ConfirmPassword" class="border" placeholder="Confirm Password Here">
-                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                </div>
-                
-                <div class="form_field">
-                    <label asp-for="Email"></label>
-                    <input asp-for="Email" class="border" placeholder="info@mailaddress.com">
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-                
-                <div class="form_field">
-                    <label asp-for="Gender"></label>
-                    <select asp-for="Gender" asp-items="Pages.En.SignUpModel.Genders" class="border" placeholder="Gender">
-                        <option disabled selected>SELECT</option>
-                    </select>
-                    <span asp-validation-for="Gender" class="text-danger"></span>
-                </div>
-                
-                <div class="form_field">
-                    <label asp-for="Date"></label>
-                    <input asp-for="Date" class="border">
-                    <span asp-validation-for="Date" class="text-danger"></span>
-                </div>
-                
-                <div class="form_field">
-                    <label asp-for="Region"></label>
-                    <select asp-for="Region" asp-items="Pages.En.SignUpModel.Regions" class="border" placeholder="Region">
-                        <option disabled selected>SELECT</option>
-                    </select>
-                    <span asp-validation-for="Region" class="text-danger"></span>
-                </div>
-                <br/>
-                <div class="form_field">
-                    <input type="submit" value="Sign Up">
-                </div>
-            </form>
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="card signup-card">
+        <div class="row g-0">
+            <div class="col-md-6 info-container">
+                <img class="site_logo rounded-circle" src="/_content/Web.Razor/logo.png" alt="Site Logo" />
+                <p class="description">Join our community and explore!</p>
+                <h3 class="text-warning">Please only use alpha-numeric characters - no funky symbols!</h3>
+            </div>
+            <div class="col-md-6 form-container">
+                <form asp-action="SignUp" method="post" class="form text-center">
+                    <div class="form_field">
+                        <label asp-for="Username"></label>
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                        <input asp-for="Username" class="border" placeholder="XXX_Monkey_King_XXX">
+                    </div>
+
+                    <div class="form_field">
+                        <label asp-for="Password"></label>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <input asp-for="Password" class="border" placeholder="Enter Password Here">
+                    </div>
+
+                    <div class="form_field">
+                        <label asp-for="ConfirmPassword"></label>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        <input asp-for="ConfirmPassword" class="border" placeholder="Confirm Password Here">
+                    </div>
+
+                    <div class="form_field">
+                        <label asp-for="Email"></label>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                        <input asp-for="Email" class="border" placeholder="info@mailaddress.com">
+                    </div>
+
+                    <div class="form_field">
+                        <label asp-for="Gender"></label>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                        <select asp-for="Gender" asp-items="Pages.En.SignUpModel.Genders" class="border" placeholder="Gender">
+                            <option disabled selected>SELECT</option>
+                        </select>
+                    </div>
+
+                    <div class="form_field">
+                        <label asp-for="Date"></label>
+                        <span asp-validation-for="Date" class="text-danger"></span>
+                        <input asp-for="Date" class="border">
+                    </div>
+
+                    <div class="form_field">
+                        <label asp-for="Region"></label>
+                        <span asp-validation-for="Region" class="text-danger"></span>
+                        <select asp-for="Region" asp-items="Pages.En.SignUpModel.Regions" class="border" placeholder="Region">
+                            <option disabled selected>SELECT</option>
+                        </select>
+                    </div>
+                    <br />
+                    <div class="form_field">
+                        <input type="submit" value="Sign Up">
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</body>
+</div>

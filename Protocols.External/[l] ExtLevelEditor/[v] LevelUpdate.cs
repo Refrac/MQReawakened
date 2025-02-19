@@ -1,16 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using A2m.Server;
+using Microsoft.Extensions.Logging;
 using Server.Reawakened.Chat.Services;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
-using Server.Reawakened.Entities.Components;
+using Server.Reawakened.Entities.Components.GameObjects.NPC;
+using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Models.Entities;
-using Server.Reawakened.XMLs.BundlesInternal;
-using Server.Reawakened.XMLs.Enums;
+using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
 
 namespace Protocols.External._l__ExtLevelEditor;
 
@@ -18,10 +22,13 @@ public class RoomUpdate : ExternalProtocol
 {
     public override string ProtocolName => "lv";
 
-    public ILogger<RoomUpdate> Logger { get; set; }
-    public ChatCommands ChatCommands { get; set; }
-    public ServerRConfig Config { get; set; }
+    public MQRSlashCommands MQRSlashCommands { get; set; }
+    public ServerRConfig ServerRConfig { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
+    public WorldStatistics WorldStatistics { get; set; }
+    public PetAbilities PetAbilities { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
+    public ILogger<RoomUpdate> Logger { get; set; }
 
     public override void Run(string[] message)
     {
@@ -35,32 +42,42 @@ public class RoomUpdate : ExternalProtocol
         foreach (var enemy in Player.Room.GetEnemies())
             enemy.SendAiData(Player);
 
+        Player.TempData.CurrentArena = null;
+
         Player.Room.SendCharacterInfo(Player);
 
         foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
             npc.SendNpcInfo(Player);
 
-        if (Player.FirstLogin)
+        if (Player.TempData.FirstLogin)
         {
-            ChatCommands.DisplayHelp(Player);
-            Player.FirstLogin = false;
+            // Tribe selection reminder protocol
+            if (Player.Character.Allegiance == TribeType.Invalid
+                && Player.Character.CompletedQuests.Contains(939))
+                SendXt("dt");
+
+            MQRSlashCommands.DisplayHelp(Player);
+            Player.TempData.FirstLogin = false;
         }
         else
         {
             var levelInfo = Player.Room.LevelInfo;
 
-            Player.CheckAchievement(AchConditionType.ExploreTrail, string.Empty, InternalAchievement, Logger);
-            Player.CheckAchievement(AchConditionType.ExploreTrail, levelInfo.Name, InternalAchievement, Logger);
-
+            Player.CheckAchievement(AchConditionType.ExploreTrail,
+                [levelInfo.Name], InternalAchievement, Logger);
             Player.DiscoverTribe(levelInfo.Tribe);
         }
+
+        if (Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var pet) &&
+            pet != null && pet.IsEquipped && PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.PetId), out var petAbility))
+            Player.EquipPet(petAbility, WorldStatistics, ServerRConfig, ItemCatalog);
     }
 
     private string GetGameObjectStore(Room room)
     {
         var sb = new SeparatedStringBuilder('&');
 
-        if (Config.GameVersion >= GameVersion.vEarly2013)
+        if (ServerRConfig.GameVersion >= GameVersion.vEarly2013)
         {
             foreach (var gameObject in room.GetEntities().Where(e => e.Value != null).Select(GetEntity)
                          .Where(gameObject => gameObject.Split('~').Length > 1))

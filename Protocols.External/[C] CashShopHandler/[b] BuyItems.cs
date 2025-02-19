@@ -4,9 +4,9 @@ using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.XMLs.Bundles;
-using Server.Reawakened.XMLs.BundlesInternal;
-using Server.Reawakened.XMLs.Enums;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
 
 namespace Protocols.External._C__CashShopHandler;
 
@@ -43,14 +43,14 @@ public class BuyItems : ExternalProtocol
 
             var itemDescription = ItemCatalog.GetItemFromId(itemId);
 
-            Player.CheckAchievement(AchConditionType.BuyItem, itemDescription.PrefabName, InternalAchievement, Logger);
-            Player.CheckAchievement(AchConditionType.BuyPet, itemDescription.PrefabName, InternalAchievement, Logger);
+            Player.CheckAchievement(AchConditionType.BuyItem, [itemDescription.PrefabName], InternalAchievement, Logger);
+            Player.CheckAchievement(AchConditionType.BuyPet, [itemDescription.PrefabName], InternalAchievement, Logger);
 
             price += itemDescription.RegularPrice * amount;
             bought.Add(new(itemDescription, amount));
         }
 
-        if (price > Player.Character.Data.NCash && price > 1)
+        if (price > Player.Character.NCash && price > 1)
         {
             Player.SendXt("Ce", -1);
             return;

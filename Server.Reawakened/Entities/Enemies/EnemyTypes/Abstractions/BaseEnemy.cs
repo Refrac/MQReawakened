@@ -1,37 +1,36 @@
-﻿using Server.Reawakened.Entities.Components;
-using Server.Reawakened.Rooms.Models.Entities;
-using UnityEngine;
-using Server.Reawakened.Rooms;
-using Microsoft.Extensions.Logging;
-using Server.Reawakened.XMLs.Bundles;
-using Server.Reawakened.XMLs.BundlesInternal;
+﻿using A2m.Server;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Reawakened.Rooms.Models.Planes;
+using Microsoft.Extensions.Logging;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Entities.Colliders;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.GameObjects.InterObjs;
+using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
+using Server.Reawakened.Entities.Components.GameObjects.Spawners;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger.Enums;
+using Server.Reawakened.Entities.Enemies.Extensions;
+using Server.Reawakened.Entities.Enemies.Models;
 using Server.Reawakened.Players;
-using A2m.Server;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
+using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
-using Server.Reawakened.XMLs.Enums;
-using Server.Reawakened.Configs;
-using Server.Reawakened.XMLs.Models.Enemy.Models;
-using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Extensions;
-using Server.Reawakened.Rooms.Models.Entities.Colliders;
-using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
-using Server.Reawakened.Entities.Enemies.Models;
-using Server.Reawakened.Entities.Components.Misc;
-using Server.Reawakened.Entities.Components.GameObjects.Controllers;
-using Server.Reawakened.Entities.Components.GameObjects.Breakables.Interfaces;
+using Server.Reawakened.Rooms.Models.Entities;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
+using Server.Reawakened.XMLs.Data.Enemy.Models;
+using UnityEngine;
 
-namespace Server.Reawakened.Entities.Enemies;
+namespace Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 
 public abstract class BaseEnemy : IDestructible
 {
-    public readonly ILogger<BehaviorEnemy> Logger;
+    public readonly ILogger<BaseEnemy> Logger;
     public readonly InternalAchievement InternalAchievement;
     public readonly QuestCatalog QuestCatalog;
     public readonly ItemCatalog ItemCatalog;
-    public readonly InternalEnemyData InternalEnemy;
     public readonly ServerRConfig ServerRConfig;
 
     public readonly Room Room;
@@ -40,11 +39,9 @@ public abstract class BaseEnemy : IDestructible
 
     public string Id;
     public Vector3 Position;
-    public Rect DetectionRange;
     public EnemyCollider Hitbox;
     public string ParentPlane;
     public bool IsFromSpawner;
-    public float AwareBehaviorDuration;
 
     public readonly string PrefabName;
 
@@ -54,18 +51,18 @@ public abstract class BaseEnemy : IDestructible
     public int DeathXp;
     public string OnDeathTargetId;
 
+    public float HealthModifier;
+    public float ScaleModifier;
+    public float ResistanceModifier;
+
     public BaseSpawnerControllerComp LinkedSpawner;
     public InterObjStatusComp Status;
-    public AIProcessData AiData;
 
     public GlobalProperties GlobalProperties;
-    public GenericScriptPropertiesModel GenericScript;
 
     public readonly BaseComponent Entity;
-    public readonly EnemyControllerComp EnemyController;
+    public readonly IEnemyController EnemyController;
     public readonly EnemyModel EnemyModel;
-
-    public readonly AISyncEventHelper SyncBuilder;
 
     protected IServiceProvider Services;
 
@@ -77,12 +74,9 @@ public abstract class BaseEnemy : IDestructible
         Services = data.Services;
         EnemyController = data.EnemyController;
         EnemyModel = data.EnemyModel;
-
         IsFromSpawner = false;
-        AwareBehaviorDuration = 0;
-        SyncBuilder = new AISyncEventHelper();
 
-        Logger = Services.GetRequiredService<ILogger<BehaviorEnemy>>();
+        Logger = Services.GetRequiredService<ILogger<BaseEnemy>>();
         InternalAchievement = Services.GetRequiredService<InternalAchievement>();
         QuestCatalog = Services.GetRequiredService<QuestCatalog>();
         ItemCatalog = Services.GetRequiredService<ItemCatalog>();
@@ -90,7 +84,7 @@ public abstract class BaseEnemy : IDestructible
 
         ParentPlane = EnemyController.ParentPlane;
         Position = new Vector3(EnemyController.Position.X, EnemyController.Position.Y, EnemyController.Position.Z);
-        
+
         Status = Room.GetEntityFromId<InterObjStatusComp>(Id);
 
         switch (ParentPlane)
@@ -110,15 +104,23 @@ public abstract class BaseEnemy : IDestructible
         }
 
         OnDeathTargetId = EnemyController.OnDeathTargetID;
-        Health = EnemyController.EnemyHealth;
-        MaxHealth = EnemyController.MaxHealth;
-        DeathXp = EnemyController.OnKillExp;
-        Level = EnemyController.Level;
+
+        Level = Room.LevelInfo.Difficulty + EnemyController.EnemyLevelOffset;
+
+        DeathXp = GameFlow.StatisticData.GetValue(ItemEffectType.IncreaseExperience, WorldStatisticsGroup.Enemy, Level);
+        MaxHealth = GameFlow.StatisticData.GetValue(ItemEffectType.IncreaseHitPoints, WorldStatisticsGroup.Enemy, Level);
+
+        Health = MaxHealth;
 
         GenerateHitbox(EnemyModel.Hitbox);
 
         GlobalProperties = AISyncEventHelper.CreateDefaultGlobalProperties();
-        GenericScript = AISyncEventHelper.CreateDefaultGenericScript();
+
+        // Temporary values
+
+        HealthModifier = 1;
+        ScaleModifier = 1;
+        ResistanceModifier = 1;
     }
 
     public virtual void Initialize() => Init = true;
@@ -164,89 +166,128 @@ public abstract class BaseEnemy : IDestructible
         var offsetX = box.XOffset * EnemyController.Scale.X - width / 2 * (EnemyController.Scale.X < 0 ? -1 : 1);
         var offsetY = box.YOffset * EnemyController.Scale.Y - height / 2 * (EnemyController.Scale.Y < 0 ? -1 : 1);
 
-        var position = new Vector3Model { X = offsetX, Y = offsetY, Z = Position.z };
+        var position = new Vector3(Position.x, Position.y, Position.z);
 
-        Hitbox = new EnemyCollider(Id, position, width, height, ParentPlane, Room)
-        {
-            Position = new Vector3 (
-                Position.x + EnemyModel.Offset.X,
-                Position.y + EnemyModel.Offset.Y,
-                Position.z + EnemyModel.Offset.Z
-            )
-        };
+        Hitbox = new EnemyCollider(Id, position, new Rect(offsetX, offsetY, width, height), ParentPlane, Room);
 
         Room.AddCollider(Hitbox);
     }
 
-    public virtual void Damage(int damage, Player origin)
+    public virtual void Damage(Player player, int damage)
     {
         if (Room.IsObjectKilled(Id))
             return;
 
-        var trueDamage = damage - GameFlow.StatisticData.GetValue(ItemEffectType.Defence, WorldStatisticsGroup.Enemy, Level);
+        var resistance = GameFlow.StatisticData.GetValue(ItemEffectType.Defence, WorldStatisticsGroup.Enemy, Level);
+        var resistedDamage = damage - resistance;
 
-        if (trueDamage <= 0)
-            trueDamage = 1;
+        if (resistedDamage <= 0)
+            resistedDamage = 1;
 
-        Health -= trueDamage;
+        Health -= resistedDamage;
 
-        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, Health, trueDamage, 0, 0, origin == null ? string.Empty : origin.CharacterName, false, true));
+        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, Health, damage, resistance, resistedDamage, player == null ? string.Empty : player.CharacterName, false, true));
 
         if (Health <= 0)
+            KillEnemy(player);
+    }
+
+    public virtual void PetDamage(Player player)
+    {
+        if (Room.IsObjectKilled(Id))
+            return;
+
+        if (player == null || !player.Character.Pets.TryGetValue(player.GetEquippedPetId(ServerRConfig), out var pet))
         {
-            if (OnDeathTargetId is not null and not "0")
-                foreach (var trigger in Room.GetEntitiesFromId<TriggerReceiverComp>(OnDeathTargetId))
-                    trigger.Trigger(true);
+            Logger.LogError("Could not find pet that damaged {PrefabName}! Returning...", PrefabName);
+            return;
+        }
+;
+        var petDamage = (int)Math.Ceiling(MaxHealth * pet.AbilityParams.ItemEffectStatRatio);
 
-            //The XP Reward here is not accurate, but pretty close
-            var xpAward = origin != null ? DeathXp - (origin.Character.Data.GlobalLevel - 1) * 5 : DeathXp;
+        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, Health -= petDamage, petDamage, 1, 1, player.CharacterName, false, true));
 
-            if (xpAward < 1)
-                xpAward = 1;
+        if (Health <= 0)
+            KillEnemy(player);
+    }
 
-            Room.SendSyncEvent(AISyncEventHelper.AIDie(Id, Room.Time, string.Empty, xpAward > 0 ? xpAward : 1, true, origin == null ? "0" : origin.GameObjectId, false));
+    public void KillEnemy(Player player)
+    {
+        if (OnDeathTargetId is not null and not "0")
+            foreach (var trigger in Room.GetEntitiesFromId<TriggerReceiverComp>(OnDeathTargetId))
+                trigger.TriggerStateChange(TriggerType.Activate, true, Id);
 
-            //Dynamic Loot Drop
-            if (origin != null)
+        SendRewards(player);
+
+        //For spawners
+        if (IsFromSpawner)
+            LinkedSpawner.NotifyEnemyDefeat(Id);
+
+        Destroy(Room, Id);
+        Room.KillEntity(Id);
+    }
+
+    public void DespawnEnemy()
+    {
+        LinkedSpawner.NotifyEnemyDefeat(Id);
+
+        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, 0, 1, 0, 0, string.Empty, true, false));
+        Destroy(Room, Id);
+        Room.KillEntity(Id);
+    }
+
+    private void SendRewards(Player player)
+    {
+        //The XP Reward here is not accurate, but pretty close
+        var xpAward = player != null ? DeathXp - (player.Character.GlobalLevel - 1) * 5 : DeathXp;
+
+        if (xpAward < 1)
+            xpAward = 1;
+
+        Room.SendSyncEvent(AISyncEventHelper.AIDie(Id, Room.Time, string.Empty, xpAward > 0 ? xpAward : 1, true, player == null ? "0" : player.GameObjectId, false));
+
+        //Dynamic Loot Drop
+        if (player != null)
+        {
+            player.AddReputation(xpAward > 0 ? xpAward : 1, ServerRConfig);
+
+            if (EnemyModel.EnemyLootTable != null)
             {
-                origin.AddReputation(xpAward > 0 ? xpAward : 1, ServerRConfig);
+                var random = new System.Random();
 
-                if (EnemyModel.EnemyLootTable != null)
+                foreach (var drop in EnemyModel.EnemyLootTable)
                 {
-                    var random = new System.Random();
-
-                    foreach (var drop in EnemyModel.EnemyLootTable)
-                    {
-                        random.NextDouble();
-                        if (Level <= drop.MaxLevel && Level >= drop.MinLevel)
-                            origin.GrantDynamicLoot(Level, drop, ItemCatalog);
-                    }
+                    random.NextDouble();
+                    if (Level <= drop.MaxLevel && Level >= drop.MinLevel)
+                        player.GrantDynamicLoot(Level, drop, ItemCatalog);
                 }
-
-                //Achievements
-                origin.CheckObjective(ObjectiveEnum.Score, Id, EnemyController.PrefabName, 1, QuestCatalog);
-                origin.CheckObjective(ObjectiveEnum.Scoremultiple, Id, EnemyController.PrefabName, 1, QuestCatalog);
-
-                origin.CheckAchievement(AchConditionType.DefeatEnemy, string.Empty, InternalAchievement, Logger);
-                origin.CheckAchievement(AchConditionType.DefeatEnemy, Enum.GetName(EnemyModel.EnemyCategory), InternalAchievement, Logger);
-                origin.CheckAchievement(AchConditionType.DefeatEnemy, EnemyController.PrefabName, InternalAchievement, Logger);
-                origin.CheckAchievement(AchConditionType.DefeatEnemyInLevel, origin.Room.LevelInfo.Name, InternalAchievement, Logger);
             }
-            
-            //For spawners
-            if (IsFromSpawner)
+
+            //Achievements
+            foreach (var roomPlayer in Room.GetPlayers())
             {
-                LinkedSpawner.NotifyEnemyDefeat(Id);
-                Room.RemoveEnemy(Id);
+                roomPlayer.CheckObjective(ObjectiveEnum.Score, Id, EnemyController.PrefabName, 1, QuestCatalog);
+                roomPlayer.CheckObjective(ObjectiveEnum.Scoremultiple, Id, EnemyController.PrefabName, 1, QuestCatalog);
             }
 
-            Room.KillEntity(origin, Id);
+            player.CheckAchievement(AchConditionType.DefeatEnemy, [PrefabName], InternalAchievement, Logger);
+            player.CheckAchievement(AchConditionType.DefeatEnemy, [Enum.GetName(EnemyModel.EnemyCategory)], InternalAchievement, Logger);
+            player.CheckAchievement(AchConditionType.DefeatEnemy, [EnemyController.PrefabName], InternalAchievement, Logger);
+            player.CheckAchievement(AchConditionType.DefeatEnemyInLevel, [player.Room.LevelInfo.Name], InternalAchievement, Logger);
         }
     }
 
-    public virtual void SendAiData(Player player)
-    {
-    }
+    public abstract void SendAiData(Player player);
 
-    public void Destroy(Player player, Room room, string id) => room.RemoveEnemy(id);
+    public void Destroy(Room room, string id) => room.RemoveEnemy(id);
+
+    public void Heal(int healPoints)
+    {
+        if (Room.IsObjectKilled(Id))
+            return;
+
+        Health += healPoints;
+
+        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, Health, healPoints, 0, 0, string.Empty, false, true));
+    }
 }

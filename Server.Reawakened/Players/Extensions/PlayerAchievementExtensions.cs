@@ -1,17 +1,34 @@
 ﻿using Achievement.CharacterData;
 using Achievement.StaticData;
+using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Network.Extensions;
-using Server.Reawakened.Players.Models;
-using Server.Reawakened.XMLs.BundlesInternal;
-using Server.Reawakened.XMLs.Enums;
-using Server.Reawakened.XMLs.Extensions;
+using Server.Reawakened.XMLs.Abstractions.Extensions;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
 
 namespace Server.Reawakened.Players.Extensions;
 
 public static class PlayerAchievementExtensions
 {
-    public static void CheckAchievement(this Player player, AchConditionType achType, string achValue,
+    public static void CheckAchievement(this Player player, AchConditionType achType, string[] toValidateOn,
         InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger, int count = 1)
+    {
+        var shouldCheckDefault = true;
+
+        foreach (var value in toValidateOn)
+        {
+            if (string.IsNullOrEmpty(value))
+                shouldCheckDefault = false;
+
+            player.CheckAchievement(achType, value, count, internalAchievement, logger);
+        }
+
+        if (shouldCheckDefault)
+            player.CheckAchievement(achType, string.Empty, count, internalAchievement, logger);
+    }
+
+    private static void CheckAchievement(this Player player, AchConditionType achType, string achValue, int count,
+        InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger)
     {
         if (string.IsNullOrEmpty(achValue))
             achValue = "any";

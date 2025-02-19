@@ -1,4 +1,4 @@
-﻿using Server.Reawakened.Entities.AbstractComponents;
+﻿using Server.Reawakened.Entities.Components.GameObjects.Trigger.Abstractions;
 using Server.Reawakened.Players;
 
 namespace Server.Reawakened.Entities.Components.GameObjects.Trigger;
@@ -40,6 +40,6 @@ public class CutsceneManagerComp : BaseTriggerCoopController<CutsceneManager>
     {
         foreach (var entity in TriggeredRewards)
             foreach (var trigger in Room.GetEntitiesFromId<TriggerReceiverComp>(entity.ToString()))
-                trigger.Trigger(true);
+                trigger.Trigger(true, player.GameObjectId);
     }
 }

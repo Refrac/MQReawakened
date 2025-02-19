@@ -10,6 +10,11 @@ public abstract class Module(ILogger logger)
 
     public virtual string GetModuleInformation() => GetType().Namespace;
 
+    public virtual void AddDatabase(IServiceCollection services, Module[] modules)
+    {
+
+    }
+
     public virtual void AddLogging(ILoggingBuilder loggingBuilder)
     {
     }

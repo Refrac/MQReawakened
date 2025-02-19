@@ -1,9 +1,9 @@
 ﻿using Server.Base.Accounts.Enums;
-using Server.Base.Accounts.Models;
+using Server.Base.Database.Accounts;
 
 namespace Server.Base.Accounts.Extensions;
 
 public static class CheckIfModerator
 {
-    public static int IsModerator(this Account account) => account.AccessLevel >= AccessLevel.Moderator ? 1 : 0;
+    public static int IsModerator(this AccountModel account) => account.AccessLevel >= AccessLevel.Moderator ? 1 : 0;
 }

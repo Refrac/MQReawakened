@@ -1,6 +1,7 @@
 ﻿using Server.Base.Core.Abstractions;
+using Server.Reawakened.Players.Models.Character;
 
-namespace Server.Reawakened.Configs;
+namespace Server.Reawakened.Core.Configs;
 public class ItemRConfig : IRConfig
 {
     public int HealingStaff { get; }
@@ -15,14 +16,8 @@ public class ItemRConfig : IRConfig
     public int[] StackedItemKit { get; }
     public int AmountToStack { get; }
 
-    public string NoEffect { get; }
-    public string ToxicCloud { get; }
-
     public int HealingStaffID { get; }
     public int MysticCharmID { get; }
-
-    public int BreathTimerDuration { get; }
-    public int UnderwaterDamageInterval { get; }
 
     public float ProjectileSpeedX { get; }
     public float ProjectileSpeedY { get; }
@@ -38,18 +33,18 @@ public class ItemRConfig : IRConfig
     public float GrenadeSpawnDelay { get; }
     public float GrenadeLifeTime { get; }
 
-    public float MeleeXOffset { get; }
-    public float MeleeYOffset { get; }
     public float MeleeWidth { get; }
     public float MeleeHeight { get; }
-    public float MeleeArialXOffset { get; }
-    public float MeleeArialYOffset { get; }
-    public float MeleeArialWidth { get; }
-    public float MeleeArialHeight { get; }
+    public float MeleeAerialRange { get; }
+    public float MeleeAerialOffset { get; }
 
     public Dictionary<int, string> TrainingGear { get; }
-    public Dictionary<int, string> TrainingGear2011 { get; }
-    public int PetSlotId { get; }
+    public Dictionary<int, List<string>> TrainingGear2011 { get; }
+    public float PetPressButtonDelay { get; }
+    public float PetHoldChainDelay { get; }
+    public float PetPosYOffset { get; }
+    public float PetPosOnButtonYOffset { get; }
+    public ItemModel EmptySlot { get; }
 
     public ItemRConfig()
     {
@@ -95,11 +90,6 @@ public class ItemRConfig : IRConfig
         DefaultMeleeDamage = 22;
         DefaultRangedDamage = 18;
         DefaultDropDamage = 35;
-        BreathTimerDuration = 30;
-        UnderwaterDamageInterval = 2;
-
-        NoEffect = "NoEffect";
-        ToxicCloud = "ToxicCloud";
 
         HealingStaffID = 396;
         MysticCharmID = 398;
@@ -118,15 +108,11 @@ public class ItemRConfig : IRConfig
         ProjectileHeight = 0.5f;
         ProjectileWidth = 0.5f;
 
-        MeleeXOffset = 4f;
-        MeleeYOffset = 0f;
-        MeleeWidth = 4f;
+        MeleeWidth = 3.5f;
         MeleeHeight = 1f;
 
-        MeleeArialXOffset = 3f;
-        MeleeArialYOffset = 2.6f;
-        MeleeArialWidth = 6f;
-        MeleeArialHeight = 5.2f;
+        MeleeAerialRange = 5f;
+        MeleeAerialOffset = 2.5f;
 
         TrainingGear = new Dictionary<int, string>
         {
@@ -137,14 +123,26 @@ public class ItemRConfig : IRConfig
             { 498, "ABIL_SnowBoard02" }, // lv_wld_highway01
         };
 
-        TrainingGear2011 = new Dictionary<int, string>
+        TrainingGear2011 = new Dictionary<int, List<string>>
         {
-            { 48, "ABIL_GrapplingHook01" }, // lv_shd_highway01
-            { 54, "ABIL_Glider01" }, // lv_out_highway01
-            { 46, "ABIL_MysticCharm01" }, // lv_bon_highway01
-            { 498, "ABIL_SnowBoard02" }, // lv_wld_highway01
+            { 48, ["ABIL_GrapplingHook01", "Add_SHD_ChimFoo01_S01", "WPN_PRJ_Shuriken01"] }, // lv_shd_highway01
+            { 54, ["ABIL_Glider01", "Add_OUT_SeaDragon01_S01", "WPN_MEL_FireSword01"] }, // lv_out_highway01
+            { 46, ["ABIL_MysticCharm01", "Add_BON_OotuMystic01_S01", "WPN_PRJ_PoisonousFlower01"] }, // lv_bon_highway01
+            { 498, ["ABIL_SnowBoard02", "Add_WLD_IceRaider02_S01", "WPN_MEL_IceRaiderAxe01"] }, // lv_wld_highway01
         };
 
-        PetSlotId = 4;
+        PetPressButtonDelay = 0.5f;
+        PetHoldChainDelay = 1f;
+        PetPosYOffset = 0.75f;
+        PetPosOnButtonYOffset = 0.25f;
+
+        EmptySlot = new ItemModel()
+        {
+            //Id of 0 crashes game, so we use 340 until a better solution is found.
+            ItemId = 340,
+            Count = 0,
+            BindingCount = 0,
+            DelayUseExpiry = DateTime.Now
+        };
     }
 }

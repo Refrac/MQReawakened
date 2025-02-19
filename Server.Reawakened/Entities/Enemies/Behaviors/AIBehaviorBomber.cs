@@ -1,20 +1,16 @@
-﻿using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
-using Server.Reawakened.XMLs.Models.Enemy.States;
+﻿using Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
+using Server.Reawakened.Entities.Enemies.EnemyTypes;
+using Server.Reawakened.XMLs.Data.Enemy.Enums;
 
-namespace Server.Reawakened.Entities.Enemies.BehaviorEnemies.BehaviourTypes;
+namespace Server.Reawakened.Entities.Enemies.Behaviors;
 
-public class AIBehaviorBomber(BomberState bomberState) : AIBaseBehavior
+public class AIBehaviorBomber(BomberProperties properties, BehaviorEnemy enemy, StateType state) : AIBaseBehavior(enemy, state)
 {
-    public float InTime => bomberState.InTime;
-    public float LoopTime => bomberState.LoopTime;
-    public float BombRadius => bomberState.BombRadius;
+    public override bool ShouldDetectPlayers => false;
 
-    public override float ResetTime => InTime + LoopTime;
+    public override AiProperties GetProperties() => properties;
 
-    protected override AI_Behavior GetBehaviour() => new AI_Behavior_Bomber(InTime, LoopTime);
+    public override object[] GetStartArgs() => [];
 
-    public override StateType GetBehavior() => StateType.Bomber;
-
-    public override object[] GetData() => [ InTime, LoopTime, BombRadius ];
+    public override void NextState() { }
 }

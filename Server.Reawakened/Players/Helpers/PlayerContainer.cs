@@ -21,7 +21,13 @@ public class PlayerContainer
     public List<Player> GetAllPlayers()
     {
         lock (Lock)
+        {
+            foreach (var player in _playerList)
+                if (player == null)
+                    _playerList.Remove(player);
+
             return [.. _playerList];
+        }
     }
 
     public int GetPlayerCount()
@@ -33,7 +39,7 @@ public class PlayerContainer
     public IEnumerable<Player> GetPlayersByFriend(int friendId)
     {
         lock (Lock)
-            return _playerList.ToList().Where(p => p.Character.Data.Friends.Contains(friendId));
+            return _playerList.ToList().Where(p => p.Character.Friends.Contains(friendId));
     }
 
     public IEnumerable<Player> GetPlayersByCharacterId(int characterId)

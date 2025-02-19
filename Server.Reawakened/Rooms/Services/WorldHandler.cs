@@ -4,19 +4,27 @@ using Server.Base.Core.Abstractions;
 using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Timers.Services;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.Rooms.Models.Entities;
+using Server.Reawakened.XMLs.Bundles.Base;
 using WorldGraphDefines;
 
 namespace Server.Reawakened.Rooms.Services;
 
 public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph worldGraph,
-    TimerThread timerThread, IServiceProvider services, ILogger<WorldHandler> logger) : IService
+    TimerThread timerThread, IServiceProvider services, ILogger<WorldHandler> logger,
+    CharacterHandler handler) : IService
 {
     private readonly Dictionary<int, Level> _levels = [];
     private readonly object Lock = new();
+
+    public Dictionary<string, Type> EntityComponents { get; private set; } = [];
+    public Dictionary<string, Type> ProcessableComponents { get; private set; } = [];
+
+    public ServerRConfig Config => config;
 
     public void Initialize() => sink.WorldLoad += LoadRooms;
 
@@ -30,6 +38,47 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
             room.Value.DumpPlayersToLobby(this);
 
         _levels.Clear();
+
+        GetClassComponents();
+    }
+
+    private void GetClassComponents()
+    {
+        EntityComponents = typeof(BaseComponent).Assembly.GetServices<BaseComponent>()
+            .Where(t => t.BaseType != null)
+            .Where(t => t.BaseType.GenericTypeArguments.Length > 0)
+            .Select(t => new Tuple<string, Type>(t.BaseType.GenericTypeArguments.FirstOrDefault(x => !string.IsNullOrEmpty(x.Name))?.Name, t))
+            .Where(t => !string.IsNullOrEmpty(t.Item1))
+            .ToDictionary(t => t.Item1, t => t.Item2);
+
+        ProcessableComponents = typeof(DataComponentAccessor).Assembly.GetServices<DataComponentAccessor>()
+            .ToDictionary(x => x.Name, x => x);
+
+        var internalProcessableComponents = typeof(DataComponentAccessorMQR).Assembly.GetServices<DataComponentAccessorMQR>()
+            .ToDictionary(x => x.Name, x => x);
+
+        foreach (var internalProcessable in internalProcessableComponents)
+        {
+            var dataComp = Activator.CreateInstance(internalProcessable.Value) as DataComponentAccessorMQR;
+
+            if (!ProcessableComponents.ContainsKey(dataComp.OverrideName))
+            {
+                logger.LogError("Unknown class to override for: {Class}!", dataComp.OverrideName);
+                continue;
+            }
+
+            if (!EntityComponents.TryGetValue(internalProcessable.Key, out var entityComp))
+            {
+                logger.LogError("Unknown entity class for: {Class}!", internalProcessable.Key);
+                continue;
+            }
+
+            ProcessableComponents.Remove(dataComp.OverrideName);
+            ProcessableComponents.Add(dataComp.OverrideName, internalProcessable.Value);
+
+            EntityComponents.Remove(internalProcessable.Key);
+            EntityComponents.Add(dataComp.OverrideName, entityComp);
+        }
     }
 
     public LevelInfo GetLevelInfo(int levelId)
@@ -104,7 +153,7 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
 
             var roomId = level.Rooms.Keys.Count > 0 ? level.Rooms.Keys.Max() + 1 : 1;
 
-            room = new Room(roomId, level, timerThread, services, config);
+            room = new Room(roomId, level, services, timerThread, config);
 
             level.Rooms.Add(roomId, room);
         }
@@ -127,7 +176,6 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
 
     public void UsePortal(Player player, int levelId, int portalId, string defaultSpawnId = "")
     {
-        var character = player.Character;
         var newLevelId = worldGraph.GetLevelFromPortal(levelId, portalId);
 
         if (newLevelId <= 0)
@@ -151,7 +199,7 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
             logger.LogError("Could not find node for '{Old}' -> '{New}' for portal {PortalId}.", levelId, newLevelId, portalId);
         }
 
-        if (levelId == newLevelId && character.LevelData.SpawnPointId == spawnId)
+        if (levelId == newLevelId && player.Character.SpawnPointId == spawnId)
         {
             logger.LogError("Attempt made to teleport to the same portal! Skipping...");
             return;
@@ -161,14 +209,15 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
 
         logger.LogInformation(
             "Teleporting {CharacterName} ({CharacterId}) to {LevelName} ({LevelId}) " +
-            "using portal {PortalId}", character.Data.CharacterName,
-            character.Id, levelInfo.InGameName, levelInfo.LevelId, portalId
+            "using portal {PortalId}", player.Character.CharacterName,
+            player.Character.Id, levelInfo.InGameName, levelInfo.LevelId, portalId
         );
 
         ChangePlayerRoom(player, newLevelId, spawnId);
     }
 
-    public bool ChangePlayerRoom(Player player, int levelId, string spawnId = "") => _ = TryChangePlayerRoom(player, levelId, spawnId);
+    public bool ChangePlayerRoom(Player player, int levelId, string spawnId = "") =>
+        _ = TryChangePlayerRoom(player, levelId, spawnId);
 
     public bool TryChangePlayerRoom(Player player, int levelId, string spawnId = "")
     {
@@ -180,10 +229,20 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
             return false;
         }
 
-        player.Character.LevelData.LevelId = levelInfo.LevelId;
-        player.Character.LevelData.SpawnPointId = spawnId;
+        player.Character.Write.SpawnPointId = spawnId;
 
-        player.SendLevelChange(this);
+        if (player.Character.LevelId == levelInfo.LevelId)
+        {
+            player.Room.SetPlayerPosition(player.Character);
+            player.TeleportPlayer(player.Character.SpawnPositionX, player.Character.SpawnPositionY, player.Character.SpawnOnBackPlane);
+        }
+        else
+        {
+            player.Character.Write.LevelId = levelInfo.LevelId;
+            player.SendLevelChange(this);
+        }
+
+        handler.Update(player.Character.Write);
 
         return true;
     }

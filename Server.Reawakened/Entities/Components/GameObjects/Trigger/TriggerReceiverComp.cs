@@ -1,23 +1,26 @@
 ﻿using Microsoft.Extensions.Logging;
 using Server.Base.Logging;
+using Server.Reawakened.Entities.Colliders;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger.Enums;
 using Server.Reawakened.Entities.Components.GameObjects.Trigger.Interfaces;
-using Server.Reawakened.Entities.Enums;
-using Server.Reawakened.Entities.Interfaces;
 using Server.Reawakened.Players;
+using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using System.Text;
 
-namespace Server.Reawakened.Entities.Components;
+namespace Server.Reawakened.Entities.Components.GameObjects.Trigger;
 
 public class TriggerReceiverComp : Component<TriggerReceiver>, ICoopTriggered
 {
     private int _activations;
     private int _deactivations;
+    private string _triggeredBy;
 
     public bool Activated = true;
     public bool Enabled = true;
+
     public int NbActivationsNeeded => ComponentData.NbActivationsNeeded;
     public int NbDeactivationsNeeded => ComponentData.NbDeactivationsNeeded;
     public bool DisabledUntilTriggered => ComponentData.DisabledUntilTriggered;
@@ -28,11 +31,26 @@ public class TriggerReceiverComp : Component<TriggerReceiver>, ICoopTriggered
     public ILogger<TriggerReceiverComp> Logger { get; set; }
     public FileLogger FileLogger { get; set; }
 
+    private TriggerReceiverCollider _collider;
+
+    public override void InitializeComponent()
+    {
+        _collider = new TriggerReceiverCollider(Id, Position.ToUnityVector3(), Rectangle.ToRect(), ParentPlane, Room);
+        if (CollisionType == TriggerReceiver.ReceiverCollisionType.Never)
+            _collider.Active = false;
+    }
     public override void DelayedComponentInitialization()
     {
         base.InitializeComponent();
-        Trigger(ActiveByDefault);
+        Trigger(ActiveByDefault, string.Empty);
+
+        //This is placed in delayed init so that more important components take collider precedence
+        Room.AddCollider(_collider);
     }
+
+    public override void SendDelayedData(Player player) => player.SendSyncEventToPlayer(new TriggerReceiver_SyncEvent(Id, Room.Time, _triggeredBy, Activated, 0));
+
+    public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player) { }
 
     public override void RunSyncedEvent(SyncEvent syncEvent, Player player)
     {
@@ -41,10 +59,10 @@ public class TriggerReceiverComp : Component<TriggerReceiver>, ICoopTriggered
 
         var tEvent = new TriggerReceiver_SyncEvent(syncEvent);
 
-        Trigger(tEvent.Activate);
+        Trigger(tEvent.Activate, player.GameObjectId);
     }
 
-    public void TriggerStateChange(TriggerType triggerType, bool triggered)
+    public void TriggerStateChange(TriggerType triggerType, bool triggered, string triggeredBy)
     {
         Enabled = triggerType switch
         {
@@ -73,9 +91,9 @@ public class TriggerReceiverComp : Component<TriggerReceiver>, ICoopTriggered
         }
 
         if (_activations >= NbActivationsNeeded)
-            Trigger(true);
+            Trigger(true, triggeredBy);
         else if (_deactivations >= NbDeactivationsNeeded)
-            Trigger(false);
+            Trigger(false, triggeredBy);
 
         LogTriggerReciever(triggerType, triggered);
     }
@@ -122,18 +140,24 @@ public class TriggerReceiverComp : Component<TriggerReceiver>, ICoopTriggered
             LoggerType.Trace);
     }
 
-    public void Trigger(bool activated)
+    public void Trigger(bool activated, string triggeredBy)
     {
         Activated = activated;
+        _triggeredBy = triggeredBy;
 
         LogTriggerRecieved();
 
         foreach (var recieveable in Room.GetEntitiesFromId<IRecieverTriggered>(Id))
             recieveable.RecievedTrigger(activated);
 
-        SendTriggerState(activated);
+        SendTriggerState(activated, triggeredBy);
+
+        if (CollisionType == TriggerReceiver.ReceiverCollisionType.WhileActivate)
+            _collider.Active = activated;
+        if (CollisionType == TriggerReceiver.ReceiverCollisionType.WhileDeactivate)
+            _collider.Active = !activated;
     }
 
-    public void SendTriggerState(bool activated) =>
-        Room.SendSyncEvent(new TriggerReceiver_SyncEvent(Id.ToString(), Room.Time, "now", activated, 0));
+    public void SendTriggerState(bool activated, string triggeredBy) =>
+        Room.SendSyncEvent(new TriggerReceiver_SyncEvent(Id.ToString(), Room.Time, triggeredBy, activated, 0));
 }

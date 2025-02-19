@@ -1,38 +1,34 @@
 ﻿using A2m.Server;
-using AssetStudio;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Base.Core.Extensions;
 using Server.Base.Timers.Services;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
-using Server.Reawakened.Entities.Components;
-using Server.Reawakened.Entities.Components.GameObjects.Breakables;
-using Server.Reawakened.Entities.Components.GameObjects.Breakables.Interfaces;
+using Server.Reawakened.Database.Characters;
+using Server.Reawakened.Entities.Colliders;
+using Server.Reawakened.Entities.Colliders.Abstractions;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Controller;
 using Server.Reawakened.Entities.Components.GameObjects.Checkpoints;
-using Server.Reawakened.Entities.Components.GameObjects.Controllers;
-using Server.Reawakened.Entities.Enemies;
-using Server.Reawakened.Entities.Enemies.AIStateEnemies;
-using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
-using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Extensions;
-using Server.Reawakened.Entities.Enemies.Models;
+using Server.Reawakened.Entities.Components.GameObjects.Global;
+using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
+using Server.Reawakened.Entities.Components.GameObjects.Spawners;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger;
+using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
+using Server.Reawakened.Entities.Enemies.Extensions;
 using Server.Reawakened.Entities.Projectiles;
 using Server.Reawakened.Entities.Projectiles.Abstractions;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.Players.Models;
 using Server.Reawakened.Rooms.Enums;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
-using Server.Reawakened.Rooms.Models.Entities.Colliders;
-using Server.Reawakened.Rooms.Models.Entities.Colliders.Abstractions;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.Rooms.Services;
-using Server.Reawakened.XMLs.Bundles;
-using Server.Reawakened.XMLs.BundlesInternal;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
-using System.Collections.Generic;
+using Server.Reawakened.XMLs.Bundles.Base;
+using Server.Reawakened.XMLs.Bundles.Internal;
 using UnityEngine;
 using WorldGraphDefines;
 using Random = System.Random;
@@ -67,19 +63,23 @@ public class Room : Timer
     private readonly ServerRConfig _config;
     private readonly ItemRConfig _itemConfig;
     private readonly TimerThread _timerThread;
-    private readonly IServiceProvider _services;
 
     public ItemCatalog ItemCatalog;
     public InternalColliders ColliderCatalog;
     public InternalEnemyData InternalEnemyData;
 
+    public WorldHandler World;
+
     public CheckpointControllerComp LastCheckpoint { get; set; }
 
     public LevelInfo LevelInfo => _level.LevelInfo;
+
     public long TimeOffset { get; set; }
     public float Time => (float)((GetTime.GetCurrentUnixMilliseconds() - TimeOffset) / 1000.0);
 
-    public Room(int roomId, Level level, TimerThread timerThread, IServiceProvider services, ServerRConfig config) :
+    public bool IsOpen;
+
+    public Room(int roomId, Level level, IServiceProvider services, TimerThread timerThread, ServerRConfig config) :
         base(TimeSpan.Zero, TimeSpan.FromSeconds(1.0 / config.RoomTickRate), 0, timerThread)
     {
         _roomLock = new object();
@@ -87,12 +87,15 @@ public class Room : Timer
         _roomId = roomId;
         _config = config;
         _timerThread = timerThread;
-        _itemConfig = services.GetRequiredService<ItemRConfig>();
 
+        IsOpen = true;
+
+        _itemConfig = services.GetRequiredService<ItemRConfig>();
         ColliderCatalog = services.GetRequiredService<InternalColliders>();
         ItemCatalog = services.GetRequiredService<ItemCatalog>();
         InternalEnemyData = services.GetRequiredService<InternalEnemyData>();
         Logger = services.GetRequiredService<ILogger<Room>>();
+        World = services.GetRequiredService<WorldHandler>();
 
         _level = level;
 
@@ -113,9 +116,11 @@ public class Room : Timer
             return;
         }
 
-        Planes = LevelInfo.LoadPlanes(_config);
+        Planes = LevelInfo.LoadPlanes(this, _config);
         _entities = this.LoadEntities(services);
         _colliders = this.LoadTerrainColliders();
+
+        _defaultSpawn = GetEntitiesFromType<SpawnPointComp>().MinBy(p => p.Index);
 
         foreach (var type in UnknownEntities.Values.SelectMany(x => x).Distinct().Order())
             Logger.LogWarning("Could not find synced entity for {EntityType}", type);
@@ -132,31 +137,12 @@ public class Room : Timer
         foreach (var component in _entities.Values.SelectMany(x => x))
             component.DelayedComponentInitialization();
 
-        foreach (var component in _entities.Values.SelectMany(x => x))
-        {
-            if (component.Name == config.EnemyComponentName && !component.ParentPlane.Equals("TemplatePlane"))
-            {
-                var enemy = GenerateEnemy(component.PrefabName, component.Id, (EnemyControllerComp) component);
-
-                if (enemy != null)
-                    _enemies.Add(component.Id, enemy);
-            }
-            if (component.Name == config.BreakableComponentName)
-            {
-                var breakable = (BreakableEventControllerComp)component;
-                breakable.PostInit();
-            }
-        }
-
-        var spawnPoints = GetEntitiesFromType<SpawnPointComp>();
-
-        _defaultSpawn = spawnPoints.MinBy(p => p.Index);
-
         if (_defaultSpawn == null)
             Logger.LogError("Could not find default spawn for level: {RoomId} ({RoomName})",
                 LevelInfo.LevelId, LevelInfo.Name);
 
         TimeOffset = GetTime.GetCurrentUnixMilliseconds();
+
         Start();
     }
 
@@ -178,14 +164,16 @@ public class Room : Timer
 
         foreach (var player in _players?.Values)
         {
-            if (GetTime.GetCurrentUnixMilliseconds() - player.CurrentPing > _config.KickAfterTime)
+            if (GetTime.GetCurrentUnixMilliseconds() - player.TempData.CurrentPing > _config.KickAfterTime)
             {
                 player.Remove(Logger);
                 return;
             }
-
-            var playerCollider = new PlayerCollider(player);
-            playerCollider.IsColliding(false);
+            else
+            {
+                var playerCollider = new PlayerCollider(player);
+                playerCollider.IsColliding(false);
+            }
         }
     }
 
@@ -229,10 +217,11 @@ public class Room : Timer
                 }
             }
 
-            if (_itemConfig.TrainingGear.TryGetValue(LevelInfo.LevelId, out var trainingGear) && _config.GameVersion == GameVersion.v2014)
+            if (_itemConfig.TrainingGear.TryGetValue(LevelInfo.LevelId, out var trainingGear) && _config.GameVersion == GameVersion.vEarly2014)
                 currentPlayer.AddGear(trainingGear, ItemCatalog);
             else if (_itemConfig.TrainingGear2011.TryGetValue(LevelInfo.LevelId, out var gear) && _config.GameVersion >= GameVersion.v2011)
-                currentPlayer. AddGear(gear, ItemCatalog);
+                foreach (var item in gear)
+                    currentPlayer.AddGear(item, ItemCatalog);
         }
         else
         {
@@ -240,7 +229,7 @@ public class Room : Timer
         }
     }
 
-    public void RemoveClient(Player player, bool useOriginalRoom)
+    public void RemoveClient(Player player)
     {
         lock (_roomLock)
         {
@@ -259,33 +248,23 @@ public class Room : Timer
                     player.SendUserGoneDataTo(currentPlayer);
 
                 foreach (var entity in GetEntitiesFromType<TriggerCoopControllerComp>())
-                    entity.RemovePhysicalInteractor(player.GameObjectId);
+                    entity.RemovePhysicalInteractor(player, player.GameObjectId);
             }
 
             return;
         }
 
-        if (useOriginalRoom)
+        lock (_level.Lock)
         {
-            var checkpoints = _entities.Where(x => x.Value.Any(x => x is CheckpointControllerComp)).Select(x => x.Value).SelectMany(x => x);
-
-            foreach (var checkpoint in checkpoints)
-                checkpoint.InitializeComponent();
+            _level.Rooms.Remove(_roomId);
         }
-        else
+
+        lock (_roomLock)
         {
-            lock (_level.Lock)
-            {
-                _level.Rooms.Remove(_roomId);
-            }
-
-            lock (_roomLock)
-            {
-                CleanData();
-            }
-
-            Stop();
+            CleanData();
         }
+
+        Stop();
     }
 
     public void DumpPlayersToLobby(WorldHandler worldHandler)
@@ -296,27 +275,7 @@ public class Room : Timer
 
     public void SendCharacterInfo(Player player)
     {
-        // WHERE TO SPAWN
-        var character = player.Character;
-
-        var spawnPoint = GetSpawnPoint(character);
-        var coordinates = GetSpawnCoordinates(spawnPoint);
-
-        character.Data.SpawnPositionX = coordinates.X;
-        character.Data.SpawnPositionY = coordinates.Y;
-        character.Data.SpawnOnBackPlane = spawnPoint.IsOnBackPlane(Logger);
-
-        Logger.LogDebug(
-            "Spawning {CharacterName} at object '{Object}' (spawn '{SpawnPoint}') for room id '{NewRoom}'.",
-            character.Data.CharacterName,
-            spawnPoint.Id != string.Empty ? spawnPoint.Id : "DEFAULT",
-            character.LevelData.SpawnPointId != string.Empty ? character.LevelData.SpawnPointId : "DEFAULT",
-            character.LevelData.LevelId
-        );
-
-        Logger.LogDebug("Position of spawn: {Position}", spawnPoint.Position);
-
-        // CHARACTER DATA
+        SetPlayerPosition(player.Character);
 
         foreach (var currentPlayer in _players.Values)
         {
@@ -328,6 +287,26 @@ public class Room : Timer
             if (areDifferentClients)
                 currentPlayer.SendCharacterInfoDataTo(player, CharacterInfoType.Lite, LevelInfo);
         }
+    }
+
+    public void SetPlayerPosition(CharacterModel character)
+    {
+        var spawnPoint = GetSpawnPoint(character);
+        var coordinates = GetSpawnCoordinates(spawnPoint);
+
+        character.Write.SpawnPositionX = coordinates.x;
+        character.Write.SpawnPositionY = coordinates.y;
+        character.Write.SpawnOnBackPlane = spawnPoint.IsOnBackPlane(Logger);
+
+        Logger.LogDebug(
+            "Spawning {CharacterName} at object '{Object}' (spawn '{SpawnPoint}') for room id '{NewRoom}'.",
+            character.CharacterName,
+            spawnPoint.Id != string.Empty ? spawnPoint.Id : "DEFAULT",
+            character.SpawnPointId != string.Empty ? character.SpawnPointId : "DEFAULT",
+            character.LevelId
+        );
+
+        Logger.LogDebug("Position of spawn: {Position}", spawnPoint.Position);
     }
 
     // Players
@@ -343,16 +322,26 @@ public class Room : Timer
     public void AddCollider(BaseCollider collider)
     {
         lock (_roomLock)
-        {
-            if (!_colliders.TryAdd(collider.Id, collider))
-                _colliders[collider.Id] = collider;
-        }
+            _colliders.TryAdd(collider.Id, collider);
+    }
+
+    public void OverwriteCollider(BaseCollider collider)
+    {
+        lock (_roomLock)
+            _colliders[collider.Id] = collider;
     }
 
     public void RemoveCollider(string colliderId)
     {
         lock (_roomLock)
             _colliders.Remove(colliderId);
+    }
+
+    public void ToggleCollider(string colliderId, bool active)
+    {
+        if (_colliders.TryGetValue(colliderId, out var collider))
+            lock (_roomLock)
+                collider.Active = active;
     }
 
     public BaseCollider GetColliderById(string id) =>
@@ -363,29 +352,15 @@ public class Room : Timer
 
     // Spawn Points
 
-    public static Vector2Model GetSpawnCoordinates(BaseComponent spawnLocation)
+    public static Vector2 GetSpawnCoordinates(BaseComponent spawnLocation)
     {
-        var x = spawnLocation.Rectangle.X;
+        var rect = spawnLocation.Rectangle;
+        var pos = spawnLocation.Position;
 
-        if (x == 0)
-            x = spawnLocation.Position.X;
-
-        x -= .25f;
-
-        var y = spawnLocation.Rectangle.Y;
-
-        if (y == 0)
-            y = spawnLocation.Position.Y;
-
-        y += .25f;
-
-        x += spawnLocation.Rectangle.Width / 2;
-        y += spawnLocation.Rectangle.Height / 2;
-
-        return new Vector2Model()
+        return new Vector2()
         {
-            X = x,
-            Y = y
+            x = (rect.X == 0 ? pos.X : rect.X) + spawnLocation.Rectangle.Width / 2 - .5f,
+            y = (rect.Y == 0 ? pos.Y : rect.Y) + spawnLocation.Rectangle.Height / 2 + .25f
         };
     }
 
@@ -394,7 +369,7 @@ public class Room : Timer
         var spawnPoints = GetEntitiesFromType<SpawnPointComp>().ToDictionary(x => x.Id, x => x);
         var portals = GetEntitiesFromType<PortalComp>().ToDictionary(x => x.Id, x => x);
 
-        var spawnId = character.LevelData.SpawnPointId;
+        var spawnId = character.SpawnPointId;
 
         if (portals.TryGetValue(spawnId, out var portal))
             if (portal != null)
@@ -404,7 +379,7 @@ public class Room : Timer
             if (spawnPoint != null)
                 return spawnPoint;
 
-        var indexSpawn = spawnPoints.Values.FirstOrDefault(s => s.Index.ToString() == character.LevelData.SpawnPointId);
+        var indexSpawn = spawnPoints.Values.FirstOrDefault(s => s.Index.ToString() == character.SpawnPointId);
 
         return indexSpawn ?? (BaseComponent)_defaultSpawn;
     }
@@ -436,6 +411,12 @@ public class Room : Timer
             entities.FirstOrDefault(x => x is T and not null) as T :
             null;
 
+    public IEnemyController GetEnemyFromId(string id)
+    {
+        var enemy = GetEntityFromId<EnemyControllerComp>(id);
+        return enemy != null ? enemy : GetEntityFromId<ArmoredEnemyControllerComp>(id);
+    }
+
     public T[] GetEntitiesFromId<T>(string id) where T : class =>
         _entities.TryGetValue(id, out var entities) ?
             entities.Where(x => x is T and not null).Select(x => x as T).ToArray() :
@@ -451,14 +432,19 @@ public class Room : Timer
     public void AddProjectile(BaseProjectile projectile)
     {
         lock (_roomLock)
-            if (!_projectiles.TryAdd(projectile.ProjectileId, projectile))
-                _projectiles[projectile.ProjectileId] = projectile;
+            _projectiles.Add(projectile.ProjectileId, projectile);
     }
 
-    public void RemoveProjectile(string enemyId)
+    public void SetProjectile(BaseProjectile projectile)
     {
         lock (_roomLock)
-            _projectiles.Remove(enemyId);
+            _projectiles[projectile.ProjectileId] = projectile;
+    }
+
+    public void RemoveProjectile(string projectileId)
+    {
+        lock (_roomLock)
+            _projectiles.Remove(projectileId);
     }
 
     public int CreateProjectileId()
@@ -475,29 +461,19 @@ public class Room : Timer
             projectileId;
     }
 
-    public void AddRangedProjectile(string ownerId, UnityEngine.Vector3 position, UnityEngine.Vector2 speed,
+    public void AddRangedProjectile(string ownerId, Vector3 position, Vector2 speed,
         float lifeTime, int damage, ItemEffectType effect, bool isGrenade)
     {
         var projectileId = CreateProjectileId();
 
-        var positionModel = new Vector3Model()
-        {
-            X = position.x,
-            Y = position.y,
-            Z = position.z
-        };
-
         var aiProjectile = new AIProjectile(
-            this, ownerId, projectileId.ToString(), positionModel, speed.x, speed.y,
-            lifeTime, _timerThread, damage, effect, _config, ItemCatalog
+            this, ownerId, projectileId.ToString(), position, speed,
+            lifeTime, _timerThread, damage, effect, isGrenade, _config, ItemCatalog, _itemConfig
         );
 
         this.SendSyncEvent(
             AISyncEventHelper.AILaunchItem(
-                ownerId, Time,
-                position.x, position.y, position.z,
-                speed.x, speed.y,
-                lifeTime, projectileId, isGrenade
+                ownerId, Time, position, speed, lifeTime, projectileId, isGrenade
             )
         );
 
@@ -506,7 +482,7 @@ public class Room : Timer
 
     // Killed Entities
 
-    public void AddKilledEntity(string killedEnemy)
+    public void AddKilledEnemy(string killedEnemy)
     {
         lock (_roomLock)
             _killedObjects.Add(killedEnemy);
@@ -524,7 +500,7 @@ public class Room : Timer
             return _killedObjects.Contains(id);
     }
 
-    public void KillEntity(Player player, string id)
+    public void KillEntity(string id)
     {
         lock (_roomLock)
             if (_killedObjects.Contains(id))
@@ -538,14 +514,14 @@ public class Room : Timer
         {
             if (destructible is BaseComponent component)
             {
-                destructible.Destroy(player, this, component.Id);
+                destructible.Destroy(this, component.Id);
 
-                Logger.LogDebug("Killed destructible {destructible} from GameObject {prefabname} with Id {id}",
+                Logger.LogDebug("Killed destructible {Destructible} from game object '{PrefabName}' ({Id})",
                     destructible.GetType().Name, component.PrefabName, component.Id);
             }
         }
 
-        AddKilledEntity(id);
+        AddKilledEnemy(id);
     }
 
     // Enemies
@@ -572,43 +548,20 @@ public class Room : Timer
     public bool ContainsEnemy(string enemyId) =>
         _enemies.ContainsKey(enemyId);
 
-    public BaseEnemy GenerateEnemy(string enemyPrefab, string entityId, EnemyControllerComp enemyController)
-    {
-        if (!InternalEnemyData.EnemyInfoCatalog.TryGetValue(enemyPrefab, out var enemyModel))
-        {
-            Logger.LogError("Could not find enemy with name {EnemyPrefab}! Returning null...", enemyPrefab);
-            return null;
-        }
-
-        var enemyData = new EnemyData(this, entityId, enemyPrefab, enemyController, enemyModel, _services);
-        BaseEnemy enemy;
-
-        switch (enemyModel.AiType)
-        {
-            case AiType.Behavior:
-                enemy = new BehaviorEnemy(enemyData);
-                break;
-            case AiType.State:
-                enemy = new AIStateEnemy(enemyData);
-                break;
-            default:
-                Logger.LogError("No enemy generator found with type: '{Type}' for enemy '{EnemyName}'. Returning null...",
-                    enemyModel.AiType, enemyPrefab
-                );
-                return null;
-        }
-
-        enemy.Initialize();
-
-        AddEnemy(enemy);
-
-        return enemy;
-    }
-
     // Cleanup
-
     private void CleanData()
     {
+        // Deallocate rooms.
+        foreach (var entity in _entities)
+        {
+            foreach (var component in entity.Value)
+            {
+                component.Entity.Room = null;
+            }
+        }
+
+        IsOpen = false;
+
         _gameObjectIds.Clear();
         _killedObjects.Clear();
 

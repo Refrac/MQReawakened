@@ -1,12 +1,14 @@
-﻿using Server.Base.Core.Extensions;
-using Server.Reawakened.Configs;
-using Server.Reawakened.XMLs.Abstractions;
-using Server.Reawakened.XMLs.Enums;
-using Server.Reawakened.XMLs.Models.Events;
+﻿using Microsoft.Extensions.Logging;
+using Server.Base.Core.Extensions;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Core.Enums;
+using Server.Reawakened.XMLs.Abstractions.Enums;
+using Server.Reawakened.XMLs.Abstractions.Interfaces;
+using Server.Reawakened.XMLs.Data.Events;
 using System.Xml;
 using static A2m.Server.DescriptionHandler;
 
-namespace Server.Reawakened.XMLs.Bundles;
+namespace Server.Reawakened.XMLs.Bundles.Base;
 public class EventPrefabs : EventPrefabsXML, IBundledXml
 {
     public string BundleName => "event_prefabs";
@@ -14,6 +16,7 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
 
     public ServerRwConfig RwConfig { get; set; }
     public ServerRConfig RConfig { get; set; }
+    public ILogger<EventPrefabs> Logger { get; set; }
 
     public Dictionary<string, Dictionary<string, string>> PrefabMap { get; private set; }
     public Dictionary<string, Dictionary<string, string>> ReversePrefabMap { get; private set; }
@@ -32,6 +35,124 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
 
     public void EditDescription(XmlDocument xml)
     {
+        if (RConfig.GameVersion >= GameVersion.vEarly2014)
+        {
+            var node = xml.SelectNodes("/events/event");
+
+            foreach (XmlNode events in node)
+            {
+                var parent = events.ParentNode;
+                var eventName = new string(events.Attributes["name"].Value.Reverse().ToArray());
+
+                switch (eventName)
+                {
+                    case "noitarbeleC_enuJ_10R":
+                    case "htnoM21_pihsrebmeM_TVE":
+                    case "10_steP_CN_3102_TVE":
+                    case "konhcaR_3102_TVE":
+                    case "nonnaCittefnoC_3102_TVE":
+                    case "adnaP_steP_3102_TVE":
+                    case "20_steP_CN_3102_TVE":
+                    case "wen20_steP_CN_3102_TVE":
+                    case "snruteR_ekirtsrebaS_3102_TVE":
+                    case "10reppaZnekcihC_3102_TVE":
+                    case "10_elaS_steP_CN_3102_TVE":
+                    case "neewollaH_3102_TVE":
+                    case "10yadiloH_3102_TVE":
+                    case "weiverPSTC_3102_TVE":
+                    case "20weiverPSTC_3102_TVE":
+                    case "10tePyraG_3102_TVE":
+                    case "10_3102boBegnopS_3102_TVE":
+                    case "20_3102boBegnopS_3102_TVE":
+                    case "30_3102boBegnopS_3102_TVE":
+                    case "40_3102boBegnopS_3102_TVE":
+                    case "50_3102boBegnopS_3102_TVE":
+                    case "hsaBananaB_4102_TVE":
+                    case "onitnelaV_4102_TVE":
+                    case "mooRerusaerT_4102_TVE":
+                    case "yaDkoO_4102_TVE":
+                    case "uneMgnippohS_4102_TVE":
+                    case "slooFlirpA_4102_TVE":
+                        parent.RemoveChild(events);
+                        break;
+                    default:
+                        if (eventName.Contains("1102") || eventName.Contains("2102"))
+                            parent.RemoveChild(events);
+                        break;
+                }
+            }
+        }
+        else if (RConfig.GameVersion >= GameVersion.vEarly2013)
+        {
+            var node = xml.SelectNodes("/events/event");
+
+            foreach (XmlNode events in node)
+            {
+                var parent = events.ParentNode;
+                var eventName = new string(events.Attributes["name"].Value.Reverse().ToArray());
+
+                switch (eventName)
+                {
+                    case "noitarbeleC_enuJ_10R":
+                    case "htnoM21_pihsrebmeM_TVE":
+                    case "adnaPuFgnuK_2102_ORP":
+                    case "yrasrevinnA_2102_TVE":
+                    case "steP_2102_TVE":
+                    case "semaGiniM_2102_TVE":
+                    case "10_steP_CN_3102_TVE":
+                    case "konhcaR_3102_TVE":
+                    case "nonnaCittefnoC_3102_TVE":
+                    case "adnaP_steP_3102_TVE":
+                    case "20_steP_CN_3102_TVE":
+                    case "wen20_steP_CN_3102_TVE":
+                    case "snruteR_ekirtsrebaS_3102_TVE":
+                    case "10reppaZnekcihC_3102_TVE":
+                    case "10_elaS_steP_CN_3102_TVE":
+                    case "neewollaH_3102_TVE":
+                    case "10yadiloH_3102_TVE":
+                    case "weiverPSTC_3102_TVE":
+                    case "20weiverPSTC_3102_TVE":
+                    case "10tePyraG_3102_TVE":
+                    case "10_3102boBegnopS_3102_TVE":
+                    case "20_3102boBegnopS_3102_TVE":
+                    case "30_3102boBegnopS_3102_TVE":
+                    case "40_3102boBegnopS_3102_TVE":
+                    case "50_3102boBegnopS_3102_TVE":
+                        parent.RemoveChild(events);
+                        break;
+                    default:
+                        if (eventName.Contains("1102"))
+                            parent.RemoveChild(events);
+                        break;
+                }
+            }
+        }
+        else if (RConfig.GameVersion >= GameVersion.vEarly2012)
+        {
+            var node = xml.SelectNodes("/events/event");
+
+            foreach (XmlNode events in node)
+            {
+                var parent = events.ParentNode;
+                var eventName = new string(events.Attributes["name"].Value.Reverse().ToArray());
+
+                switch (eventName)
+                {
+                    case "noitarbeleC_enuJ_10R":
+                    case "htnoM21_pihsrebmeM_TVE":
+                    case "adnaPuFgnuK_2102_ORP":
+                    case "yrasrevinnA_2102_TVE":
+                    case "steP_2102_TVE":
+                    case "semaGiniM_2102_TVE":
+                        parent.RemoveChild(events);
+                        break;
+                    default:
+                        if (eventName.Contains("1102"))
+                            parent.RemoveChild(events);
+                        break;
+                }
+            }
+        }
     }
 
     public void ReadDescription(string xml)
@@ -52,7 +173,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                 continue;
 
             foreach (XmlNode mEvent in eventPrefabXml.ChildNodes)
-            {
                 switch (mEvent.Name)
                 {
                     case "event":
@@ -61,7 +181,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                         var levelId = string.Empty;
 
                         foreach (XmlAttribute mEventAttribute in mEvent.Attributes)
-                        {
                             switch (mEventAttribute.Name)
                             {
                                 case "name":
@@ -74,7 +193,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                     levelId = mEventAttribute.Value.ToString();
                                     continue;
                             }
-                        }
 
                         if (string.IsNullOrEmpty(eventName))
                             continue;
@@ -93,7 +211,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                             var replacementName = string.Empty;
 
                             foreach (XmlAttribute prefabAttribute in eventPrefab.Attributes)
-                            {
                                 switch (prefabAttribute.Name)
                                 {
                                     case "name":
@@ -103,7 +220,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                         replacementName = prefabAttribute.Value.ToString();
                                         continue;
                                 }
-                            }
 
                             if (prefabName != string.Empty && replacementName != string.Empty)
                             {
@@ -120,7 +236,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                         var timedEventName = string.Empty;
 
                         foreach (XmlAttribute mEventAttribute in mEvent.Attributes)
-                        {
                             switch (mEventAttribute.Name)
                             {
                                 case "timedEventId":
@@ -130,7 +245,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                     timedEventName = mEventAttribute.Value.ToString();
                                     continue;
                             }
-                        }
 
                         if (timedEventId == 0 || string.IsNullOrEmpty(timedEventName))
                             continue;
@@ -145,7 +259,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                 continue;
 
                             foreach (XmlAttribute prefabAttribute in eventPrefab.Attributes)
-                            {
                                 switch (prefabAttribute.Name)
                                 {
                                     case "activePopup":
@@ -158,7 +271,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                         TimedSocialEvents[comb].IsMemberOnly = prefabAttribute.Value.ToString() != "0";
                                         continue;
                                 }
-                            }
 
                             foreach (XmlNode timePeriod in eventPrefab.ChildNodes)
                             {
@@ -168,7 +280,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                 var timeWindow = new TimeWindow();
 
                                 foreach (XmlAttribute timePeriodAttribute in timePeriod.Attributes)
-                                {
                                     switch (timePeriodAttribute.Name)
                                     {
                                         case "startTime":
@@ -180,7 +291,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                                             timeWindow.EndDateTime = DateTime.Parse(timeWindow.End);
                                             continue;
                                     }
-                                }
 
                                 TimedSocialEvents[comb].TimeWindows.Add(timeWindow);
                             }
@@ -190,7 +300,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
                             [.. TimedSocialEvents[comb].TimeWindows.OrderBy(x => DateTime.Parse(x.Start).TimeOfDay.TotalSeconds)];
                         break;
                 }
-            }
         }
 
         this.SetField<EventPrefabsXML>("_eventPrefabsMap", PrefabMap);
@@ -221,7 +330,6 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
         else if (RConfig.CurrentEvent.TryGetValue(RConfig.GameVersion, out var defaultEventString))
             defaultEventName = new string(defaultEventString.Reverse().ToArray());
 
-
         if (!string.IsNullOrEmpty(RwConfig.CurrentTimedEventOverride))
             defaultTimedEvent = RwConfig.CurrentTimedEventOverride;
         else if (RConfig.CurrentTimedEvent.TryGetValue(RConfig.GameVersion, out var defaultTimedString))
@@ -247,12 +355,20 @@ public class EventPrefabs : EventPrefabsXML, IBundledXml
         );
 
         if (!reversedDict.ContainsKey(defaultEventName))
-            defaultEventName = PrefabMap.MaxBy(x => x.Value.Count).Key;
+        {
+            var newEventName = PrefabMap.MaxBy(x => x.Value.Count).Key;
+            Logger.LogError("Could not find event for: '{oldName}'. Defaulting to: '{newName}'...", defaultEventName, newEventName);
+            defaultEventName = newEventName;
+        }
 
         if (!TimedSocialEvents.Any(x => x.Key.Value == defaultTimedEvent))
-            defaultTimedEvent = TimedSocialEvents.Count > 0 ?
+        {
+            var newTimedEvent = TimedSocialEvents.Count > 0 ?
                 TimedSocialEvents.MaxBy(x => x.Value.TimeWindows.Count).Key.Value :
                 string.Empty;
+            Logger.LogError("Could not find event for: '{oldName}'. Defaulting to: '{newName}'...", defaultTimedEvent, newTimedEvent);
+            defaultTimedEvent = newTimedEvent;
+        }
 
         var defaultEvent = reversedDict[defaultEventName];
 

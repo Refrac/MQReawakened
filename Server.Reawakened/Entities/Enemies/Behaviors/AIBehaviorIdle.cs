@@ -1,14 +1,15 @@
-﻿using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
+﻿using Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
+using Server.Reawakened.Entities.Enemies.EnemyTypes;
+using Server.Reawakened.XMLs.Data.Enemy.Enums;
 
-namespace Server.Reawakened.Entities.Enemies.BehaviorEnemies.BehaviourTypes;
-public class AIBehaviorIdle : AIBaseBehavior
+namespace Server.Reawakened.Entities.Enemies.Behaviors;
+public class AIBehaviorIdle(BehaviorEnemy enemy, StateType state) : AIBaseBehavior(enemy, state)
 {
-    public override float ResetTime => 0;
+    public override bool ShouldDetectPlayers => true;
 
-    protected override AI_Behavior GetBehaviour() => new AI_Behavior_Idle();
+    public override AiProperties GetProperties() => new EmptyAiProperties();
 
-    public override StateType GetBehavior() => StateType.Idle;
+    public override object[] GetStartArgs() => [];
 
-    public override object[] GetData() => [];
+    public override void NextState() { }
 }

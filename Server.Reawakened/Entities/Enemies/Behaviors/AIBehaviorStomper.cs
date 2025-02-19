@@ -1,23 +1,17 @@
-﻿using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
-using Server.Reawakened.XMLs.Models.Enemy.States;
+﻿using Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
+using Server.Reawakened.Entities.Enemies.EnemyTypes;
+using Server.Reawakened.XMLs.Data.Enemy.Enums;
 
-namespace Server.Reawakened.Entities.Enemies.BehaviorEnemies.BehaviourTypes;
+namespace Server.Reawakened.Entities.Enemies.Behaviors;
 
-public class AIBehaviorStomper(StomperState stomperState) : AIBaseBehavior
+public class AIBehaviorStomper(StomperProperties properties, BehaviorEnemy enemy, StateType state) : AIBaseBehavior(enemy, state)
 {
-    public float AttackTime => stomperState.AttackTime;
-    public float ImpactTime => stomperState.ImpactTime;
-    public float DamageDistance => stomperState.DamageDistance;
-    public float DamageOffset => stomperState.DamageOffset;
+    public override bool ShouldDetectPlayers => false;
 
-    public override float ResetTime => AttackTime;
+    public override AiProperties GetProperties() => properties;
 
-    protected override AI_Behavior GetBehaviour() => new AI_Behavior_Stomper(AttackTime, ImpactTime);
+    public override object[] GetStartArgs() => [];
 
-    public override StateType GetBehavior() => StateType.Stomper;
-
-    public override object[] GetData() => [
-        AttackTime, ImpactTime, DamageDistance, DamageOffset
-    ];
+    public override void NextState() =>
+        Enemy.ChangeBehavior(StateType.LookAround, Enemy.Position.x, Enemy.Position.y, Enemy.Generic.Patrol_ForceDirectionX);
 }

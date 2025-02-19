@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Server.Base.Core.Configs;
+using Server.Base.Core.Abstractions;
 using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Services;
@@ -10,22 +10,14 @@ using System.Diagnostics;
 namespace Server.Base.Worlds;
 
 public class World(ILogger<World> logger, IServiceProvider services, ServerHandler serverHandler,
-    EventSink sink, InternalRConfig config, NetStateHandler netStateHandler)
+    EventSink sink, NetStateHandler netStateHandler) : IService
 {
-    private readonly ManualResetEvent _diskWriteHandle = new(true);
-
     public bool Saving { get; private set; } = false;
     public bool Loaded { get; private set; } = false;
     public bool Loading { get; private set; } = false;
     public bool Crashed { get; private set; } = false;
 
-    public void NotifyDiskWriteComplete()
-    {
-        if (_diskWriteHandle.Set())
-            logger.LogInformation("Closing Save Files. ");
-    }
-
-    public void WaitForWriteCompletion() => _diskWriteHandle.WaitOne();
+    public void Initialize() { }
 
     public void Load()
     {
@@ -65,51 +57,55 @@ public class World(ILogger<World> logger, IServiceProvider services, ServerHandl
             return;
         }
 
-        netStateHandler.Pause();
-
-        WaitForWriteCompletion();
-
-        Saving = true;
-
-        _diskWriteHandle.Reset();
-
         if (message)
             Broadcast("The world is saving, please wait.");
 
-        var watch = Stopwatch.StartNew();
+        netStateHandler.Pause();
 
-        InternalDirectory.CreateDirectory(config.SaveDirectory);
+        Saving = true;
+
+        var watch = Stopwatch.StartNew();
 
         try
         {
-            sink.InvokeWorldSave(new WorldSaveEventArgs(message));
-
             services.SaveConfigs(serverHandler.Modules, logger);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "FATAL: Exception in world save");
+            logger.LogCritical(ex, "FATAL: Exception in world save configs");
+        }
+
+        try
+        {
+            sink.InvokeWorldSave(new WorldSaveEventArgs(message));
+        }
+        catch (Exception e)
+        {
+            throw new Exception("FATAL: Exception in world save event", e);
         }
 
         watch.Stop();
 
         Saving = false;
 
-        NotifyDiskWriteComplete();
+        netStateHandler.Resume();
 
         logger.LogInformation("Save finished in {Time:F2} seconds.", watch.Elapsed.TotalSeconds);
 
         if (message)
-        {
-            Broadcast($"World save done in {watch.Elapsed.TotalSeconds} seconds.");
-        }
-
-        netStateHandler.Resume();
+            Broadcast($"World save done in {watch.Elapsed.TotalSeconds:F2} seconds.");
     }
 
     public void Broadcast(string message)
     {
-        sink.InvokeWorldBroadcast(new WorldBroadcastEventArgs(message));
-        logger.LogInformation("{MESSAGE}", message);
+        try
+        {
+            sink.InvokeWorldBroadcast(new WorldBroadcastEventArgs(message));
+            logger.LogInformation("{MESSAGE}", message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "FATAL: Exception in world broadcast");
+        }
     }
 }

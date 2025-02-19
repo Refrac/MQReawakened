@@ -1,4 +1,4 @@
-﻿namespace Server.Reawakened.XMLs.Models.Enemy.Enums;
+﻿namespace Server.Reawakened.XMLs.Data.Enemy.Enums;
 public enum EnemyCategory
 {
     Unknown,
@@ -16,4 +16,12 @@ public enum EnemyCategory
     Vespid,
     Spiderling,
     Rachnok,
+    Spiker,
+    Draicon,
+    Stomper,
+    Stormbeast,
+    Foulbreath,
+    TMNT,
+    SpngBob,
+    PwrRngr
 }

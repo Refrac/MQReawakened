@@ -4,8 +4,9 @@ using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Services;
 using Server.Base.Network.Enums;
+using Server.Reawakened.BundleHost.Configs;
 using Server.Reawakened.BundleHost.Models;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
 
 namespace Server.Reawakened.BundleHost.Services;
@@ -26,7 +27,7 @@ public class RemoveDuplicates(ILogger<RemoveDuplicates> logger, EventSink sink,
         );
         console.AddCommand(
             "removeXmlDuplicates",
-            "Creates a directory that does not include duplicated XML files (required for servers).",
+            "Creates a directory that does not include duplicated XML files.",
             NetworkType.Server | NetworkType.Client,
             _ => RemoveDuplicateFiles([AssetInfo.TypeAsset.Level, AssetInfo.TypeAsset.XML])
         );
@@ -72,7 +73,7 @@ public class RemoveDuplicates(ILogger<RemoveDuplicates> logger, EventSink sink,
                     if (!AreFileContentsEqual(containedAsset.Path, asset.Path))
                         continue;
 
-                    if (containedAsset.CacheTime > asset.CacheTime && config.GameVersion >= GameVersion.v2014 ||
+                    if (containedAsset.CacheTime > asset.CacheTime && config.GameVersion >= GameVersion.vEarly2014 ||
                         containedAsset.CacheTime < asset.CacheTime && config.GameVersion <= GameVersion.vLate2013)
                         assetList[assetName].Remove(containedAsset);
                     else
@@ -94,7 +95,7 @@ public class RemoveDuplicates(ILogger<RemoveDuplicates> logger, EventSink sink,
 
         logger.LogDebug("Writing assets");
 
-        logger.LogDebug("Emptying duplicated directory folder...");
+        logger.LogDebug("Emptying duplicated bundle directory...");
         InternalDirectory.Empty(rConfig.RemovedDuplicateDirectory);
         logger.LogDebug("Emptied folder");
 

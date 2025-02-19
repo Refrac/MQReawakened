@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Server.Base.Core.Extensions;
 using Server.Base.Core.Helpers;
-using Server.Reawakened.BundleHost.Models;
+using Server.Reawakened.BundleHost.Configs;
 
 namespace Server.Reawakened.BundleHost.Extensions;
 
@@ -49,14 +50,15 @@ public static class GetInfoFile
             if (string.IsNullOrEmpty(defaultFile) || !defaultFile.EndsWith("__info"))
             {
                 logger.LogError("Please enter the absolute file path for the {Type} '__info' cache file.", lowerName);
-                defaultFile = Console.ReadLine() ?? string.Empty;
+                defaultFile = ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger) ?? string.Empty;
+                logger.LogInformation("Found cache file: {Path}", defaultFile);
                 continue;
             }
 
             break;
         }
 
-        logger.LogInformation("{Type} Cache Directory: {Directory}", cacheName, Path.GetDirectoryName(defaultFile));
+        logger.LogInformation("{Type} cache directory: '{Directory}'", cacheName, Path.GetDirectoryName(defaultFile));
 
         return defaultFile;
     }

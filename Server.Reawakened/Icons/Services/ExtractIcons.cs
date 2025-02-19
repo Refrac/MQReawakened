@@ -2,9 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Services;
+using Server.Reawakened.BundleHost.Configs;
 using Server.Reawakened.BundleHost.Models;
 using Server.Reawakened.Icons.Configs;
-using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
 using System.Collections;
 using System.Collections.Specialized;
 

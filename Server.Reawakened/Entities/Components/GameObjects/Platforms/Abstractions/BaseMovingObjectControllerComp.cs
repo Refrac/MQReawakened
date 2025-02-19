@@ -1,9 +1,8 @@
 ﻿using Server.Reawakened.Entities.Components.GameObjects.Trigger.Interfaces;
 using Server.Reawakened.Players;
 using Server.Reawakened.Rooms.Models.Entities;
-using Server.Reawakened.Rooms.Models.Planes;
 
-namespace Server.Reawakened.Entities.AbstractComponents;
+namespace Server.Reawakened.Entities.Components.GameObjects.Platforms.Abstractions;
 
 public abstract class BaseMovingObjectControllerComp<T> : Component<T>, IRecieverTriggered where T : MovingObjectController
 {
@@ -16,18 +15,15 @@ public abstract class BaseMovingObjectControllerComp<T> : Component<T>, IRecieve
 
     public override void Update()
     {
-        if (Movement == null)
+        if (Movement == null || Room == null)
             return;
 
         var position = Movement.GetPositionBasedOnTime(Room.Time);
 
-        Entity.GameObject.ObjectInfo.Position = new Vector3Model
-        {
-            X = position.x,
-            Y = position.y,
-            Z = position.z
-        };
+        Position.SetPosition(position);
     }
+
+    public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player) { }
 
     public override object[] GetInitData(Player player) =>
     [

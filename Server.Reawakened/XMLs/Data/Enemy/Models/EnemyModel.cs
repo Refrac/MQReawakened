@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using Server.Reawakened.Rooms.Models.Planes;
-using Server.Reawakened.XMLs.Models.Enemy.Abstractions;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
-using UnityEngine;
+using Server.Reawakened.XMLs.Data.Enemy.Abstractions;
+using Server.Reawakened.XMLs.Data.Enemy.Enums;
 
-namespace Server.Reawakened.XMLs.Models.Enemy.Models;
+namespace Server.Reawakened.XMLs.Data.Enemy.Models;
 
 public class EnemyModel
 {
@@ -15,12 +13,9 @@ public class EnemyModel
     public GlobalPropertyModel GlobalProperties { get; set; }
     public GenericScriptModel GenericScript { get; set; }
     public HitboxModel Hitbox { get; set; }
-    public Vector3Model Offset { get; set; }
 
     public void EnsureValidData(string enemyType, Microsoft.Extensions.Logging.ILogger logger)
     {
-        Offset ??= new Vector3Model(0, 0, 0);
-
         if (EnemyLootTable == null)
         {
             logger.LogError("Enemy '{Name}' does not have a loot table attached!", enemyType);
@@ -30,7 +25,7 @@ public class EnemyModel
         if (Hitbox == null)
         {
             logger.LogError("Enemy '{Name}' does not have a hit box attached!", enemyType);
-            Hitbox = new HitboxModel(0, 0, 0, 0);
+            Hitbox = new HitboxModel(1, 1, 0.5f, 0.5f);
         }
 
         if (AiType == AiType.Behavior)
@@ -62,20 +57,5 @@ public class EnemyModel
             if (!BehaviorData.ContainsKey(GenericScript.UnawareBehavior))
                 logger.LogError("Enemy '{Name}' does not have the unaware behavior '{Behavior}' defined!", enemyType, GenericScript.UnawareBehavior);
         }
-    }
-
-    public int IndexOf(StateType behaviorType)
-    {
-        var index = 0;
-
-        foreach (var behavior in BehaviorData)
-        {
-            if (behavior.Key == behaviorType)
-                return index;
-
-            index++;
-        }
-
-        return 0;
     }
 }

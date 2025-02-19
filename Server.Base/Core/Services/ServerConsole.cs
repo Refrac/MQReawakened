@@ -1,13 +1,11 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server.Base.Core.Abstractions;
 using Server.Base.Core.Configs;
+using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Models;
 using Server.Base.Network.Enums;
-using Server.Base.Timers.Extensions;
-using Server.Base.Timers.Services;
-using Server.Base.Worlds.Services;
+using Server.Base.Worlds;
 using System.Globalization;
 using static Server.Base.Core.Models.ConsoleCommand;
 
@@ -15,26 +13,24 @@ namespace Server.Base.Core.Services;
 
 public class ServerConsole : IService
 {
-    private readonly IHostApplicationLifetime _appLifetime;
     private readonly Dictionary<string, ConsoleCommand> _commands;
     private readonly InternalRConfig _rConfig;
     private readonly InternalRwConfig _rwConfig;
     private readonly Thread _consoleThread;
     private readonly ServerHandler _handler;
     private readonly ILogger<ServerConsole> _logger;
-    private readonly TimerThread _timerThread;
-    private readonly AutoSave _saves;
+    private readonly World _world;
+    private readonly EventSink _sink;
 
-    public ServerConsole(TimerThread timerThread, ServerHandler handler, ILogger<ServerConsole> logger,
-        IHostApplicationLifetime appLifetime, InternalRConfig rConfig, InternalRwConfig rwConfig, AutoSave saves)
+    public ServerConsole(ServerHandler handler, ILogger<ServerConsole> logger, EventSink sink,
+        InternalRConfig rConfig, InternalRwConfig rwConfig, World world)
     {
-        _timerThread = timerThread;
         _handler = handler;
         _logger = logger;
-        _appLifetime = appLifetime;
         _rConfig = rConfig;
         _rwConfig = rwConfig;
-        _saves = saves;
+        _world = world;
+        _sink = sink;
 
         _commands = [];
 
@@ -45,7 +41,7 @@ public class ServerConsole : IService
         };
     }
 
-    public void Initialize() => _appLifetime.ApplicationStarted.Register(RunConsoleListener);
+    public void Initialize() => _sink.ServerHosted += RunConsoleListener;
 
     public void RunConsoleListener()
     {
@@ -53,9 +49,7 @@ public class ServerConsole : IService
 
         AddCommand(
             "restart",
-            "Sends a message to players informing them that the server is\n" +
-            "           restarting, performs a forced save, then shuts down and\n" +
-            "           restarts the server.",
+            "Informs players of server restart, performs a forced save, then restarts the server.",
             NetworkType.Server,
             _ => _handler.KillServer(true)
         );
@@ -69,16 +63,16 @@ public class ServerConsole : IService
 
         AddCommand(
             "save",
-            "Forces a save.",
+            "Saves configuration files.",
             NetworkType.Server,
-            _ => _saves.Save()
+            _ => _world.Save(true)
         );
 
         AddCommand(
             "crash",
             "Forces an exception to be thrown.",
             NetworkType.Server,
-            _ => _timerThread.DelayCall((object _) => throw new Exception("Forced Crash"), null)
+            _ => throw new Exception("Forced Crash")
         );
 
         DisplayHelp();
@@ -101,7 +95,14 @@ public class ServerConsole : IService
         try
         {
             while (!_handler.IsClosing && !_handler.HasCrashed)
-                ProcessCommand(Console.ReadLine());
+            {
+                var input = Console.ReadLine();
+
+                if (input != null)
+                    ProcessCommand(input);
+
+                Thread.Sleep(100);
+            }
         }
         catch (IOException)
         {

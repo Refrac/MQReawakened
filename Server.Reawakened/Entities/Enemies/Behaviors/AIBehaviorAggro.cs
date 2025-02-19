@@ -1,49 +1,31 @@
-﻿using Server.Reawakened.Entities.Components.AI.Stats;
-using Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
-using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
-using Server.Reawakened.XMLs.Models.Enemy.States;
+﻿using Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
+using Server.Reawakened.Entities.Enemies.EnemyTypes;
+using Server.Reawakened.XMLs.Data.Enemy.Enums;
 
-namespace Server.Reawakened.Entities.Enemies.BehaviorEnemies.BehaviourTypes;
+namespace Server.Reawakened.Entities.Enemies.Behaviors;
 
-public class AIBehaviorAggro(AggroState aggroState, AIStatsGlobalComp globalComp) : AIBaseBehavior
+public class AIBehaviorAggro(AggroProperties properties, BehaviorEnemy enemy, StateType state) : AIBaseBehavior(enemy, state)
 {
-    public float AggroSpeed => globalComp.Aggro_AttackSpeed != globalComp.Default.Aggro_AttackSpeed ? globalComp.Aggro_AttackSpeed : aggroState.AggroSpeed;
-    public float MoveBeyondTargetDistance => globalComp.Aggro_MoveBeyondTargetDistance != globalComp.Default.Aggro_MoveBeyondTargetDistance ? globalComp.Aggro_MoveBeyondTargetDistance : aggroState.MoveBeyondTargetDistance;
-    public bool StayOnPatrolPath => globalComp.Aggro_StayOnPatrolPath != globalComp.Default.Aggro_StayOnPatrolPath ? globalComp.Aggro_StayOnPatrolPath : aggroState.StayOnPatrolPath;
-    public float AttackBeyondPatrolLine => globalComp.Aggro_AttackBeyondPatrolLine != globalComp.Default.Aggro_AttackBeyondPatrolLine ? globalComp.Aggro_AttackBeyondPatrolLine : aggroState.AttackBeyondPatrolLine;
-    public bool UseAttackBeyondPatrolLine => aggroState.UseAttackBeyondPatrolLine;
-    public float DetectionRangeUpY => aggroState.DetectionRangeUpY;
-    public float DetectionRangeDownY => aggroState.DetectionRangeDownY;
+    public override bool ShouldDetectPlayers => false;
 
-    public override float ResetTime => 0;
+    public override AiProperties GetProperties() =>
+        new AggroProperties(
+            Enemy.Global.Aggro_AttackSpeed != Enemy.Global.Default.Aggro_AttackSpeed ? Enemy.Global.Aggro_AttackSpeed : properties.aggro_AttackSpeed,
+            Enemy.Global.Aggro_MoveBeyondTargetDistance != Enemy.Global.Default.Aggro_MoveBeyondTargetDistance ? Enemy.Global.Aggro_MoveBeyondTargetDistance : properties.aggro_MoveBeyondTargetDistance,
+            Enemy.Global.Aggro_StayOnPatrolPath != Enemy.Global.Default.Aggro_StayOnPatrolPath ? Enemy.Global.Aggro_StayOnPatrolPath : properties.aggro_StayOnPatrolPath,
+            Enemy.Global.Aggro_AttackBeyondPatrolLine != Enemy.Global.Default.Aggro_AttackBeyondPatrolLine ? Enemy.Global.Aggro_AttackBeyondPatrolLine : properties.aggro_AttackBeyondPatrolLine,
+            properties.aggro_UseAttackBeyondPatrolLine,
+            properties.aggro_DetectionRangeUpY,
+            properties.aggro_DetectionRangeDownY
+        );
 
-    protected override AI_Behavior GetBehaviour() => new AI_Behavior_Aggro(
-        AggroSpeed, MoveBeyondTargetDistance,
-        StayOnPatrolPath, AttackBeyondPatrolLine,
-        DetectionRangeUpY, DetectionRangeDownY
-    );
+    public override object[] GetStartArgs() => [];
 
-    public override StateType GetBehavior() => StateType.Aggro;
-
-    public override string ToString()
-    {
-        var sb = new SeparatedStringBuilder(';');
-
-        sb.Append(AggroSpeed);
-        sb.Append(MoveBeyondTargetDistance);
-        sb.Append(StayOnPatrolPath ? 1 : 0);
-        sb.Append(AttackBeyondPatrolLine);
-        sb.Append(UseAttackBeyondPatrolLine ? 1 : 0);
-        sb.Append(DetectionRangeUpY);
-        sb.Append(DetectionRangeDownY);
-
-        return sb.ToString();
-    }
-
-    public override object[] GetData() => [
-            AggroSpeed, MoveBeyondTargetDistance, StayOnPatrolPath,
-            AttackBeyondPatrolLine, UseAttackBeyondPatrolLine,
-            DetectionRangeUpY, DetectionRangeDownY
-        ];
+    public override void NextState() =>
+        Enemy.ChangeBehavior(
+            Enemy.GenericScript.AwareBehavior,
+            Enemy.GenericScript.UnawareBehavior == StateType.ComeBack ? Enemy.Position.x : Enemy.AiData.Sync_TargetPosX,
+            Enemy.GenericScript.UnawareBehavior == StateType.ComeBack ? Enemy.Position.y : Enemy.AiData.Sync_TargetPosY,
+            Enemy.AiData.Intern_Dir
+        );
 }

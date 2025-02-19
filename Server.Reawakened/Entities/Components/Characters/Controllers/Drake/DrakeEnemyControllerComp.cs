@@ -1,14 +1,27 @@
-﻿using Server.Base.Timers.Services;
-using Server.Reawakened.Rooms.Models.Entities;
-using Microsoft.Extensions.Logging;
+﻿using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Drake.States;
 
-namespace Server.Reawakened.Entities.Enemies.AIStateEnemies.Drake;
+namespace Server.Reawakened.Entities.Components.Characters.Controllers.Drake;
 
-public class DrakeEnemyControllerComp : Component<DrakeEnemyController>
+public class DrakeEnemyControllerComp : BaseAIStateMachine<DrakeEnemyController>
 {
-    public TimerThread TimerThread { get; set; }
-    public ILogger<DrakeEnemyControllerComp> Logger { get; set; }
+    /* 
+     * -- AI STATES --
+     * AIStateDrakeAttack
+     * [DONE]AIStateDrakePlacement
+     * 
+     * AIStateMove
+     * [DONE]AIStatePatrol
+     * AIStateStunned
+    */
 
-    public bool IsAttacking = false;
-    public string IdOfAttackingEnemy;
+    public override void DelayedComponentInitialization()
+    {
+        if (Room == null)
+            return;
+
+        AddNextState<AIStateDrakePlacementComp>();
+
+        GoToNextState();
+    }
 }

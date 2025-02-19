@@ -1,4 +1,5 @@
-﻿using Server.Reawakened.Entities.AbstractComponents;
+﻿using Server.Reawakened.Entities.Colliders;
+using Server.Reawakened.Entities.Components.GameObjects.Platforms.Abstractions;
 
 namespace Server.Reawakened.Entities.Components.GameObjects.Platforms;
 
@@ -15,6 +16,7 @@ public class LinearPlatformComp : BaseMovingObjectControllerComp<LinearPlatform>
     public float DelayBeforeStart => ComponentData.DelayBeforeStart;
     public bool TriggeredBySwitch => ComponentData.TriggeredBySwitch;
 
+    private MovingPlatformCollider _collider;
     public override void InitializeComponent()
     {
         var distance = new vector3(DistanceX, DistanceY, DistanceZ);
@@ -23,20 +25,35 @@ public class LinearPlatformComp : BaseMovingObjectControllerComp<LinearPlatform>
             StayHalfwayWhileTriggered, StopIfNotTriggered);
 
         Movement.Init(
-            new vector3(Position.X, Position.Y, Position.Z),
+            Position.ToVector3(),
             Movement.Activated, Room.Time, InitialProgressRatio
         );
+
+        _collider = new MovingPlatformCollider(
+            Id,
+            Position.ToUnityVector3(),
+            Rectangle.ToRect(),
+            ParentPlane,
+            Room
+         );
+
+        Room.AddCollider(_collider);
 
         base.InitializeComponent();
     }
 
     public override void Update()
     {
+        if (Room == null)
+            return;
+
         base.Update();
         var movement = (Platform_Linear_Movement)Movement;
         movement.UpdateState(Room.Time);
 
         if (!ComponentData.TriggeredBySwitch)
             movement.Activate(Room.Time);
+
+        _collider.Position = Position.ToUnityVector3();
     }
 }

@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Server.Base.Core.Abstractions;
 using Server.Base.Core.Configs;
@@ -13,7 +10,7 @@ using Server.Base.Logging;
 using Server.Base.Network.Enums;
 using Server.Base.Worlds;
 using Server.Reawakened.BundleHost.Services;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Network.Services;
 using Server.Reawakened.Players.Events;
@@ -27,24 +24,23 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Web.Launcher.Services;
 
-public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILogger<StartGame> logger, ServerConsole _console,
-    World world, PlayerEventSink playerEventSink, RandomKeyGenerator generator, IServer server, BuildAssetList assetList,
-    LauncherRConfig lConfig, LauncherRwConfig lWConfig, InternalRwConfig ilWConfig, ServerRConfig sConfig) : IService
+public class StartGame(EventSink sink, ILogger<StartGame> logger, ServerConsole _console,
+    World world, PlayerEventSink playerEventSink, RandomKeyGenerator generator, BuildAssetList assetList,
+    LauncherRConfig lRConfig, LauncherRwConfig lWConfig, InternalRwConfig iWConfig, ServerRConfig sConfig) : IService
 {
     private string _directory;
     private bool _dirSet = false, _appStart = false;
     private Process _game;
 
     public PackageInformation CurrentVersion { get; private set; }
-    public string ServerAddress { get; private set; }
 
     public void Initialize()
     {
-        appLifetime.ApplicationStarted.Register(AppStarted);
         sink.WorldLoad += GetGameInformation;
         sink.Shutdown += StopGame;
         sink.ChangedOperationalMode += CheckRemakeConfig;
         playerEventSink.PlayerRefreshed += AskIfRestart;
+        sink.ServerHosted += AppStarted;
     }
 
     private void CheckRemakeConfig()
@@ -60,8 +56,6 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
     private void AppStarted()
     {
         _appStart = true;
-        ServerAddress = server.Features.Get<IServerAddressesFeature>().Addresses.First();
-        logger.LogInformation("Set listening URL to: {Url}", ServerAddress);
         RunGame();
     }
 
@@ -91,7 +85,7 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
             if (string.IsNullOrEmpty(lWConfig.GameSettingsFile) || !lWConfig.GameSettingsFile.EndsWith("settings.txt"))
             {
                 logger.LogError("Please enter the absolute file path for your game's 'settings.txt' file.");
-                lWConfig.GameSettingsFile = Console.ReadLine();
+                lWConfig.GameSettingsFile = ConsoleExt.ReadOrEnv("SETTINGS_FILE_LOCATION", logger);
                 continue;
             }
 
@@ -106,18 +100,18 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
             break;
         }
 
-        logger.LogInformation("Launcher Directory: {Directory}", Path.GetDirectoryName(lWConfig.GameSettingsFile));
+        logger.LogInformation("Launcher directory: '{Directory}'", Path.GetDirectoryName(lWConfig.GameSettingsFile));
 
-        var lastUpdate = DateTime.ParseExact(CurrentVersion.game.lastUpdate, lConfig.TimeFilter,
+        var lastUpdate = DateTime.ParseExact(CurrentVersion.game.lastUpdate, lRConfig.TimeFilter,
             CultureInfo.InvariantCulture);
 
         sConfig.LastClientUpdate = lastUpdate.ToUnixTimestamp();
 
         sConfig.GameVersion = GameVersion.Unknown;
-        sConfig.CutOffFor2014 = DateTime.ParseExact(lConfig.ClientUpdates[GameVersion.v2014], lConfig.TimeFilter, CultureInfo.InvariantCulture).ToUnixTimestamp();
+        sConfig.CutOffFor2014 = DateTime.ParseExact(lRConfig.ClientUpdates[GameVersion.vEarly2014], lRConfig.TimeFilter, CultureInfo.InvariantCulture).ToUnixTimestamp();
 
-        foreach (var updateDate in lConfig.ClientUpdates
-            .ToDictionary(x => x.Key, x => DateTime.ParseExact(x.Value, lConfig.TimeFilter, CultureInfo.InvariantCulture))
+        foreach (var updateDate in lRConfig.ClientUpdates
+            .ToDictionary(x => x.Key, x => DateTime.ParseExact(x.Value, lRConfig.TimeFilter, CultureInfo.InvariantCulture))
             .OrderBy(x => x.Value))
         {
             if (updateDate.Value > lastUpdate)
@@ -157,7 +151,7 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
 
     public bool ShouldRun()
     {
-        if (ilWConfig.NetworkType.HasFlag(NetworkType.Client))
+        if (iWConfig.NetworkType.HasFlag(NetworkType.Client))
             return true;
 
         logger.LogWarning("NOT RUNNING GAME: SERVER IS HEADLESS");
@@ -179,7 +173,7 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
             return;
         }
 
-        if (lConfig.OverwriteGameConfig)
+        if (lRConfig.OverwriteGameConfig)
         {
             SetSettings();
             WriteConfig();
@@ -195,10 +189,10 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
             return;
 
         dynamic settings = JsonConvert.DeserializeObject<ExpandoObject>(File.ReadAllText(lWConfig.GameSettingsFile))!;
-        settings.launcher.baseUrl = ilWConfig.GetHostAddress();
-        settings.launcher.fullscreen = lConfig.Fullscreen ? "true" : "false";
-        settings.launcher.onGameClosePopup = lConfig.OnGameClosePopup ? "true" : "false";
-        settings.patcher.baseUrl = ilWConfig.GetHostAddress();
+        settings.launcher.baseUrl = iWConfig.GetHostAddress();
+        settings.launcher.fullscreen = lRConfig.Fullscreen ? "true" : "false";
+        settings.launcher.onGameClosePopup = lRConfig.OnGameClosePopup ? "true" : "false";
+        settings.patcher.baseUrl = iWConfig.GetHostAddress();
         File.WriteAllText(lWConfig.GameSettingsFile, JsonConvert.SerializeObject(settings));
     }
 
@@ -214,15 +208,15 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
         var config = Path.Join(directory, "LocalBuildConfig.xml");
 
         logger.LogDebug("Looking For Header In {Directory} Ending In {Header}.", directory,
-            lConfig.HeaderFolderFilter);
+            lRConfig.HeaderFolderFilter);
 
         var parentUri = new Uri(directory);
         var headerFolders = Directory.GetDirectories(directory, string.Empty, SearchOption.AllDirectories)
             .Select(d => Path.GetDirectoryName(d)?.ToLower())
             .Where(d => new Uri(new DirectoryInfo(d!).Parent?.FullName!) == parentUri).ToArray();
 
-        var headerFolder = headerFolders.FirstOrDefault(a => a?.EndsWith(lConfig.HeaderFolderFilter) == true);
-        headerFolder = Path.GetFileName(headerFolder?.Remove(headerFolder.Length - lConfig.HeaderFolderFilter.Length));
+        var headerFolder = headerFolders.FirstOrDefault(a => a?.EndsWith(lRConfig.HeaderFolderFilter) == true);
+        headerFolder = Path.GetFileName(headerFolder?.Remove(headerFolder.Length - lRConfig.HeaderFolderFilter.Length));
 
         logger.LogDebug("Found header: {Header}", headerFolder);
 
@@ -231,7 +225,7 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
         var newDoc = new XDocument();
         var root = new XElement("MQBuildConfig");
 
-        foreach (var item in GetConfigValues(headerFolder))
+        foreach (var item in GetConfigValues(headerFolder, iWConfig.GetHostAddress()))
         {
             if (string.IsNullOrEmpty(item.Key) || string.IsNullOrEmpty(item.Value))
                 continue;
@@ -248,27 +242,27 @@ public class StartGame(EventSink sink, IHostApplicationLifetime appLifetime, ILo
         logger.LogDebug("Written build configuration");
     }
 
-    private Dictionary<string, string> GetConfigValues(string header) => new()
+    private Dictionary<string, string> GetConfigValues(string header, string address) => new()
     {
-        { $"{header}.unity.url.membership", $"{ServerAddress}/Membership" },
-        { $"{header}.unity.cache.domain", $"{ServerAddress}/Cache" },
-        { $"{header}.unity.cache.license", $"{lConfig.CacheLicense}" },
-        { $"{header}.unity.cache.size", lConfig.CacheSize.ToString() },
-        { $"{header}.unity.cache.expiration", lConfig.CacheExpiration.ToString() },
-        { "game.cacheversion", lConfig.CacheVersion.ToString() },
-        { $"{header}.unity.url.crisp.host", $"{ServerAddress}/Chat/" },
-        { "asset.log", lConfig.LogAssets ? "true" : "false" },
-        { "asset.disableversioning", lConfig.DisableVersions ? "true" : "false" },
-        { "asset.jboss", $"{ServerAddress}/Apps{(sConfig.GameVersion >= GameVersion.v2014 ? "/" : string.Empty)}" },
-        { "asset.bundle", $"{ServerAddress}/Client/Bundles" },
-        { "asset.audio", $"{ServerAddress}/Client/Audio" },
-        { "logout.url", $"{ServerAddress}/Logout" },
-        { "contactus.url", $"{ServerAddress}/Contact" },
-        { "tools.urlbase", $"{ServerAddress}/Tools/" },
-        { "leaderboard.domain", $"{ServerAddress}/Apps/" },
-        { "analytics.baseurl", $"{ServerAddress}/Analytics/" },
-        { "analytics.enabled", lConfig.AnalyticsEnabled ? "true" : "false" },
+        { $"{header}.unity.url.membership", $"{address}/Membership" },
+        { $"{header}.unity.cache.domain", $"{address}/Cache" },
+        { $"{header}.unity.cache.license", $"{lRConfig.CacheLicense}" },
+        { $"{header}.unity.cache.size", lRConfig.CacheSize.ToString() },
+        { $"{header}.unity.cache.expiration", lRConfig.CacheExpiration.ToString() },
+        { "game.cacheversion", lRConfig.CacheVersion.ToString() },
+        { $"{header}.unity.url.crisp.host", $"{address}/Chat/" },
+        { "asset.log", lRConfig.LogAssets ? "true" : "false" },
+        { "asset.disableversioning", lRConfig.DisableVersions ? "true" : "false" },
+        { "asset.jboss", $"{address}/Apps{(sConfig.GameVersion >= GameVersion.vEarly2014 ? "/" : string.Empty)}" },
+        { "asset.bundle", $"{address}/Client/Bundles" },
+        { "asset.audio", $"{address}/Client/Audio" },
+        { "logout.url", $"{address}/Logout" },
+        { "contactus.url", $"{address}/Contact" },
+        { "tools.urlbase", $"{address}/Tools/" },
+        { "leaderboard.domain", $"{address}/Apps/" },
+        { "analytics.baseurl", $"{address}/Analytics/" },
+        { "analytics.enabled", lRConfig.AnalyticsEnabled ? "true" : "false" },
         { "analytics.apikey", lWConfig.AnalyticsApiKey },
-        { "project.name", lConfig.ProjectName }
+        { "project.name", iWConfig.ServerName }
     };
 }

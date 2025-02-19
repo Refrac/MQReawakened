@@ -4,8 +4,8 @@ using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Players.Models.Groups;
-using Server.Reawakened.XMLs.BundlesInternal;
-using Server.Reawakened.XMLs.Enums;
+using Server.Reawakened.XMLs.Bundles.Internal;
+using Server.Reawakened.XMLs.Data.Achievements;
 
 namespace Protocols.External._p__GroupHandler;
 
@@ -24,10 +24,10 @@ public class InvitePlayer : ExternalProtocol
         var characterName = message[5];
         var invitedCharacter = PlayerContainer.GetPlayerByName(characterName);
 
-        if (!invitedCharacter.Character.Data.Blocked.Contains(Player.CharacterId))
+        if (!invitedCharacter.Character.Blocked.Contains(Player.CharacterId))
         {
-            invitedCharacter.CheckAchievement(AchConditionType.InviteGroup, string.Empty, InternalAchievement, Logger);
-            Player.CheckAchievement(AchConditionType.InviteGroup, string.Empty, InternalAchievement, Logger);
+            invitedCharacter.CheckAchievement(AchConditionType.InviteGroup, [], InternalAchievement, Logger);
+            Player.CheckAchievement(AchConditionType.InviteGroup, [], InternalAchievement, Logger);
 
             invitedCharacter?.SendXt("pi", Player.TempData.Group.GetLeaderName());
         }

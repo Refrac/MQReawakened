@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Server.Reawakened.Network.Protocols;
+﻿using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Rooms.Services;
 
@@ -10,15 +9,14 @@ public class TravelToFriend : ExternalProtocol
 
     public WorldHandler WorldHandler { get; set; }
     public PlayerContainer PlayerContainer { get; set; }
-    public ILogger<TravelToFriend> Logger { get; set; }
 
     public override void Run(string[] message)
     {
         var playerName = message[5];
         var otherPlayer = PlayerContainer.GetPlayerByName(playerName);
 
-        var levelId = otherPlayer.Character.LevelData.LevelId;
-        var spawnId = otherPlayer.Character.LevelData.SpawnPointId;
+        var levelId = otherPlayer.Character.LevelId;
+        var spawnId = otherPlayer.Character.SpawnPointId;
 
         WorldHandler.ChangePlayerRoom(Player, levelId, spawnId);
     }

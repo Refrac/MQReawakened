@@ -1,11 +1,10 @@
 ﻿using A2m.Server;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Database.Characters;
+using Server.Reawakened.Database.Users;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
-using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.Players.Models;
-using Server.Reawakened.Players.Services;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
 using System.Xml;
@@ -63,7 +62,7 @@ public class AutoJoin : SystemProtocol
         return sb.ToString();
     }
 
-    private string GetCharacterList(UserInfo userInfo)
+    private string GetCharacterList(UserInfoModel userInfo)
     {
         var sb = new SeparatedStringBuilder('%');
 
@@ -72,21 +71,9 @@ public class AutoJoin : SystemProtocol
 
         foreach (var characterId in characterIds)
         {
-            var character = CharacterHandler.Get(characterId);
+            var character = CharacterHandler.GetCharacterFromId(characterId);
 
-            if (character == null)
-            {
-                Player.DeleteCharacter(characterId, CharacterHandler);
-                continue;
-            }
-
-            if (character.Data.UserUuid != userInfo.Id)
-            {
-                userInfo.CharacterIds.Remove(characterId);
-                continue;
-            }
-
-            characterData.Add(character.Data.GetLightCharacterData());
+            characterData.Add(character.GetLightCharacterData());
         }
 
         sb.Append(userInfo.LastCharacterSelected);

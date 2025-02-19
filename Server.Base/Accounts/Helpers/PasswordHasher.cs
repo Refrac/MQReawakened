@@ -1,4 +1,5 @@
-﻿using Server.Base.Accounts.Models;
+﻿using Server.Base.Core.Extensions;
+using Server.Base.Database.Accounts;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -23,9 +24,9 @@ public class PasswordHasher
         return BitConverter.ToString(hashed);
     }
 
-    public bool CheckPassword(Account account, string plainPassword) =>
+    public bool CheckPassword(AccountModel account, string plainPassword) =>
         account.Password == GetPassword(account.Username, plainPassword);
 
     public string GetPassword(string username, string password) =>
-        HashSha512(username + password);
+        HashSha512(username.Sanitize() + password);
 }

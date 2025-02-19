@@ -3,7 +3,7 @@ using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Players.Helpers;
 using static A2m.Server.DescriptionHandler;
 
-namespace Server.Reawakened.XMLs.Models.Events;
+namespace Server.Reawakened.XMLs.Data.Events;
 
 public class EventInfo
 {
@@ -31,18 +31,29 @@ public class EventInfo
 
             foreach (var secondaryEvent in SecondaryEvents)
             {
-                secEventSb.Append(secondaryEvent.EventId);
-                secEventSb.Append(secondaryEvent.DisplayAd ? 1 : 0);
-                secEventSb.Append(secondaryEvent.DisplayIcon ? 1 : 0);
+                var secEventSb2 = new SeparatedStringBuilder('&');
+
+                secEventSb2.Append(secondaryEvent.EventId);
+                secEventSb2.Append(secondaryEvent.DisplayAd ? 1 : 0);
+                secEventSb2.Append(secondaryEvent.DisplayIcon ? 1 : 0);
+
+                secEventSb.Append(secEventSb2.ToString());
             }
 
             sb.Append(secEventSb.ToString());
-
+            
             if (GameVersion >= GameVersion.vEarly2013)
                 sb.Append(DisplayAutoPopup ? 1 : 0);
 
             if (GameVersion >= GameVersion.vLate2013)
-                sb.Append(TimedEventName);
+            {
+                var timedEventSb = new SeparatedStringBuilder('&');
+
+                foreach (var timedEvent in TimedEventName)
+                    timedEventSb.Append(timedEvent);
+
+                sb.Append(timedEventSb.ToString());
+            }
         }
         else
         {

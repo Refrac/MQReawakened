@@ -1,10 +1,12 @@
 ﻿using AssetRipper.IO.Endian;
 
-namespace Server.Reawakened.BundleHost.BundleFix.Data;
+namespace Server.Reawakened.BundleHost.BundleData.Data;
 
-public class FixedAssetFile(string path) : IEndianWritable
+public class FixedAssetFile() : IEndianWritable
 {
-    private readonly byte[] _bundleInfo = File.ReadAllBytes(path);
+    private byte[] _bundleInfo;
+
+    public async Task ReadAsync(string path) => _bundleInfo = await File.ReadAllBytesAsync(path);
 
     public uint FileSize => (uint)_bundleInfo.Length;
 

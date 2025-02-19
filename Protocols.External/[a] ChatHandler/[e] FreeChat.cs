@@ -1,7 +1,7 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Chat.Services;
-using Server.Reawakened.Configs;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Core.Services;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
@@ -12,9 +12,9 @@ public class FreeChat : ExternalProtocol
 {
     public override string ProtocolName => "ae";
 
-    public ILogger<ChatCommands> Logger { get; set; }
-    public ChatCommands ChatCommands { get; set; }
+    public ILogger<FreeChat> Logger { get; set; }
     public ServerRConfig Config { get; set; }
+    public DiscordHandler DiscordHandler { get; set; }
 
     public override void Run(string[] message)
     {
@@ -22,45 +22,35 @@ public class FreeChat : ExternalProtocol
         var chatMessage = message[6];
         var recipientName = message[7];
 
-        if (chatMessage.StartsWith(Config.ChatCommandStart))
+        if (channelType == CannedChatChannel.Speak)
         {
-            var args = chatMessage.Contains(' ') ? chatMessage[1..].Split(' ') : [chatMessage[1..]];
+            Player.Room.Chat(channelType, Player.Character.CharacterName, chatMessage);
 
-            ChatCommands.RunCommand(Player, args);
-        }
-        else if (channelType == CannedChatChannel.Speak)
-        {
-            var character = Player.Character;
-            Player.Room.Chat(channelType, character.Data.CharacterName, chatMessage);
+            // Sends a chat message to Discord
+            DiscordHandler.SendMessage(Player.Character.CharacterName, chatMessage);
         }
         else if (channelType == CannedChatChannel.Group)
         {
-            var character = Player.Character;
-
             foreach (
                 var client in
                     from client in Player.TempData.Group.GetMembers()
                     select client
                 )
-                client.Chat(channelType, character.Data.CharacterName, chatMessage);
+                client.Chat(channelType, Player.Character.CharacterName, chatMessage);
         }
         else if (channelType == CannedChatChannel.Trade)
         {
-            var character = Player.Character;
-
             if (Player.Room.LevelInfo.Type == LevelType.City)
-                Player.Room.Chat(channelType, character.Data.CharacterName, chatMessage);
+                Player.Room.Chat(channelType, Player.Character.CharacterName, chatMessage);
         }
         else if (channelType is CannedChatChannel.Tell or CannedChatChannel.Reply)
         {
-            var character = Player.Character;
-
             if (!string.IsNullOrEmpty(recipientName))
             {
                 var recipient = Player.PlayerContainer.GetPlayerByName(recipientName);
 
-                if (recipient != null && !recipient.Character.Data.Blocked.Contains(Player.CharacterId))
-                    Player.Chat(channelType, character.Data.CharacterName, chatMessage, recipientName);
+                if (recipient != null && !recipient.Character.Blocked.Contains(Player.CharacterId))
+                    Player.Chat(channelType, Player.Character.CharacterName, chatMessage, recipientName);
             }
         }
         else

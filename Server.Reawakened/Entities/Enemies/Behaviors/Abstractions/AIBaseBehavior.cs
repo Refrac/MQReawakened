@@ -1,37 +1,71 @@
-﻿using Server.Reawakened.Players.Helpers;
-using Server.Reawakened.XMLs.Models.Enemy.Enums;
+﻿using Server.Reawakened.Entities.Enemies.EnemyTypes;
+using Server.Reawakened.Players.Helpers;
+using Server.Reawakened.XMLs.Data.Enemy.Enums;
 
-namespace Server.Reawakened.Entities.Enemies.BehaviorEnemies.Abstractions;
+namespace Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
 
 public abstract class AIBaseBehavior
 {
-    private AI_Behavior _behavior;
+    public abstract bool ShouldDetectPlayers { get; }
 
-    public abstract float ResetTime { get; }
+    public readonly BehaviorEnemy Enemy;
+    public readonly AI_Behavior Behavior;
+    public readonly StateType State;
 
-    public AIBaseBehavior() => SetBehaviour();
-
-    public void Start(ref AIProcessData aiData, float roomTime, string[] args) => _behavior.Start(aiData, roomTime, args);
-    public bool Update(ref AIProcessData aiData, float roomTime) => _behavior.Update(aiData, roomTime);
-    public float GetBehaviorRatio(ref AIProcessData aiData, float roomTime) => _behavior.GetBehaviorRatio(aiData, roomTime);
-    public void Stop(ref AIProcessData aiData) => _behavior.Stop(aiData);
-    public void GetComebackPosition(AIProcessData aiData, ref float outPosX, ref float outPosY) => _behavior.GetComebackPosition(aiData, ref outPosX, ref outPosY);
-    public void SetStats(AIProcessData aiData) => _behavior.SetStats(aiData);
-    public bool MustDoComeback(AIProcessData aiData) => _behavior.MustDoComeback(aiData, _behavior);
-    public virtual string[] GetInitArgs() => _behavior.GetInitArgs() ?? ([]);
-
-    public void SetBehaviour() => _behavior = GetBehaviour();
-    protected abstract AI_Behavior GetBehaviour();
-    public abstract StateType GetBehavior();
-
-    public abstract object[] GetData();
-
-    public override string ToString()
+    public AIBaseBehavior(BehaviorEnemy behaviorEnemy, StateType stateType)
     {
-        var sb = new SeparatedStringBuilder(';');
+        Enemy = behaviorEnemy;
 
-        foreach (var obj in GetData())
-            sb.Append(obj is bool booleanValue ? booleanValue ? 1 : 0 : obj);
+        State = stateType;
+
+        var typeName = Enum.GetName(State);
+        var properties = AiPropertiesFactory.create(typeName, GetProperties().ToString());
+        Behavior = EnemyBehaviorFactory.create(typeName, properties);
+    }
+
+    public void Start() => Behavior.Start(Enemy.AiData, Enemy.Room.Time, GetStartArgsArray());
+
+    public bool TryUpdate()
+    {
+        if (!Behavior.Update(Enemy.AiData, Enemy.Room.Time))
+        {
+            NextState();
+            return false;
+        }
+
+        return true;
+    }
+
+    public void Stop() => Behavior.Stop(Enemy.AiData);
+
+    public float GetBehaviorRatio(float roomTime) => Behavior.GetBehaviorRatio(Enemy.AiData, roomTime);
+    public void GetComebackPosition(ref float outPosX, ref float outPosY) => Behavior.GetComebackPosition(Enemy.AiData, ref outPosX, ref outPosY);
+    public void SetStats() => Behavior.SetStats(Enemy.AiData);
+    public bool MustDoComeback() => Behavior.MustDoComeback(Enemy.AiData, Behavior);
+
+    public abstract void NextState();
+
+    public virtual float GetBehaviorTime() => 1.0f;
+
+    public abstract AiProperties GetProperties();
+    public abstract object[] GetStartArgs();
+
+    public string[] GetStartArgsArray()
+    {
+        var objs = new List<string>();
+
+        foreach (var obj in GetStartArgs())
+            objs.Add((obj is bool booleanValue ? booleanValue ? 1 : 0 : obj).ToString());
+
+        return [.. objs];
+    }
+
+    public string GetStartArgsString()
+    {
+        var sb = new SeparatedStringBuilder('`');
+
+        foreach (var obj in GetStartArgsArray())
+            sb.Append(obj);
 
         return sb.ToString();
     }
