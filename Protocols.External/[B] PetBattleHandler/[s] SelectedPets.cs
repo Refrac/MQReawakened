@@ -1,6 +1,7 @@
 ﻿using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.XMLs.Bundles;
+using Server.Reawakened.XMLs.Bundles.Base;
 
 namespace Protocols.External._B__PetBattleHandler;
 public class SelectedPets : ExternalProtocol

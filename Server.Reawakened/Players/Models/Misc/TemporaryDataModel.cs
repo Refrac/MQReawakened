@@ -1,4 +1,5 @@
-﻿using Server.Reawakened.Players.Models.Groups;
+﻿using Server.Base.Core.Extensions;
+using Server.Reawakened.Players.Models.Groups;
 using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.Players.Models.Trade;
 using Server.Reawakened.Rooms.Models.Entities;
