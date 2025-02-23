@@ -33,8 +33,8 @@ public class PetBattleInviteResponse : ExternalProtocol
 
             inviter.SendXt("BB", characterName, Player.CharacterName);
 
-            WorldHandler.ChangePlayerRoom(Player, 554);
-            WorldHandler.ChangePlayerRoom(inviter, 554);
+            WorldHandler.ChangePlayerRoom(Player, 554, "0");
+            WorldHandler.ChangePlayerRoom(inviter, 554, "1");
         }
         else
             inviter.SendXt("BD", Player.CharacterName, status ? "1" : "0");
