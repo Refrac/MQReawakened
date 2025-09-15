@@ -18,14 +18,14 @@ namespace Server.Reawakened.Players.Extensions;
 public static class NpcExtensions
 {
     public static QuestStatusModel AddQuest(this Player player, QuestDescription quest, InternalQuestItem questItem,
-        ItemCatalog itemCatalog, FileLogger fileLogger, string identifier, Microsoft.Extensions.Logging.ILogger logger, bool setActive = true)
+        ItemCatalog itemCatalog, FileLogger fileLogger, string identifier, Microsoft.Extensions.Logging.ILogger logger, bool setActive = true, bool daily = false)
     {
         var questTest = player.Character.QuestLog.FirstOrDefault(q => q.Id == quest.Id);
 
         if (questTest != null)
             return questTest;
 
-        if (player.Character.CompletedQuests.Contains(quest.Id))
+        if (player.Character.CompletedQuests.Contains(quest.Id) && !daily)
             return null;
 
         if (setActive)
@@ -108,10 +108,6 @@ public static class NpcExtensions
 
         player.SendXt("na", questModel, setActive ? 1 : 0);
 
-        if (player.Room != null)
-            foreach (var trigger in player.Room.GetEntitiesFromType<IQuestTriggered>())
-                trigger.QuestAdded(quest, player);
-
         player.UpdateNpcsInLevel(quest);
 
         logger.LogInformation("[{QuestName} ({QuestId})] [QUEST STARTED]", quest.Name, questModel.Id);
@@ -134,6 +130,10 @@ public static class NpcExtensions
 
             player.SendUpdatedInventory();
         }
+
+        if (player.Room != null)
+            foreach (var trigger in player.Room.GetEntitiesFromType<IQuestTriggered>())
+                trigger.QuestAdded(quest, player);
 
         return questModel;
     }

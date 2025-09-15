@@ -338,16 +338,17 @@ public class NPCControllerComp : Component<NPCController>
 
         if (QuestCatalog.QuestLineCatalogs.TryGetValue(questData.QuestLineId, out var questLine))
         {
-            var giverQuest = GiverQuests.OrderBy(x => x.QuestgGiverName == questData.QuestgGiverName && questLine.ShowInJournal);
+            var giverQuest = GiverQuests.OrderBy(x => x.QuestgGiverName == NpcName && questLine.ShowInJournal);
             var validatorQuest = ValidatorQuests.OrderBy(x => x.ValidatorName == NpcName && questLine.ShowInJournal);
 
             if (giverQuest.All(y => player.Character.CompletedQuests.Any(z => y.Id == z))
                 && validatorQuest.All(y => player.Character.CompletedQuests.Any(z => y.Id == z))
                 && !giverQuest.Any(x => player.Character.QuestLog.Any(y => x.Id == y.Id))
-                && !validatorQuest.Any(x => player.Character.QuestLog.Any(y => x.Id == y.Id)))
+                && !validatorQuest.Any(x => player.Character.QuestLog.Any(y => x.Id == y.Id))
+                && questLine.QuestType != QuestType.Daily)
             {
-                Logger.LogDebug("[{QuestLineId}] [COMPLETED QUESTLINE] Completed {NpcName}'s questline.", questData.QuestLineId, NpcName);
-                return NPCStatus.Dialog;
+                Logger.LogTrace("[{QuestLineId}] [COMPLETED QUESTLINE] Completed {NpcName}'s questline.", questData.QuestLineId, NpcName);
+                return VendorInfo != null ? VendorInfo.VendorType : NPCStatus.Dialog;
             }
         }
 
@@ -432,7 +433,8 @@ public class NPCControllerComp : Component<NPCController>
                 return NPCStatus.Unknown;
             }
 
-        if (questData.Name == "T4IR_00_01" && !player.Character.CompletedQuests.Contains(939))
+        if (Config.GameVersion < GameVersion.vEarly2014 && questData.Name == "T4IR_00_01" 
+            && !player.Character.CompletedQuests.Contains(939))
         {
             Logger.LogTrace("[{QuestName}] ({QuestId}) [SKIPPED QUEST] Not all tribe tutorial quests are completed.", questData.Name, questData.Id);
             return NPCStatus.Unknown;
@@ -497,7 +499,7 @@ public class NPCControllerComp : Component<NPCController>
         {
             var matchingQuest = player.Character.QuestLog.FirstOrDefault(q => q.Id == quest.Id);
 
-            if (matchingQuest == null || player.Character.CompletedQuests.Contains(quest.Id))
+            if (matchingQuest == null || player.Character.CompletedQuests.Contains(quest.Id) && QuestCatalog.GetQuestLineData(quest.QuestLineId).QuestType != QuestType.Daily)
                 continue;
 
             if (matchingQuest.QuestStatus != QuestState.TO_BE_VALIDATED)
@@ -541,7 +543,8 @@ public class NPCControllerComp : Component<NPCController>
         foreach (var givenQuest in GiverQuests)
             if (GetQuestType(player, givenQuest.Id) == NPCStatus.QuestAvailable)
             {
-                var quest = player.AddQuest(givenQuest, QuestItems, ItemCatalog, FileLogger, NpcName, Logger);
+                var isDaily = QuestCatalog.GetQuestLineData(givenQuest.QuestLineId).QuestType == QuestType.Daily;
+                var quest = player.AddQuest(givenQuest, QuestItems, ItemCatalog, FileLogger, NpcName, Logger, true, isDaily);
 
                 SendNpcDialog(player, quest, QuestState.NOT_START);
 
@@ -557,8 +560,8 @@ public class NPCControllerComp : Component<NPCController>
         if ((quest.ValidatorName != quest.QuestgGiverName || quest.ValidatorGoId != quest.QuestGiverGoId && quest.QuestGiverGoId > 0) && quest.ValidatorGoId.ToString() == Id)
             questName += "validator";
 
-        if (DialogRewrites.Rewrites.TryGetValue(questName, out var rewrittenName))
-            questName = rewrittenName;
+        if (DialogRewrites.GetRewrite(questName) != null)
+            questName = DialogRewrites.GetRewrite(questName);
 
         if (!Dialog.QuestDialog.TryGetValue(questName, out var questDialog))
         {

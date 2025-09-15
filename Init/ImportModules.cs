@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Protocols.External;
 using Protocols.System;
+using Server.Colliders;
 using Server.Base.Core.Abstractions;
 using Server.Base.Logging;
 using Server.Reawakened;
@@ -27,7 +28,8 @@ public static class ImportModules
             typeof(Launcher),
             typeof(Apps),
             typeof(Razor),
-            typeof(WebPlayer)
+            typeof(WebPlayer),
+            typeof(Colliders)
         };
 
         var services = new ServiceCollection();
@@ -43,6 +45,6 @@ public static class ImportModules
 
         var provider = services.BuildServiceProvider();
 
-        return modules.Select(module => provider.GetRequiredService(module) as Module).ToArray();
+        return [.. modules.Select(module => provider.GetRequiredService(module) as Module)];
     }
 }

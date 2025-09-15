@@ -15,14 +15,16 @@ public static class GetInfoFile
 
         if (rwConfig.WebPlayerInfoFile == rwConfig.CacheInfoFile)
         {
-            logger.LogError("Web _player cache and saved directory should not be the same! Skipping...");
+            logger.LogError("Web player cache and saved directory should not be the same! Skipping...");
             rwConfig.WebPlayerInfoFile = string.Empty;
+            return string.Empty;
         }
 
         if (!rwConfig.WebPlayerInfoFile.Contains("appdata", StringComparison.CurrentCultureIgnoreCase))
         {
-            logger.LogError("Web _player cache has to be in the AppData/LocalLow folder! Skipping...");
+            logger.LogError("Web player cache has to be in the AppData/LocalLow folder! Skipping...");
             rwConfig.WebPlayerInfoFile = string.Empty;
+            return string.Empty;
         }
 
         return rwConfig.WebPlayerInfoFile;
@@ -50,7 +52,7 @@ public static class GetInfoFile
             if (string.IsNullOrEmpty(defaultFile) || !defaultFile.EndsWith("__info"))
             {
                 logger.LogError("Please enter the absolute file path for the {Type} '__info' cache file.", lowerName);
-                defaultFile = ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger) ?? string.Empty;
+                defaultFile = EnvironmentExt.IsContainerOrNonInteractive() ? "/data/Caches/__info" : ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger) ?? string.Empty;
                 logger.LogInformation("Found cache file: {Path}", defaultFile);
                 continue;
             }

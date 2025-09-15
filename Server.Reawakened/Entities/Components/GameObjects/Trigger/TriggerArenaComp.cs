@@ -36,13 +36,17 @@ public class TriggerArenaComp : BaseTriggerStatueComp<TriggerArena>
     public override ArenaStatus GetArenaStatus()
     {
         var outStatus = Status == ArenaStatus.Complete ? ArenaStatus.Complete : ArenaStatus.Incomplete;
+
         if (HasStarted)
         {
-            if (ArenaEntities.All(Room.IsObjectKilled) && Room.Time >= _minClearTime)
+            var allEntitiesDead = ArenaEntities.All(Room.IsObjectKilled);
+
+            if (allEntitiesDead && Room.Time >= _minClearTime)
                 outStatus = ArenaStatus.Win;
             else if (Room.Time >= _timer)
                 outStatus = ArenaStatus.Lose;
         }
+
         return outStatus;
     }
 
@@ -65,10 +69,8 @@ public class TriggerArenaComp : BaseTriggerStatueComp<TriggerArena>
 
         _timer = Room.Time + ActiveDuration;
 
-        //Failsafe to prevent respawn issues when arena is defeated too quickly
         _minClearTime = Room.Time + 5;
     }
-
 
     public override void ArenaSuccess()
     {

@@ -1,5 +1,6 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
+using Server.Base.Accounts.Extensions;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Services;
 using Server.Reawakened.Network.Extensions;
@@ -22,41 +23,64 @@ public class FreeChat : ExternalProtocol
         var chatMessage = message[6];
         var recipientName = message[7];
 
-        if (channelType == CannedChatChannel.Speak)
+        if (Player.Account.IsMuted())
         {
-            Player.Room.Chat(channelType, Player.Character.CharacterName, chatMessage);
+            Player.Chat(CannedChatChannel.Tell, "Console", "You are muted" + Player.Account.FormatMuteTime() + ".");
+            return;
+        }
 
-            // Sends a chat message to Discord
-            DiscordHandler.SendMessage(Player.Character.CharacterName, chatMessage);
-        }
-        else if (channelType == CannedChatChannel.Group)
+        switch (channelType)
         {
-            foreach (
-                var client in
-                    from client in Player.TempData.Group.GetMembers()
-                    select client
-                )
-                client.Chat(channelType, Player.Character.CharacterName, chatMessage);
-        }
-        else if (channelType == CannedChatChannel.Trade)
-        {
-            if (Player.Room.LevelInfo.Type == LevelType.City)
+            case CannedChatChannel.Speak:
                 Player.Room.Chat(channelType, Player.Character.CharacterName, chatMessage);
-        }
-        else if (channelType is CannedChatChannel.Tell or CannedChatChannel.Reply)
-        {
-            if (!string.IsNullOrEmpty(recipientName))
-            {
-                var recipient = Player.PlayerContainer.GetPlayerByName(recipientName);
 
-                if (recipient != null && !recipient.Character.Blocked.Contains(Player.CharacterId))
-                    Player.Chat(channelType, Player.Character.CharacterName, chatMessage, recipientName);
-            }
-        }
-        else
-        {
-            Logger.LogError("No chat handler found for {ChannelType} to '{Recipient}' for '{Message}'",
-                channelType, recipientName, chatMessage);
+                // Sends a chat message to Discord
+                DiscordHandler.SendMessage(Player.Character.CharacterName, chatMessage);
+                break;
+
+            case CannedChatChannel.Group:
+                foreach (
+                    var client in
+                        from client in Player.TempData.Group.GetMembers()
+                        select client
+                    )
+                    client.Chat(channelType, Player.Character.CharacterName, chatMessage);
+
+                // Sends a chat message to Discord
+                DiscordHandler.SendMessage("Group -> " + Player.Character.CharacterName, chatMessage);
+                break;
+
+            case CannedChatChannel.Trade:
+                if (Player.Room.LevelInfo.Type == LevelType.City)
+                {
+                    Player.Room.Chat(channelType, Player.Character.CharacterName, chatMessage);
+
+                    // Sends a chat message to Discord
+                    DiscordHandler.SendMessage("Trade -> " + Player.Character.CharacterName, chatMessage);
+                }
+                break;
+
+            case CannedChatChannel.Tell:
+            case CannedChatChannel.Reply:
+                if (!string.IsNullOrEmpty(recipientName))
+                {
+                    var recipient = Player.PlayerContainer.GetPlayerByName(recipientName);
+
+                    if (recipient != null && !recipient.Character.Blocked.Contains(Player.CharacterId))
+                    {
+                        Player.Chat(channelType, Player.Character.CharacterName, chatMessage, recipientName);
+
+                        // Sends a chat message to Discord
+                        DiscordHandler.SendMessage("PM -> From: " + Player.Character.CharacterName +
+                            " To: " + recipientName, chatMessage);
+                    }
+                }
+                break;
+
+            default:
+                Logger.LogError("No chat handler found for {ChannelType} to '{Recipient}' for '{Message}'",
+                    channelType, recipientName, chatMessage);
+                break;
         }
     }
 }

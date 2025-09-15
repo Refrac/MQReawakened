@@ -16,7 +16,7 @@ public class ExtractIcons(IconsRConfig rConfig, IconsRwConfig rwConfig, AssetBun
 {
     private string[] _knownIconNames = [];
 
-    public bool HasIcon(string name) => _knownIconNames.Contains(name.ToUpper());
+    public bool HasIcon(string name) => _knownIconNames.Length > 0 && _knownIconNames.Contains(name.ToUpper());
 
     public void ExtractAllIcons(Dictionary<string, InternalAssetInfo> internalAssets)
     {
@@ -97,13 +97,12 @@ public class ExtractIcons(IconsRConfig rConfig, IconsRwConfig rwConfig, AssetBun
     private Dictionary<string, Texture2D> GetIcons(InternalAssetInfo asset)
     {
         var manager = new AssetsManager();
-        var assemblyLoader = new AssemblyLoader();
 
         manager.LoadFiles(asset.Path);
 
         var bank = manager.assetsFileList
-            .First().ObjectsDic.Values
-            .Where(x => x.type == ClassIDType.MonoBehaviour)
+            .First().Objects
+            .Where(x => x is MonoBehaviour)
             .Select(x => x as MonoBehaviour)
             .FirstOrDefault();
 
@@ -111,7 +110,7 @@ public class ExtractIcons(IconsRConfig rConfig, IconsRwConfig rwConfig, AssetBun
 
         if (type == null)
         {
-            var m_Type = bank.ConvertToTypeTree(assemblyLoader);
+            var m_Type = bank.ConvertToTypeTree(new AssemblyLoader());
             type = bank.ToType(m_Type);
         }
 
@@ -119,9 +118,7 @@ public class ExtractIcons(IconsRConfig rConfig, IconsRwConfig rwConfig, AssetBun
 
         foreach (DictionaryEntry entry in type)
             if ((string)entry.Key == "Icons")
-                icons = ((List<object>)entry.Value)
-                    .Select(x => (OrderedDictionary)x)
-                .ToList();
+                icons = [.. ((List<object>)entry.Value).Select(x => (OrderedDictionary)x)];
 
         var texturePaths = new Dictionary<string, int>();
 
@@ -194,10 +191,10 @@ public class ExtractIcons(IconsRConfig rConfig, IconsRwConfig rwConfig, AssetBun
 
                 File.WriteAllBytes(path, stream.ToArray());
             }
-            catch (TypeInitializationException e)
+            catch (TypeInitializationException)
             {
                 defaultBar.Dispose();
-                logger.LogError(e, "Texture DLL files did not initialise! This is a known bug for linux users.");
+                logger.LogError("Texture DLL files did not initialise! This is a known bug for linux users.");
                 return;
             }
             catch (IOException e)

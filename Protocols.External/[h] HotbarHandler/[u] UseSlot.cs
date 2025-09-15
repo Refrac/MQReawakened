@@ -8,6 +8,7 @@ using Server.Reawakened.Entities.Projectiles;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
+using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.Rooms.Models.Timers;
 using Server.Reawakened.XMLs.Bundles.Base;
 using Server.Reawakened.XMLs.Bundles.Internal;
@@ -71,17 +72,7 @@ public class UseSlot : ExternalProtocol
                 HandleRelic(usedItem);
                 break;
             case ItemActionType.PetUse:
-                if (!Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var petUse))
-                {
-                    Logger.LogInformation("Could not find pet for {characterName}!", Player.CharacterName);
-                    return;
-                }
-
-                if (usedItem.ItemEffects.Count != 0)
-                {
-                    var petSnackEnergyValue = usedItem.ItemEffects.First().Value;
-                    petUse.GainEnergy(Player, petSnackEnergyValue);
-                }
+                HandlePetUse(usedItem);
                 break;
             case ItemActionType.Pet:
                 if (!Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var pet))
@@ -149,7 +140,6 @@ public class UseSlot : ExternalProtocol
             Player = Player,
             Catalog = ItemCatalog,
             Config = ItemRConfig,
-            SConfig = ServerRConfig
         };
 
         if (isGrenade)
@@ -170,7 +160,6 @@ public class UseSlot : ExternalProtocol
         public bool IsGrenade;
         public ItemRConfig Config;
         public ItemCatalog Catalog;
-        public ServerRConfig SConfig;
     }
 
     private static void LaunchProjectile(ITimerData data)
@@ -179,7 +168,7 @@ public class UseSlot : ExternalProtocol
             return;
 
         var genericProjectile = new GenericProjectile(projectile.ProjectileId, projectile.Player, projectile.Config.GrenadeLifeTime,
-            projectile.Position, projectile.Config, projectile.SConfig, projectile.Direction, projectile.UsedItem,
+            projectile.Position, projectile.Config, projectile.Direction, projectile.UsedItem,
             projectile.Player.Character.CalculateDamage(projectile.UsedItem, projectile.Catalog),
             projectile.UsedItem.Elemental, projectile.IsGrenade);
 
@@ -191,10 +180,38 @@ public class UseSlot : ExternalProtocol
         var prjId = Player.Room.CreateProjectileId().ToString();
 
         // Add weapon stats later
-        var prj = new MeleeEntity(prjId, position, Player, direction, 0.51f, usedItem,
+        var prj = new MeleeEntity(prjId, new Vector3Model(position.x, position.y, position.z), Player, direction, 0.51f, usedItem,
             Player.Character.CalculateDamage(usedItem, ItemCatalog),
-            usedItem.Elemental, ServerRConfig, ItemRConfig);
+            usedItem.Elemental, ItemRConfig);
 
         Player.Room.AddProjectile(prj);
+    }
+
+    private void HandlePetUse(ItemDescription usedItem)
+    {
+        if (!Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var petUse))
+        {
+            Logger.LogInformation("Could not find pet for {characterName}!", Player.CharacterName);
+            return;
+        }
+
+        if (usedItem.ItemEffects.Count != 0)
+        {
+            var petSnackEnergyValue = usedItem.ItemEffects.First().Value;
+            petUse.GainEnergy(Player, petSnackEnergyValue);
+            var removeFromHotBar = true;
+
+            if (usedItem.InventoryCategoryID is
+                ItemFilterCategory.WeaponAndAbilities or
+                ItemFilterCategory.Pets)
+                removeFromHotBar = false;
+
+            if (removeFromHotBar)
+            {
+                Player.UseItemFromHotBar(usedItem.ItemId, ItemCatalog, ItemRConfig);
+
+                Player.CheckAchievement(AchConditionType.Consumable, [usedItem.PrefabName], InternalAchievement, Logger);  
+            }
+        }
     }
 }

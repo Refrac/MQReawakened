@@ -28,19 +28,7 @@ public class StomperControllerComp : BaseMovingObjectControllerComp<StomperContr
         );
         Movement.Activate(Room.Time);
 
-        _collider = new StomperZoneCollider(
-            Id,
-            Position.ToUnityVector3(),
-            new Rect(Rectangle.X, Rectangle.Y, Rectangle.Width, Rectangle.Height),
-            ParentPlane,
-            Room,
-            Hazard,
-            TimerThread,
-            ServerRConfig
-         );
-
-        Room.AddCollider(_collider);
-
+        _collider = new StomperZoneCollider(this);
 
         base.InitializeComponent();
     }
@@ -56,8 +44,6 @@ public class StomperControllerComp : BaseMovingObjectControllerComp<StomperContr
         movement.UpdateState(Room.Time);
 
         if (movement.CurrentStep == Stomper_Movement.StomperState.WaitDown)
-            _collider.IsColliding();
-
-        _collider.Position = Position.ToUnityVector3();
+            _collider.RunCollisionDetection();
     }
 }
