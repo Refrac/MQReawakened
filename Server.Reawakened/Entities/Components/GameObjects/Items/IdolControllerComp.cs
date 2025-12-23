@@ -12,6 +12,7 @@ namespace Server.Reawakened.Entities.Components.GameObjects.Items;
 public class IdolControllerComp : Component<IdolController>
 {
     public int Index => ComponentData.Index;
+
     public ILogger<HarvestControllerComp> Logger { get; set; }
     public InternalAchievement Achievement { get; set; }
     public QuestCatalog QuestCatalog { get; set; }
@@ -35,13 +36,12 @@ public class IdolControllerComp : Component<IdolController>
 
         player.Character.CollectedIdols[levelId].Add(Index);
 
-        player.CheckAchievement(AchConditionType.CollectIdol, [Room.LevelInfo.Name], Achievement, Logger);
-
         var collectedEvent =
             new Trigger_SyncEvent(Id.ToString(), Room.Time, true, player.GameObjectId.ToString(), true);
 
         player.SendSyncEventToPlayer(collectedEvent);
 
         player.SetObjective(ObjectiveEnum.IdolCollect, Id, PrefabName, player.Character.CollectedIdols[levelId].Count, QuestCatalog);
+        player.CheckAchievement(AchConditionType.CollectIdol, [Room.LevelInfo.Name], Achievement, Logger);
     }
 }

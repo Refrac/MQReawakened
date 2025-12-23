@@ -20,14 +20,17 @@ public static class RoomExtensions
             player.SendSyncEventToPlayer(syncEvent);
     }
 
-    public static Player GetClosetPlayer(this Room room, Vector3 currentPosition, float radius)
+    public static Player GetClosestPlayer(this Room room, Vector3 currentPosition, float radius)
     {
         Player closestPlayer = null;
         var closestDistance = float.MaxValue;
 
         foreach (var player in room.GetPlayers())
         {
-            var distance = Vector3.Distance(player.TempData.Position, currentPosition);
+            if (player.Character.CurrentLife <= 0)
+                continue;
+
+            var distance = Vector3.Distance(player.TempData.Position.ToUnityVector3(), currentPosition);
 
             if (distance <= radius && distance <= closestDistance)
                 closestPlayer = player;
@@ -41,7 +44,7 @@ public static class RoomExtensions
         var playersNearby = new List<Player>();
 
         foreach (var player in room.GetPlayers())
-            if (Vector3.Distance(player.TempData.Position, currentPosition) <= radius)
+            if (Vector3.Distance(player.TempData.Position.ToUnityVector3(), currentPosition) <= radius)
                 playersNearby.Add(player);
 
         return playersNearby;
@@ -50,7 +53,7 @@ public static class RoomExtensions
     public static bool IsPlayerNearby(this Room room, Vector3 currentPosition, float radius)
     {
         foreach (var player in room.GetPlayers())
-            if (Vector3.Distance(player.TempData.Position, currentPosition) <= radius)
+            if (Vector3.Distance(player.TempData.Position.ToUnityVector3(), currentPosition) <= radius)
                 return true;
 
         return false;

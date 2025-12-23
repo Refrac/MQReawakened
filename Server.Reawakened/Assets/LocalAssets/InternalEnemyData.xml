@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <InternalEnemyData>
+    <!-- Unknown enemies (may need labeling) -->
+
+    <!-- Icefire (Mini-Boss) -->
+    <!-- Frostblaze (Mini-Boss) -->
+    <!-- Spicicle (Mini-Boss) -->
+    <!-- Snowberg (Mini-Boss) -->
+    <!-- Large Bombird (Elite) -->
+    <!-- Red Bombird (Elite) -->
+    <!-- BlackFlame (Mini-Boss) -->
+    <!-- Darkfin (Mini-Boss) -->
+    <!-- Large Spinefish (Elite) -->
     <AiType name="Behavior">
         <EnemyCategory name="Bombird">
             <!-- Razorwing (Mini-Boss) -->
@@ -37,7 +48,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="0.7" offsetX="0.7" offsetY="0.6" />
             </Enemy>
             <Enemy name="PF_Critter_Bird01">
                 <GenericScript>
@@ -71,7 +81,6 @@
                     <Drop type="item" id="1582" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1581" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="2" height="0.7" offsetX="0.7" offsetY="0.6" />
             </Enemy>
             <Enemy name="PF_Critter_Bird02">
                 <GenericScript>
@@ -106,7 +115,6 @@
                     <Drop type="item" id="1581" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="0.7" offsetX="0.7" offsetY="0.6" />
             </Enemy>
             <Enemy name="PF_Critter_Bird03">
                 <GenericScript>
@@ -140,7 +148,6 @@
                     <Drop type="item" id="1582" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1581" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="2" height="0.7" offsetX="0.7" offsetY="0.6" />
             </Enemy>
             <Enemy name="PF_Critter_Bird04">
                 <GenericScript>
@@ -175,7 +182,6 @@
                     <Drop type="item" id="1581" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="0.7" offsetX="0.7" offsetY="0.6" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Spinefish">
@@ -213,7 +219,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1" height="0.65" offsetX="0.45" offsetY="0.1" />
             </Enemy>
             <!-- Spinefish -->
             <Enemy name="PF_Critter_Fish01">
@@ -247,7 +252,6 @@
                     <Drop type="item" id="1602" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1603" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1" height="0.65" offsetX="0.45" offsetY="0.1" />
             </Enemy>
             <Enemy name="PF_Critter_Fish02">
                 <GenericScript>
@@ -280,7 +284,6 @@
                     <Drop type="item" id="1602" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1603" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1" height="0.65" offsetX="0.45" offsetY="0.1" />
             </Enemy>
             <Enemy name="PF_Critter_Fish03">
                 <GenericScript>
@@ -313,7 +316,6 @@
                     <Drop type="item" id="1602" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1603" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1" height="0.65" offsetX="0.45" offsetY="0.1" />
             </Enemy>
             <Enemy name="PF_Critter_Fish04">
                 <GenericScript>
@@ -347,7 +349,6 @@
                     <Drop type="item" id="1603" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1" height="0.65" offsetX="0.45" offsetY="0.1" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Rachnoid">
@@ -387,7 +388,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider_Boss_Ceiling_Shoot">
                 <GenericScript>
@@ -425,7 +425,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider_Boss_Shoot">
                 <GenericScript>
@@ -463,7 +462,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <!-- Shadowy Spiderling (Elite) -->
             <Enemy name="PF_Critter_Spider_Newb">
@@ -491,7 +489,8 @@
                     <Aggro speed="5.0" moveBeyondTargetDistance="0" stayOnPatrolPath="true" attackBeyondPatrolLine="0" detectionRangeUpY="0" detectionRangeDownY="0" />
                     <LookAround lookTime="3" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
                 </Behaviors>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Poison Rachnoid -->
             <Enemy name="PF_Critter_Spider01">
@@ -527,7 +526,6 @@
                     <Drop type="item" id="1065" chance="0.01" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1600" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider01_Ceiling_Shoot">
                 <GenericScript>
@@ -563,7 +561,6 @@
                     <Drop type="item" id="1065" chance="0.01" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1600" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider01_Shoot">
                 <GenericScript>
@@ -599,7 +596,6 @@
                     <Drop type="item" id="1065" chance="0.01" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1600" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider02">
                 <GenericScript>
@@ -635,7 +631,6 @@
                     <Drop type="item" id="1600" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider02_Ceiling_Shoot">
                 <GenericScript>
@@ -672,7 +667,6 @@
                     <Drop type="item" id="1600" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider02_Shoot">
                 <GenericScript>
@@ -709,7 +703,6 @@
                     <Drop type="item" id="1600" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider03">
                 <GenericScript>
@@ -744,7 +737,6 @@
                     <Drop type="item" id="1065" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1600" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider03_Ceiling_Shoot">
                 <GenericScript>
@@ -780,7 +772,6 @@
                     <Drop type="item" id="1065" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1600" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider03_Shoot">
                 <GenericScript>
@@ -816,7 +807,6 @@
                     <Drop type="item" id="1065" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1600" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider04">
                 <GenericScript>
@@ -852,7 +842,6 @@
                     <Drop type="item" id="1600" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider04_Ceiling_Shoot">
                 <GenericScript>
@@ -889,7 +878,6 @@
                     <Drop type="item" id="1600" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider04_Shoot">
                 <GenericScript>
@@ -926,7 +914,6 @@
                     <Drop type="item" id="1600" chance="0.05" minLevel="7" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider01_Zombie">
                 <GenericScript>
@@ -962,7 +949,6 @@
                     <Drop type="item" id="136" chance="0.05" minLevel="10" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="1" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
             <Enemy name="PF_Critter_Spider01_Ceiling_Shoot_Zombie">
                 <GenericScript>
@@ -999,7 +985,6 @@
                     <Drop type="item" id="136" chance="0.05" minLevel="10" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="1" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.3" height="1" offsetX="0.5" offsetY="0" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Bathog">
@@ -1037,7 +1022,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Shoot_Boss">
                 <GenericScript>
@@ -1075,7 +1059,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <!-- Mist Bathog (Elite) -->
             <Enemy name="PF_Spite_Bathog_Invis">
@@ -1112,7 +1095,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Shoot_Invis">
                 <GenericScript>
@@ -1152,7 +1134,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <!-- Magma Bathog (Elite) -->
             <Enemy name="PF_Spite_Bathog_Lava">
@@ -1189,7 +1170,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Shoot_Lava">
                 <GenericScript>
@@ -1229,7 +1209,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <!-- Bathog -->
             <Enemy name="PF_Spite_Bathog_Rock">
@@ -1263,7 +1242,6 @@
                     <Drop type="item" id="866" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="865" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Shoot_Rock">
                 <GenericScript>
@@ -1300,7 +1278,6 @@
                     <Drop type="item" id="866" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="865" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Swamp">
                 <GenericScript>
@@ -1336,7 +1313,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Shoot_Swamp">
                 <GenericScript>
@@ -1376,7 +1352,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
             <Enemy name="PF_Spite_Bathog_Zombie">
                 <GenericScript>
@@ -1412,7 +1387,6 @@
                     <Drop type="item" id="137" chance="0.05" minLevel="5" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="1" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="0.9" height="0.9" offsetX="0.25" offsetY="0.65" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Boombug">
@@ -1448,7 +1422,6 @@
                 <LootTable>
                     <Drop type="item" id="3052" chance="0.5" minLevel="5" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="0.25" height="0.75" offsetX="0" offsetY="0.375" />
             </Enemy>
             <!-- Rock Boombug -->
             <Enemy name="PF_Spite_Bomber_Rock">
@@ -1482,7 +1455,6 @@
                 <LootTable>
                     <Drop type="item" id="3052" chance="0.2" minLevel="5" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="0.25" height="0.75" offsetX="0" offsetY="0.375" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Cragcrawler">
@@ -1519,7 +1491,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.75" height="1" offsetX="0" offsetY="0.5" />
             </Enemy>
             <!-- Magma Cragcrawler (Elite) -->
             <Enemy name="PF_Spite_Crawler_Lava">
@@ -1555,7 +1526,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.75" height="1" offsetX="0" offsetY="0.5" />
             </Enemy>
             <!-- Mist Cragcrawler (Elite) -->
             <Enemy name="PF_Spite_Crawler_Invis">
@@ -1591,7 +1561,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.75" height="1" offsetX="0" offsetY="0.5" />
             </Enemy>
             <!-- Swamp Cragcrawler (Elite) -->
             <Enemy name="PF_Spite_Crawler_Swamp">
@@ -1627,7 +1596,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="1.75" height="1" offsetX="0" offsetY="0.5" />
             </Enemy>
             <!-- Cragcrawler -->
             <Enemy name="PF_Spite_Crawler_Rock">
@@ -1660,7 +1628,6 @@
                     <Drop type="item" id="1586" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1584" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="1.75" height="1" offsetX="0" offsetY="0.5" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Dragon">
@@ -1700,7 +1667,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="4" height="1.6" offsetX="1" offsetY="0.8" />
             </Enemy>
             <!-- Moss Dragon (Elite) -->
             <Enemy name="PF_Spite_Dragon_Swamp">
@@ -1739,7 +1705,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="4" height="1.6" offsetX="1" offsetY="0.8" />
             </Enemy>
             <!-- Magma Dragon (Elite) -->
             <Enemy name="PF_Spite_Dragon_Lava">
@@ -1778,7 +1743,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="4" height="1.6" offsetX="1" offsetY="0.8" />
             </Enemy>
             <!-- Mist Dragon (Elite) -->
             <Enemy name="PF_Spite_Dragon_Invis">
@@ -1817,7 +1781,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="4" height="1.6" offsetX="1" offsetY="0.8" />
             </Enemy>
             <!-- Dragon -->
             <Enemy name="PF_Spite_Dragon_Rock">
@@ -1853,7 +1816,6 @@
                     <Drop type="item" id="1587" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1588" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="4" height="1.6" offsetX="1" offsetY="0.8" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Rumbler">
@@ -1885,7 +1847,8 @@
                         <Resource type="PROJ" name="COL_PRJ_GrenadierLava" />
                     </Grenadier>
                 </Behaviors>
-                <Hitbox width="1" height="0.75" offsetX="0" offsetY="0.375" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Rock Rumbler -->
             <Enemy name="PF_Spite_Grenadier_Rock">
@@ -1915,7 +1878,8 @@
                         <Resource type="PROJ" name="COL_PRJ_GrenadierRock" />
                     </Grenadier>
                 </Behaviors>
-                <Hitbox width="1" height="0.75" offsetX="0" offsetY="0.375" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Moss Rumbler -->
             <Enemy name="PF_Spite_Grenadier_Swamp">
@@ -1945,7 +1909,8 @@
                         <Resource type="PROJ" name="COL_PRJ_GrenadierSwamp" />
                     </Grenadier>
                 </Behaviors>
-                <Hitbox width="1" height="0.75" offsetX="0" offsetY="0.375" />
+                <LootTable>
+                </LootTable>
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Orchid">
@@ -1984,7 +1949,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <Enemy name="PF_Spite_Orchid_Ceiling_Boss">
                 <GenericScript>
@@ -2020,7 +1984,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Magma Orchid (Elite) -->
             <Enemy name="PF_Spite_Orchid_Lava">
@@ -2058,7 +2021,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <Enemy name="PF_Spite_Orchid_Ceiling_Lava">
                 <GenericScript>
@@ -2095,7 +2057,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Moss Orchid (Elite) -->
             <Enemy name="PF_Spite_Orchid_Swamp">
@@ -2133,7 +2094,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <Enemy name="PF_Spite_Orchid_Ceiling_Swamp">
                 <GenericScript>
@@ -2170,7 +2130,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Mist Orchid (Elite) -->
             <Enemy name="PF_Spite_Orchid_Invis">
@@ -2208,7 +2167,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Rock Orchid -->
             <Enemy name="PF_Spite_Orchid_Rock">
@@ -2243,7 +2201,6 @@
                     <Drop type="item" id="1595" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1594" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <Enemy name="PF_Spite_Orchid_Ceiling_Rock">
                 <GenericScript>
@@ -2277,7 +2234,6 @@
                     <Drop type="item" id="1595" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1594" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="2" height="4" offsetX="0" offsetY="2" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Pincer">
@@ -2314,7 +2270,6 @@
                     <Drop type="item" id="1601" chance="0.5" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="8" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Mist Pincer (Elite) -->
             <Enemy name="PF_Spite_Pincer_Invis">
@@ -2350,7 +2305,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="8" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Magma Pincer (Elite) -->
             <Enemy name="PF_Spite_Pincer_Lava">
@@ -2386,7 +2340,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="8" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Swamp Pincer (Elite) -->
             <Enemy name="PF_Spite_Pincer_Swamp">
@@ -2422,7 +2375,6 @@
                     <Drop type="item" id="1601" chance="0.05" minLevel="6" maxLevel="65" />
                     <Drop type="randomArmor" chance="0.01" minLevel="5" maxLevel="50" />
                 </LootTable>
-                <Hitbox width="8" height="4" offsetX="0" offsetY="2" />
             </Enemy>
             <!-- Pincer -->
             <Enemy name="PF_Spite_Pincer_Rock">
@@ -2455,7 +2407,6 @@
                     <Drop type="item" id="1596" chance="0.1" minLevel="6" maxLevel="65" />
                     <Drop type="item" id="1597" chance="0.02" minLevel="7" maxLevel="65" />
                 </LootTable>
-                <Hitbox width="8" height="4" offsetX="0" offsetY="2" />
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Ograk">
@@ -2488,7 +2439,8 @@
                         <Resource type="EABIL" name="PF_EABIL_Spite_Stomper_Miniboss" />
                     </Stomper>
                 </Behaviors>
-                <Hitbox width="2.25" height="1" offsetX="0.8" offsetY="0.5" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Magma Ograk (Elite) -->
             <Enemy name="PF_Spite_Stomper_Lava">
@@ -2519,7 +2471,8 @@
                         <Resource type="EABIL" name="PF_EABIL_Spite_Stomper_Fire" />
                     </Stomper>
                 </Behaviors>
-                <Hitbox width="2.25" height="1" offsetX="0.8" offsetY="0.5" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Moss Ograk (Elite) -->
             <Enemy name="PF_Spite_Stomper_Swamp">
@@ -2550,7 +2503,8 @@
                         <Resource type="EABIL" name="PF_EABIL_Spite_Stomper_Poison" />
                     </Stomper>
                 </Behaviors>
-                <Hitbox width="2.25" height="1" offsetX="0.8" offsetY="0.5" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Ograk -->
             <Enemy name="PF_Spite_Stomper_Rock">
@@ -2581,7 +2535,8 @@
                         <Resource type="EABIL" name="PF_EABIL_Spite_Stomper" />
                     </Stomper>
                 </Behaviors>
-                <Hitbox width="2.25" height="1" offsetX="0.8" offsetY="0.5" />
+                <LootTable>
+                </LootTable>
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Vespid">
@@ -2614,6 +2569,46 @@
                     <LookAround lookTime="2" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
                     <ComeBack speed="2.4" />
                 </Behaviors>
+                <LootTable>
+                </LootTable>
+            </Enemy>
+        </EnemyCategory>
+        <EnemyCategory name="SpngBob">
+            <Enemy name="PF_Spite_MiniRoboPlankton01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_MiniRoboPlankton02">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+        </EnemyCategory>
+        <EnemyCategory name="TMNT">
+            <Enemy name="PF_Spite_TMNT_FootJumper01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_TMNT_FootPatroller01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_TMNT_FootThrower01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+        </EnemyCategory>
+        <EnemyCategory name="PwrRngr">
+            <Enemy name="PF_Spite_PR_XborgBoss01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_PR_XborgPatroller01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_PR_XborgShooter01">
+                <LootTable>
+                </LootTable>
             </Enemy>
         </EnemyCategory>
     </AiType>
@@ -2621,92 +2616,93 @@
         <EnemyCategory name="Spiderling">
             <!-- Spiderling -->
             <Enemy name="PF_Spite_Spiderling_Boss01">
-                <Hitbox width="1.3" height="1" offsetX="0" offsetY="0.5" />
+                <LootTable>
+                </LootTable>
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Rachnok">
             <Enemy name="Spite_TeaserSpider_Boss">
-                <Hitbox width="15" height="9" offsetX="0" offsetY="5.2" />
+                <LootTable>
+                </LootTable>
             </Enemy>
             <!-- Rachnok (Boss) -->
             <Enemy name="Spite_Spider_Boss">
-                <Hitbox width="15" height="9" offsetX="0" offsetY="5.2" />
+                <LootTable>
+                </LootTable>
             </Enemy>
         </EnemyCategory>
-        
-        <!-- Unknown enemies (may need labeling) -->
-
-        <!-- Icefire (Mini-Boss) -->
-        <!-- Frostblaze (Mini-Boss) -->
-        <!-- Spicicle (Mini-Boss) -->
-        <!-- Snowberg (Mini-Boss) -->
-        <!-- Large Bombird (Elite) --> 
-        <!-- Red Bombird (Elite) -->
-        <!-- BlackFlame (Mini-Boss) -->
-        <!-- Darkfin (Mini-Boss) -->
-        <!-- Large Spinefish (Elite) -->
-        
         <EnemyCategory name="Spiker">
             <!-- Spiker -->
-            <Enemy name="PF_Spite_Squirrel_Ice" />
-            <Enemy name="PF_Spite_Squirrel_Shadow" />
-            <Enemy name="PF_Spite_Squirrel_Rock" />
+            <Enemy name="PF_Spite_Squirrel_Ice">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_Squirrel_Shadow">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_Squirrel_Rock">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Draicon">
-            <Enemy name="PF_Critter_Drake_Boss01" />
+            <Enemy name="PF_Critter_Drake_Boss01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
             <!-- Draicon -->
-            <Enemy name="PF_Critter_Drake01" />
+            <Enemy name="PF_Critter_Drake01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Stormbeast">
-            <Enemy name="PF_Critter_Dragon_Boss01" />
+            <Enemy name="PF_Critter_Dragon_Boss01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
             <!-- Stormbeast -->
-            <Enemy name="PF_Critter_Dragon01" />
+            <Enemy name="PF_Critter_Dragon01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Stomper">
-            <Enemy name="PF_Spite_Hamster_Ice" />
-            <Enemy name="PF_Spite_Hamster_Rock" />
+            <Enemy name="PF_Spite_Hamster_Ice">
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_Hamster_Rock">
+                <LootTable>
+                </LootTable>
+            </Enemy>
             <!-- Stomper -->
-            <Enemy name="PF_Spite_Hamster_Shadow" />
+            <Enemy name="PF_Spite_Hamster_Shadow">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Foulbreath">
             <!-- Foulbreath (Boss) -->
-            <Enemy name="Spite_IceTroll_Boss01" />
+            <Enemy name="Spite_IceTroll_Boss01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
-
         <EnemyCategory name="SpngBob">
             <!-- Uses DRAICON AI State Controller -->
-            <Enemy name="PF_Spite_BossRoboPlankton04" />
+            <Enemy name="PF_Spite_BossRoboPlankton04">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
-        
         <EnemyCategory name="TMNT">
             <!-- Uses SPIDERLING AI State Controller -->
-            <Enemy name="PF_Spite_TMNT_Shredder01" />
-        </EnemyCategory>
-
-        <!-- BEHAVIOR ENEMIES TO BE ADDED -->
-
-        <EnemyCategory name="Bathog">
-        </EnemyCategory>
-        
-        <EnemyCategory name="Rachnoid">
-        </EnemyCategory>
-
-        <EnemyCategory name="TMNT">
-            <Enemy name="PF_Spite_TMNT_FootJumper01" />
-            <Enemy name="PF_Spite_TMNT_FootPatroller01" />
-            <Enemy name="PF_Spite_TMNT_FootThrower01" />
-        </EnemyCategory>
-
-        <EnemyCategory name="PwrRngr">
-            <Enemy name="PF_Spite_PR_XborgBoss01" />
-
-            <Enemy name="PF_Spite_PR_XborgPatroller01" />
-            <Enemy name="PF_Spite_PR_XborgShooter01" />
-        </EnemyCategory>
-        
-        <EnemyCategory name="SpngBob">
-            <Enemy name="PF_Spite_MiniRoboPlankton01" />
-            <Enemy name="PF_Spite_MiniRoboPlankton02" />
+            <Enemy name="PF_Spite_TMNT_Shredder01">
+                <LootTable>
+                </LootTable>
+            </Enemy>
         </EnemyCategory>
     </AiType>
 </InternalEnemyData>

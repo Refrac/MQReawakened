@@ -77,7 +77,7 @@ public static class PlayerExtensions
         if (player == null)
             return;
 
-        reputation *= (int)(1 + player.Character.StatusEffects.Get(ItemEffectType.ExperienceMultiplier) * 0.01);
+        reputation *= (int)(1 + player.Character.StatusEffects.GetEffect(ItemEffectType.ExperienceMultiplier) * 0.01);
         reputation += player.Character.Reputation;
 
         while (reputation > player.Character.ReputationForNextLevel)
@@ -132,12 +132,12 @@ public static class PlayerExtensions
 
     public static void AddBananas(this Player player, float collectedBananas, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger)
     {
-        collectedBananas *= (float)(1 + player.Character.StatusEffects.Get(ItemEffectType.BananaMultiplier) * 0.01);
-
-        player.CheckAchievement(AchConditionType.CollectBanana, [], internalAchievement, logger, (int)Math.Floor(collectedBananas));
+        collectedBananas *= (float)(1 + player.Character.StatusEffects.GetEffect(ItemEffectType.BananaMultiplier) * 0.01);
 
         player.Character.Write.Cash += collectedBananas;
         player.SendCashUpdate();
+
+        player.CheckAchievement(AchConditionType.CollectBanana, [], internalAchievement, logger, (int)Math.Floor(collectedBananas));
     }
 
     public static void RemoveBananas(this Player player, int collectedBananas)
@@ -453,5 +453,20 @@ public static class PlayerExtensions
             select player
         )
             player.SendXt("iq", sentPlayer.UserId, sentPlayer.Character.Equipment);
+    }
+
+    public static void SendWarningMessage(this Player player, string code)
+    {
+        code = code switch
+        {
+            "vendor" or "trading" or "gifting" => "523",
+            "chat" => "320",
+            "shutdown" => "514",
+            "mute" => "505",
+            _ => "514",
+        };
+
+        if (int.TryParse(code, out var result))
+            player.SendXt("wm", result);
     }
 }

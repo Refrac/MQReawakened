@@ -1,15 +1,19 @@
 ﻿using A2m.Server;
+using Discord;
 using Microsoft.Extensions.Logging;
 using Server.Base.Core.Abstractions;
 using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Timers.Services;
+using Server.Reawakened.BundleHost.Configs;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using Server.Reawakened.XMLs.Bundles.Base;
+using System.Collections.Specialized;
+using System.Text.Json;
 using WorldGraphDefines;
 
 namespace Server.Reawakened.Rooms.Services;
@@ -23,6 +27,7 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
 
     public Dictionary<string, Type> EntityComponents { get; private set; } = [];
     public Dictionary<string, Type> ProcessableComponents { get; private set; } = [];
+    public Dictionary<string, Dictionary<string, OrderedDictionary>> PrefabOverrides { get; private set; } = [];
 
     public ServerRConfig Config => config;
 
@@ -167,11 +172,10 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
 
         return nodes == null
             ? []
-            : nodes
+            : [.. nodes
             .Where(x => x.ToLevelID != x.LevelID)
             .Select(x => worldGraph.GetInfoLevel(x.ToLevelID).Name)
-            .Distinct()
-            .ToList();
+            .Distinct()];
     }
 
     public void UsePortal(Player player, int levelId, int portalId, string defaultSpawnId = "")
@@ -245,5 +249,59 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
         handler.Update(player.Character.Write);
 
         return true;
+    }
+
+    public Dictionary<string, OrderedDictionary> GetPrefabOverloads(AssetBundleRConfig rConfig, string prefabName)
+    {
+        if (PrefabOverrides.TryGetValue(prefabName, out var foundValue) && foundValue != null)
+            return foundValue;
+
+        static string TryReadOverrides(string path)
+        {
+            return File.Exists(path) ? File.ReadAllText(path) : null;
+        }
+
+        var exactPath = Path.Combine(rConfig.ScriptsConfigDirectory, $"{prefabName}.json");
+        var lowerPath = Path.Combine(rConfig.ScriptsConfigDirectory, $"{prefabName.ToLower()}.json");
+
+        var prefabText = TryReadOverrides(exactPath) ?? TryReadOverrides(lowerPath);
+
+        if (prefabText == null)
+        {
+            try
+            {
+                var match = Directory.EnumerateFiles(rConfig.ScriptsConfigDirectory, "*.json")
+                    .FirstOrDefault(f => string.Equals(
+                        Path.GetFileNameWithoutExtension(f),
+                        prefabName,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (match != null)
+                    prefabText = File.ReadAllText(match);
+            }
+            catch
+            {
+            }
+        }
+
+        Dictionary<string, OrderedDictionary> prefabOverrides = null;
+
+        if (!string.IsNullOrEmpty(prefabText))
+            prefabOverrides = JsonSerializer.Deserialize<Dictionary<string, OrderedDictionary>>(prefabText);
+
+        if (!PrefabOverrides.TryAdd(prefabName, prefabOverrides))
+            PrefabOverrides[prefabName] = prefabOverrides;
+
+        return prefabOverrides;
+    }
+
+    public IEnumerable<Room> GetOpenRooms()
+    {
+        List<Room> rooms;
+
+        lock (Lock)
+            rooms = _levels.Values.SelectMany(l => l.Rooms.Values).Where(r => r.IsOpen).ToList();
+
+        return rooms;
     }
 }

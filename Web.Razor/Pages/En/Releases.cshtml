@@ -1,0 +1,63 @@
+﻿@page "/patchnotes"
+@model Web.Razor.Pages.En.ReleaseNotesModel
+@{
+	ViewData["Title"] = "Patch Notes";
+
+	// Get the version from the query string (e.g., ?version=1.2.0)
+	string selectedVersion = Request.Query["version"];
+	int selectedIndex = 0; // Default to the first version
+
+	// Find the index of the selected version
+	if (!string.IsNullOrEmpty(selectedVersion))
+	{
+		var matchingNote = Model.ReleaseNotes.FirstOrDefault(n => n.Version == selectedVersion);
+		if (matchingNote != null)
+		{
+			selectedIndex = Model.ReleaseNotes.IndexOf(matchingNote);
+		}
+	}
+}
+
+<section class="mq-container mt-space fade-in release-notes-page">
+	@await Html.PartialAsync("_PanelShell", new Web.Razor.Pages.Shared.PanelShellModel { Title = (string)ViewData["ServerName"] + " Patch Notes", Description = "Browse historical changes. Select a version below to view its notes.", CenterHeader = false, AdditionalClasses = "flow panel-p-lg" })
+		<div class="version-select-row" data-reveal style="margin-top:.25rem;">
+			<label for="versionDropdown" class="visually-hidden">Select version</label>
+			<select id="versionDropdown" class="version-select" onchange="updateUrlWithVersion()" data-reveal>
+				@for (int i = 0; i < Model.ReleaseNotes.Count; i++)
+				{
+					var note = Model.ReleaseNotes[i];
+					<option value="@note.Version" selected="@(i == selectedIndex ? "selected" : null)">@(i == 0 ? "v" + note.Version + " (Latest)" : "v" + note.Version)</option>
+				}
+			</select>
+		</div>
+		<div class="release-notes-stack flow" data-reveal style="margin-top:.75rem; text-align:left;">
+			@for (int i = 0; i < Model.ReleaseNotes.Count; i++)
+			{
+				var note = Model.ReleaseNotes[i];
+				<article id="@($"releaseNotes{i}")" class="release-note-panel" style="display:@(i == selectedIndex ? "block" : "none");">
+					<h2 class="t-sub" style="margin:0; color:var(--mq-color-text);">Version @note.Version @(string.IsNullOrEmpty(note.Title) ? string.Empty : " - " + note.Title)</h2>
+					<p style="font-size:.6rem; letter-spacing:.55px; text-transform:uppercase; opacity:.6; margin:.25rem 0 0;">Released @note.ReleaseDate</p>
+					<div class="flow" style="margin-top:.75rem;">
+						@foreach (var item in note.Notes)
+							@Html.Raw(item)
+					</div>
+				</article>
+			}
+		</div>
+	</div>
+	<script>
+		function updateUrlWithVersion() {
+			const v = document.getElementById('versionDropdown').value;
+			const newUrl = `${window.location.pathname}?version=${v}`;
+			window.history.pushState({}, '', newUrl);
+			showReleaseNotes();
+		}
+		function showReleaseNotes() {
+			document.querySelectorAll('.release-note-panel').forEach(p => p.style.display = 'none');
+			const v = document.getElementById('versionDropdown').value;
+			const idx = Array.from(document.getElementById('versionDropdown').options).findIndex(o => o.value === v);
+			const target = document.getElementById(`releaseNotes${idx}`);
+			if (target) target.style.display = 'block';
+		}
+	</script>
+</section>
