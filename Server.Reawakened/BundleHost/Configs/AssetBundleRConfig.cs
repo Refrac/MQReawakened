@@ -38,6 +38,8 @@ public class AssetBundleRConfig : IRConfig
 
     public bool LogAssetLoadInfo { get; }
 
+    public string AssetDictionaryName { get; }
+
     public AssetBundleRConfig()
     {
         AssetSaveDirectory = InternalDirectory.GetDirectory("Assets/AssetDictionaries");
@@ -52,6 +54,7 @@ public class AssetBundleRConfig : IRConfig
         ShouldLogAssets = false;
 
         SaveBundleExtension = "bundleGen";
+        AssetDictionaryName = "assetDictionary.xml";
         StoredAssetDict = "StoredAssets.xml";
 
         Message = "Loading Asset Bundles";
