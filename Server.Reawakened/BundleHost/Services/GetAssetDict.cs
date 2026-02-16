@@ -16,7 +16,7 @@ using System.Xml;
 
 namespace Server.Reawakened.BundleHost.Services;
 
-public class GetAssetDict(ILogger<BuildAssetList> logger, EventSink sink, AssetEventSink assetSink, ServerConsole console,
+public class GetAssetDict(ILogger<GetAssetDict> logger, EventSink sink, AssetEventSink assetSink, ServerConsole console,
     AssetBundleRwConfig rwConfig, AssetBundleRConfig rConfig, ServerRConfig sRConfig) : IService
 {
     public readonly Dictionary<string, string> AssetDict = [];
