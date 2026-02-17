@@ -373,6 +373,15 @@ public class Room : Timer
             return _players.TryGetValue(id, out var value) ? value : null;
     }
 
+    public bool IsGameObjectOfPet(string id, ServerRConfig serverRConfig)
+    {
+        foreach (var player in _players)
+            if (player.Value.Character.Pets.TryGetValue(player.Value.GetEquippedPetId(serverRConfig), out var pet))
+                if (pet.CoopTriggerableId == id) return true;
+
+        return false;
+    }
+
     public Player[] GetPlayers()
     {
         lock (_roomLock)
@@ -560,7 +569,7 @@ public class Room : Timer
     }
 
     public void AddRangedProjectile(string ownerId, Vector3Model position, Vector2 speed,
-        float lifeTime, int damage, ItemEffectType effect, bool isGrenade)
+        float lifeTime, int damage, ItemEffectType effect, bool isGrenade, string prefabName = "")
     {
         var projectileId = CreateProjectileId();
 
@@ -574,7 +583,7 @@ public class Room : Timer
 
         this.SendSyncEvent(
             AISyncEventHelper.AILaunchItem(
-                ownerId, Time, position.ToUnityVector3(), speed, lifeTime, projectileId, isGrenade
+                ownerId, Time, position.ToUnityVector3(), speed, lifeTime, projectileId, prefabName, isGrenade, _config.GameVersion
             )
         );
 
