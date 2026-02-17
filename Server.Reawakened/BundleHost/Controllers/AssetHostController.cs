@@ -13,7 +13,6 @@ using Server.Reawakened.BundleHost.Models;
 using Server.Reawakened.BundleHost.Services;
 using FileIO = System.IO.File;
 using System.Collections.Concurrent;
-using System.Threading;
 
 namespace Server.Reawakened.BundleHost.Controllers;
 
@@ -104,14 +103,7 @@ public class AssetHostController(BuildAssetList buildAssetList, ILogger<AssetHos
 
         var bundlePath = $"{basePath}.{config.SaveBundleExtension}";
 
-        if (rwConfig.UseCustomAssetLoader)
-        {
-            var directory = rwConfig.DatabaseDirectory;
-            assetName = assetName.ToLower();
-
-            bundlePath = directory + assetName;
-        }
-        else if (!FileIO.Exists(bundlePath) || config.AlwaysRecreateBundle)
+        if (!FileIO.Exists(bundlePath) || config.AlwaysRecreateBundle)
         {
             var semaphore = _bundleLocks.GetOrAdd(bundlePath, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
