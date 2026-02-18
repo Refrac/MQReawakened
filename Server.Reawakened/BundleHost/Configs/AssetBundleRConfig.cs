@@ -67,7 +67,9 @@ public class AssetBundleRConfig : IRConfig
                 GameVersion.v2011,
                 new Dictionary<string, string>()
                 {
-                    { "FX_GiftBoxconfettis", "FX_GiftBoxConfettis" }
+                    { "FX_GiftBoxconfettis", "FX_GiftBoxConfettis" },
+                    { "AE_CRS_BigTree01", "AE_CRS_Bigtree01" },
+                    { "AE_CRS_BigTree02", "AE_CRS_Bigtree02" }
                 }
             }
         };
