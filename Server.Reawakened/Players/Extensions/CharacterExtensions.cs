@@ -8,6 +8,12 @@ public static class CharacterExtensions
 {
     public static int GetHealthForLevel(int level) => GameFlow.StatisticData.GetValue(ItemEffectType.IncreaseHitPoints, WorldStatisticsGroup.Player, level);
 
+    public static void AddHealthOnLevelUp(this CharacterModel character, int amount)
+    {
+        character.Write.MaxLife += amount;
+        character.Write.CurrentLife = character.Write.MaxLife;
+    }
+
     public static int GetReputationForLevel(int level)
     {
         var currentLevel = Convert.ToInt32(Math.Pow(level, 2));
@@ -60,5 +66,29 @@ public static class CharacterExtensions
     {
         characterData.Write.LevelId = levelId;
         characterData.Write.SpawnPointId = spawnId;
+    }
+
+    public static int GetStartingTribeQuestForTribe(this CharacterModel characterData)
+    {
+        var allegiance = characterData.Allegiance;
+        var quest = -1;
+
+        switch (allegiance)
+        {
+            case TribeType.Bone:
+                quest = 978;
+                break;
+            case TribeType.Wild:
+                quest = 831;
+                break;
+            case TribeType.Outlaw:
+                quest = 976;
+                break;
+            case TribeType.Shadow:
+                quest = 977;
+                break;
+        }
+
+        return quest;
     }
 }

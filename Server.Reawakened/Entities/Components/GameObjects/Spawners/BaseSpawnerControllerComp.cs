@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using A2m.Server;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Base.Core.Abstractions;
 using Server.Base.Timers.Extensions;
@@ -7,9 +8,11 @@ using Server.Reawakened.Entities.Components.AI.Stats;
 using Server.Reawakened.Entities.Components.GameObjects.Breakables;
 using Server.Reawakened.Entities.Components.GameObjects.Trigger;
 using Server.Reawakened.Entities.Components.GameObjects.Trigger.Enums;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger.Interfaces;
 using Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Entities.Enemies.Extensions;
+using Server.Reawakened.Players;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using Server.Reawakened.Rooms.Models.Planes;
@@ -19,6 +22,7 @@ using Server.Reawakened.XMLs.Data.Enemy.Abstractions;
 using Server.Reawakened.XMLs.Data.Enemy.Enums;
 using Server.Reawakened.XMLs.Data.Enemy.Models;
 using UnityEngine;
+using static A2m.Server.ConnectionManager;
 
 namespace Server.Reawakened.Entities.Components.GameObjects.Spawners;
 
@@ -118,6 +122,8 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
         .Where(p => !string.IsNullOrWhiteSpace(p.prefab) && !string.IsNullOrWhiteSpace(p.template))];
     }
 
+    public override object[] GetInitData(Player player) => [string.Empty];
+
     public override void DelayedComponentInitialization()
     {
         Level = Math.Max(1, Room.LevelInfo.Difficulty + LevelOffset);
@@ -168,17 +174,21 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
 
         if (triggerSpawn)
             Spawn();
-        
+
         if (triggerFinalize)
             SpawnEventCalled(FinalizeSpawnDelaySeconds);
     }
 
     public void Spawn()
     {
-        _nextSpawnRequestTime = _nextSpawnRequestTime == NotScheduled ? Room.Time + InitialSpawnDelay : Room.Time + MinSpawnInterval;
+        // If called to spawn while spawning, ignore the call
+        if (!_spawnRequested)
+        {
+            _nextSpawnRequestTime = _nextSpawnRequestTime == NotScheduled ? Room.Time + InitialSpawnDelay : Room.Time + MinSpawnInterval;
 
-        if (CanSpawnMoreThisCycle() && LinkedEnemies.Count < MaxSimultanousSpawned)
-            _spawnRequested = true;
+            if (CanSpawnMoreThisCycle() && LinkedEnemies.Count < MaxSimultanousSpawned)
+                _spawnRequested = true;
+        }
     }
 
     private void ActivateArenaSpawn(Action setArena)
@@ -199,7 +209,7 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
 
     public void SetArena(TriggerArenaComp arena) => _arenaComp = arena;
     public void SetArena(TriggerProtectionArenaComp arena) => _protectArenaComp = arena;
-    
+
     public void RemoveFromArena()
     {
         if (_arenaComp == null)
@@ -246,51 +256,18 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
             return;
         }
 
-        var states = new Dictionary<StateType, BaseState>();
-        var behaviorsMap = new Dictionary<StateType, AIBaseBehavior>();
-
-        var genericComp = Room.GetEntityFromId<AIStatsGenericComp>(templateId);
-        var globalComp = Room.GetEntityFromId<AIStatsGlobalComp>(templateId);
-
         Logger.LogInformation("Spawner '{Id}' spawning enemy #{Num} prefab '{Prefab}' template '{Template}'", Id, _spawnedEntityCount, selectedPrefab, templateId);
-
-        // Make sure to modify patrol data before init to account for patrol range
-        if (genericComp != null)
-        {
-            genericComp.PatrolX = PatrolDistance.x;
-            genericComp.PatrolY = PatrolDistance.y;
-        }
-
-        // Init event must be called before AIDo or else the enemy freezes
-        Room.SendSyncEvent(
-            AISyncEventHelper.AIInit(
-                Id, Room,
-                Position.X, Position.Y, Position.Z, Position.X, Position.Y,
-                genericComp?.Patrol_InitialProgressRatio ?? 0f, CurrentHealth, MaxHealth,
-                _healthMod, _scaleMod, _resMod, Stars, Level, globalComp?.GetGlobalProperties(), states, behaviorsMap
-            )
-        );
-
-        Room.SendSyncEvent(
-            AISyncEventHelper.AIDo(
-                Id, Room,
-                0, 0, 1.0f,
-                Position.X + SpawningOffsetX, Position.Y + SpawningOffsetY, genericComp?.Patrol_ForceDirectionX ?? 0,
-                false, AISyncEventHelper.IndexOf(StateType.Unknown, enemyToSpawn.BehaviorData ?? []), string.Empty
-            )
-        );
 
         Room.SendSyncEvent(new Spawn_SyncEvent(Id, Room.Time, _spawnedEntityCount));
 
-        TimerThread.RunDelayed(DelayedSpawnData, new DelayedEnemySpawn() { Spawner = this, TemplateId = templateId, PrefabName = selectedPrefab, SpawnIndex = _spawnedEntityCount }, TimeSpan.FromSeconds(delay));
+        TimerThread.RunDelayed(DelayedSpawnData, new DelayedEnemySpawn() { Spawner = this, TemplateId = templateId, PrefabName = selectedPrefab, SpawnIndex = _spawnedEntityCount, EnemyToSpawn = enemyToSpawn }, TimeSpan.FromSeconds(delay));
     }
 
     private void ResetSpawnCycle()
     {
         _nextSpawnRequestTime = NotScheduled;
         _spawnRequested = false;
-        _spawnedEntityCount = 0;
-        _updatedSpawnCycle = SpawnCycleCount;
+        _updatedSpawnCycle = _spawnedEntityCount + SpawnCycleCount;
         LinkedEnemies.Clear();
     }
 
@@ -300,6 +277,7 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
         public string TemplateId;
         public string PrefabName;
         public int SpawnIndex;
+        public EnemyModel EnemyToSpawn;
 
         public bool IsValid() => Spawner != null && Spawner.IsValid();
     }
@@ -317,6 +295,39 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
 
         var room = spawner.Room;
         var spawnedEntityId = $"{spawner.Id}_{spawn.SpawnIndex}";
+
+
+        var states = new Dictionary<StateType, BaseState>();
+        var behaviorsMap = new Dictionary<StateType, AIBaseBehavior>();
+
+        var genericComp = room.GetEntityFromId<AIStatsGenericComp>(templateId);
+        var globalComp = room.GetEntityFromId<AIStatsGlobalComp>(templateId);
+
+        // Make sure to modify patrol data before init to account for patrol range
+        if (genericComp != null)
+        {
+            genericComp.PatrolX = spawner.PatrolDistance.x;
+            genericComp.PatrolY = spawner.PatrolDistance.y;
+        }
+
+        // Init event must be called before AIDo or else the enemy freezes
+        room.SendSyncEvent(
+            AISyncEventHelper.AIInit(
+                spawner.Id, room,
+                spawner.Position.X, spawner.Position.Y, spawner.Position.Z, spawner.Position.X, spawner.Position.Y,
+                genericComp?.Patrol_InitialProgressRatio ?? 0f, spawner.CurrentHealth, spawner.MaxHealth,
+                spawner._healthMod, spawner._scaleMod, spawner._resMod, spawner.Stars, spawner.Level, globalComp?.GetGlobalProperties(), states, behaviorsMap
+            )
+        );
+
+        room.SendSyncEvent(
+            AISyncEventHelper.AIDo(
+                spawner.Id, room,
+                0, 0, 1.0f,
+                spawner.Position.X + spawner.SpawningOffsetX, spawner.Position.Y + spawner.SpawningOffsetY, genericComp?.Patrol_ForceDirectionX ?? 0,
+                false, AISyncEventHelper.IndexOf(StateType.Unknown, spawn.EnemyToSpawn.BehaviorData ?? []), string.Empty
+            )
+        );
 
         var templateGo = room.Planes.Values
             .SelectMany(p => p.GameObjects)
@@ -426,11 +437,11 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
             }
             else
             {
-                if (SpawnCycleCount > 0)
+                if (_arenaComp != null && SpawnCycleCount > 0)
                     _updatedSpawnCycle += SpawnCycleCount;
-                
+
                 _nextSpawnRequestTime = 0;
-                
+
                 if (_pendingDestroy)
                 {
                     Room.RemoveEnemy(Id);
@@ -454,7 +465,7 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
             _pendingDestroy = true;
             return;
         }
-        
+
         Room.RemoveEnemy(Id);
     }
 
