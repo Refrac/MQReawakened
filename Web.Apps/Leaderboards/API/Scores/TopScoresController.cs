@@ -62,6 +62,9 @@ public class TopScoresController(CharacterHandler characterHandler, TopScoresHan
             {
                 var character = characterHandler.GetCharacterFromId(score.CharacterId);
 
+                if (character == null)
+                    continue;
+
                 var charJson = new JsonData
                 {
                     ["id"] = character.Id,
@@ -77,6 +80,11 @@ public class TopScoresController(CharacterHandler characterHandler, TopScoresHan
             var rank = 1;
             foreach (var score in sortedScores)
             {
+                var character = characterHandler.GetCharacterFromId(score.CharacterId);
+
+                if (character == null)
+                    continue;
+
                 var scoreJson = new JsonData
                 {
                     ["score"] = score.Score,
