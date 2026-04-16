@@ -23,6 +23,7 @@ public class AssetBundleRConfig : IRConfig
     public string AssetSaveDirectory { get; }
     public string RemovedDuplicateDirectory { get; }
     public string CopiedCurrentBundles { get; }
+    public string FixedBundles { get; }
     public string LocalAssetsDirectory { get; }
     public string ScriptsConfigDirectory { get; }
 
@@ -48,6 +49,7 @@ public class AssetBundleRConfig : IRConfig
         CopiedCurrentBundles = InternalDirectory.GetDirectory("Assets/CopiedCurrentBundles");
         ScriptsConfigDirectory = InternalDirectory.GetDirectory("Assets/Scripts");
         LocalAssetsDirectory = InternalDirectory.GetDirectory("Assets/LocalAssets");
+        FixedBundles = InternalDirectory.GetDirectory("Assets/FixedBundles");
 
         AlwaysRecreateBundle = false;
         DebugInfo = false;

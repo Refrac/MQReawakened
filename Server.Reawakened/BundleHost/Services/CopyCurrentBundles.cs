@@ -1,30 +1,17 @@
-﻿using AssetRipper.IO.Endian;
-using Discord;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
 using Server.Base.Core.Abstractions;
 using Server.Base.Core.Events;
 using Server.Base.Core.Extensions;
 using Server.Base.Core.Services;
 using Server.Base.Network.Enums;
-using Server.Reawakened.BundleHost.BundleData.Data;
-using Server.Reawakened.BundleHost.BundleData.Header;
-using Server.Reawakened.BundleHost.BundleData.Header.Models;
-using Server.Reawakened.BundleHost.BundleData.Metadata;
 using Server.Reawakened.BundleHost.Configs;
-using Server.Reawakened.BundleHost.Extensions;
 using Server.Reawakened.BundleHost.Models;
-using Server.Reawakened.Chat.Commands.Moderation;
-using System.Collections.Concurrent;
-using FileIO = System.IO.File;
 
 namespace Server.Reawakened.BundleHost.Services;
 
-public class CopyCurrentBundles(ILogger<CopyCurrentBundles> logger, EventSink sink, AssetBundleRConfig config,
+public class CopyCurrentBundles(ILogger<RemoveDuplicates> logger, EventSink sink, AssetBundleRConfig rConfig,
     ServerConsole console, BuildAssetList buildAssetList, AssetBundleRwConfig rwConfig) : IService
 {
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _bundleLocks = new(StringComparer.OrdinalIgnoreCase);
-
     public void Initialize() => sink.WorldLoad += Load;
 
     public void Load() =>
@@ -32,103 +19,49 @@ public class CopyCurrentBundles(ILogger<CopyCurrentBundles> logger, EventSink si
             "copyCurrentBundles",
             "Creates a directory that includes the current version's bundles.",
             NetworkType.Server,
-            _ => WriteFixedBundlesAsync()
+            _ => CopyCurrentABs()
         );
 
-    private async void WriteFixedBundlesAsync()
+    private void CopyCurrentABs()
     {
-        if (Directory.Exists(config.CopiedCurrentBundles))
-            Directory.Delete(config.CopiedCurrentBundles, true);
+        logger.LogDebug("Emptying copied bundle directory...");
+        InternalDirectory.Empty(rConfig.CopiedCurrentBundles);
 
-        using var defaultBar = new DefaultProgressBar(buildAssetList.InternalAssets.Values.Count, config.Message, logger, rwConfig);
+        logger.LogInformation("Copying asset bundles...");
 
-        foreach (var asset in buildAssetList.InternalAssets.Values)
+        using var bar = new DefaultProgressBar(
+            buildAssetList.InternalAssets.Count,
+            "Writing Assets To Disk",
+            logger,
+            rwConfig
+        );
+
+        foreach (var assets in buildAssetList.InternalAssets)
         {
-            if (asset == null || string.IsNullOrEmpty(asset.UnityVersion))
-                break;
-
-            var assetName = asset.Name?.Trim().ToLower();
-
-            var baseDirectory =
-                config.DebugInfo
-                    ? Path.Join(config.CopiedCurrentBundles, assetName)
-                    : config.CopiedCurrentBundles;
-
-            InternalDirectory.CreateDirectory(baseDirectory);
-
-            var basePath = Path.Join(baseDirectory, assetName);
-
-            var bundlePath = $"{basePath}";
-
-            if (!FileIO.Exists(bundlePath) || config.AlwaysRecreateBundle)
+            try
             {
-                var semaphore = _bundleLocks.GetOrAdd(bundlePath, _ => new SemaphoreSlim(1, 1));
-                await semaphore.WaitAsync();
+                var targetDirectory = Path.Combine(rConfig.CopiedCurrentBundles, assets.Key);
+                InternalDirectory.CreateDirectory(targetDirectory);
 
-                try
-                {
-                    if (FileIO.Exists(bundlePath) && !config.AlwaysRecreateBundle)
-                        return;
+                var sourceDirectory = Path.GetDirectoryName(assets.Value.Path);
 
-                    defaultBar.SetMessage($"{config.Message} - creating fixed bundle for {assetName}");
+                if (sourceDirectory == null)
+                    continue;
 
-                    var tempPath = bundlePath + ".tmp";
-
-                    await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 64, true))
-                    {
-                        var writer = new EndianWriter(fileStream, EndianType.BigEndian);
-
-                        var unityVersion = new UnityVersion(asset.UnityVersion);
-
-                        var fileName = Path.GetFileName(asset.Path);
-
-                        var data = new FixedAssetFile();
-                        await data.ReadAsync(asset.Path);
-
-                        var metadata = new BundleMetadata(fileName, data.FileSize);
-                        metadata.FixMetadata((uint)metadata.GetEndianSize());
-
-                        var header = new RawBundleHeader(data.FileSize, metadata.MetadataSize, unityVersion);
-                        header.FixHeader((uint)header.GetEndianSize());
-
-                        header.Write(writer);
-                        metadata.Write(writer);
-                        data.Write(writer);
-
-                        await fileStream.FlushAsync();
-
-                        if (config.DebugInfo)
-                        {
-                            await FileIO.WriteAllTextAsync($"{basePath}.headerVars", JsonConvert.SerializeObject(header, Formatting.Indented));
-                            await FileIO.WriteAllBytesAsync($"{basePath}.header", header.GetEndian());
-
-                            await FileIO.WriteAllTextAsync($"{basePath}.metadataVars",
-                                JsonConvert.SerializeObject(metadata, Formatting.Indented));
-                            await FileIO.WriteAllBytesAsync($"{basePath}.metadata", metadata.GetEndian());
-                            FileIO.Copy(asset.Path!, $"{basePath}.cache", true);
-                        }
-                    }
-
-                    // Atomic replace
-                    if (FileIO.Exists(bundlePath))
-                        FileIO.Delete(bundlePath);
-
-                    FileIO.Move(tempPath, bundlePath);
-
-                    defaultBar.TickBar();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error creating bundle for {AssetName} at {BundlePath}", assetName, bundlePath);
-                    throw;
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                foreach (var file in Directory.GetFiles(sourceDirectory))
+                    File.Copy(file, Path.Combine(targetDirectory, Path.GetFileName(file)));
             }
+            catch (Exception e)
+            {
+                bar.SetMessage(e.Message);
+            }
+
+            bar.TickBar();
         }
 
-        defaultBar.SetMessage($"Finished Creating {buildAssetList.InternalAssets.Values.Count} Fixed Asset Bundles");
+        logger.LogInformation("Finished copying asset bundles...");
     }
+
+    public static bool AreFileContentsEqual(string path1, string path2) =>
+        File.ReadAllBytes(path1).SequenceEqual(File.ReadAllBytes(path2));
 }
