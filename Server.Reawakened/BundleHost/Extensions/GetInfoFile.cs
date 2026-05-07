@@ -39,11 +39,14 @@ public static class GetInfoFile
 
         try
         {
-            defaultFile = rwConfig.UseCustomAssetLoader
+            if (!EnvironmentExt.IsContainerOrNonInteractive())
+            {
+				defaultFile = rwConfig.UseCustomAssetLoader
                 ? SetFileValue.SetIfNotNull(rwConfig.DatabaseDirectory, $"Select the assetDictionary.xml",
                 $"Asset Dictionary (assetDictionary.xml)\0assetDictionary.xml\0")
                 : SetFileValue.SetIfNotNull(defaultFile, $"Get the {cacheName} '__info' Cache File",
                 $"{cacheName} Info File (__info)\0__info\0");
+            }
         }
         catch
         {
@@ -57,7 +60,9 @@ public static class GetInfoFile
                 if (string.IsNullOrEmpty(defaultFile) || !defaultFile.EndsWith("assetDictionary.xml"))
                 {
                     logger.LogError("Please enter the absolute file path for the 'assetDictionary.xml' cache file.");
-                    defaultFile = EnvironmentExt.IsContainerOrNonInteractive() ? "/data/Caches/Bundles/assetDictionary.xml" : ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger) ?? string.Empty;
+                    defaultFile = EnvironmentExt.IsContainerOrNonInteractive()
+						? Environment.GetEnvironmentVariable("CACHE_INFO_LOCATION")
+						?? "/data/Caches/Bundles/assetDictionary.xml" : ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger);
                     logger.LogInformation("Found cache file: {Path}", defaultFile);
                     continue;
                 }
@@ -67,9 +72,11 @@ public static class GetInfoFile
                 if (string.IsNullOrEmpty(defaultFile) || !defaultFile.EndsWith("__info"))
                 {
                     logger.LogError("Please enter the absolute file path for the {Type} '__info' cache file.", lowerName);
-                    defaultFile = EnvironmentExt.IsContainerOrNonInteractive() ? "/data/Caches/__info" : ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger) ?? string.Empty;
-                    logger.LogInformation("Found cache file: {Path}", defaultFile);
-                    continue;
+					defaultFile = EnvironmentExt.IsContainerOrNonInteractive()
+						? Environment.GetEnvironmentVariable("CACHE_INFO_LOCATION")
+						?? "/data/Caches/__info" : ConsoleExt.ReadOrEnv("CACHE_INFO_LOCATION", logger);
+					logger.LogInformation("Found cache file: {Path}", defaultFile);
+					continue;
                 }
             }
 
