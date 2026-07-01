@@ -104,4 +104,10 @@ public static class CharacterExtensions
 
         return sb.ToString();
     }
+
+    public static int GetBattlePoints(this CharacterModel character, ItemCatalog itemCatalog)
+    {
+        var pointsItem = itemCatalog.GetItemFromPrefabName("COL_PetBattlePoints");
+        return character.TryGetItem(pointsItem.ItemId, out var item) ? item.Count : 0;
+    }
 }

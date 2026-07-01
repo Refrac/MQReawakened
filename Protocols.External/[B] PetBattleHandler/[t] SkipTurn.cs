@@ -1,5 +1,4 @@
-﻿using Server.Reawakened.Network.Extensions;
-using Server.Reawakened.Network.Protocols;
+﻿using Server.Reawakened.Network.Protocols;
 
 namespace Protocols.External._B__PetBattleHandler;
 public class SkipTurn : ExternalProtocol
@@ -8,8 +7,15 @@ public class SkipTurn : ExternalProtocol
 
     public override void Run(string[] message)
     {
-        var characterName = message[5] == Player.CharacterName;
+        var characterName = message[5];
 
-        Player.SendXt("BT", "0");
+        var model = Player.TempData.PetBattleModel;
+        
+        if (model.BattleOver)
+            return;
+        
+        model.MyTurn = !model.MyTurn;
+        
+        SendXt("BT", model.MyTurn ? "0" : "1");
     }
 }

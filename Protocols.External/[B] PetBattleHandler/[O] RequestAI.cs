@@ -1,9 +1,5 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.Logging;
-using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
-using Server.Reawakened.Players;
-using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
@@ -14,16 +10,13 @@ public class RequestAI : ExternalProtocol
     public override string ProtocolName => "BO";
 
     public WorldHandler WorldHandler { get; set; }
-    public ILogger<RequestAI> Logger { get; set; }
     
     public override void Run(string[] message)
     {
         var difficulty = (Difficulty)int.Parse(message[5]);
 
-        Player.SendXt("BO", difficulty);
-
-        Player.TempData.PetBattleModel = new PetBattleModel(Player, true, true, [], Player.GetLevelId());
-
+        Player.TempData.PetBattleModel = new PetBattleModel(null, true, true, [], Player.GetLevelId(), difficulty);
+        
         WorldHandler.ChangePlayerRoom(Player, 554);
     }
 }

@@ -321,7 +321,7 @@
             <Item itemId="15231" itemName="Blue Ranger Mask" descriptionId="1786119394" prefabName="Add_EVT_PowerRanger_FH03" specialDisplayPrefab="" tribe="Crossroads" rarity="Uncommon" memberOnly="false" currency="Banana" storeType="Front Store" stockPriority="0" regularPrice="0" discountPrice="-1" sellPrice="0" sellCount="0" discountedFrom="None" discountedTo="None" actionType="None" cooldownTime="0" delayUseDuration="0" binding="On Equip" level="4" levelRequirement="4" uniqueInInventory="false" lootId="-1" recipeParentItemId="-1" productionStatus="In Game" releaseDate="None" />
         </ItemSubCategory>
         <ItemSubCategory name="Slot Hair">
-            <!--15700 / 15199-->
+            <!--15700 / 16199-->
             <Item itemId="1780963611" itemName="Ootu Leader Play Hat" descriptionId="196070014" prefabName="Add_BON_StarterHelmet01_S01" specialDisplayPrefab="" tribe="Bone" rarity="Common" memberOnly="false" currency="Banana" storeType="Front Store" stockPriority="0" regularPrice="0" discountPrice="-1" sellPrice="0" sellCount="0" discountedFrom="None" discountedTo="None" actionType="None" cooldownTime="0" delayUseDuration="0" binding="On Equip" level="1" levelRequirement="1" uniqueInInventory="false" lootId="-1" recipeParentItemId="-1" productionStatus="In Game" releaseDate="None" />
             <Item itemId="1064208374" itemName="Ship Captain Play Hat" descriptionId="966532061" prefabName="Add_OUT_StarterHelmet01_S01" specialDisplayPrefab="" tribe="Outlaw" rarity="Common" memberOnly="false" currency="Banana" storeType="Front Store" stockPriority="0" regularPrice="0" discountPrice="-1" sellPrice="0" sellCount="0" discountedFrom="None" discountedTo="None" actionType="None" cooldownTime="0" delayUseDuration="0" binding="On Equip" level="1" levelRequirement="1" uniqueInInventory="false" lootId="-1" recipeParentItemId="-1" productionStatus="In Game" releaseDate="None" />
             <Item itemId="902742516" itemName="Foo Royalty Play Hat" descriptionId="1449611952" prefabName="Add_SHD_StarterHelmet01_S01" specialDisplayPrefab="" tribe="Shadow" rarity="Common" memberOnly="false" currency="Banana" storeType="Front Store" stockPriority="0" regularPrice="0" discountPrice="-1" sellPrice="0" sellCount="0" discountedFrom="None" discountedTo="None" actionType="None" cooldownTime="0" delayUseDuration="0" binding="On Equip" level="1" levelRequirement="1" uniqueInInventory="false" lootId="-1" recipeParentItemId="-1" productionStatus="In Game" releaseDate="None" />
@@ -1296,6 +1296,9 @@
         <ItemSubCategory name="None" />
     </ItemCategory>
     <ItemCategory name="PetBattlePoints">
+        <ItemSubCategory name="PetBattlePoints">
+            <Item itemId="16000" itemName="PetBattlePoints" descriptionId="0" prefabName="COL_PetBattlePoints" specialDisplayPrefab="" tribe="Crossroads" rarity="Common" memberOnly="false" currency="Banana" storeType="Front Store" stockPriority="0" regularPrice="100" discountPrice="-1" sellPrice="20" sellCount="0" discountedFrom="None" discountedTo="None" actionType="None" cooldownTime="0" delayUseDuration="0" binding="Unbound" level="1" levelRequirement="1" uniqueInInventory="false" lootId="-1" recipeParentItemId="-1" productionStatus="In Game" releaseDate="None" />
+        </ItemSubCategory>
         <ItemSubCategory name="None" />
     </ItemCategory>
 </Catalog>

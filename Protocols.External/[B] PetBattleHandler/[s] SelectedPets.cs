@@ -1,6 +1,5 @@
 ﻿using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
-using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Bundles.Base;
 
 namespace Protocols.External._B__PetBattleHandler;
@@ -13,30 +12,55 @@ public class SelectedPets : ExternalProtocol
     public override void Run(string[] message)
     {
         var pets = message[6].Split(",");
-        var enemyPets = message[7].Split(",");
-
-        if (pets == null || enemyPets == null)
-            return;
+        var aiPets = message[7].Split(",");
 
         var model = Player.TempData.PetBattleModel;
-
-        if (model == null)
-            return;
-
+        
         foreach (var pet in pets)
         {
-            var battlePet = PetBattlePets.GetPetEvolutionFamily(int.Parse(pet)).FirstOrDefault(x => x.itemId == int.Parse(pet));
+            var battlePet = PetBattlePets.GetPetEvolutionFamily(int.Parse(pet)).FirstOrDefault();
 
-            model.Pets.Add(battlePet);
+            if (battlePet == null)
+                continue;
+            
+            model.Pets.Add(new PetBattlePetsXML.PetBattlePet
+            {
+                itemId = battlePet.itemId,
+                abilities = battlePet.abilities,
+                accuracy = battlePet.accuracy,
+                health = battlePet.health,
+                id = battlePet.id,
+                nextTierItemId = battlePet.nextTierItemId,
+                nextTierBattlePointsNeeded = battlePet.nextTierBattlePointsNeeded,
+                species = battlePet.species,
+                speed = battlePet.speed,
+                tier = battlePet.tier
+            });
         }
 
-        foreach (var pet in enemyPets)
-        {
-            var battlePet = PetBattlePets.GetPetEvolutionFamily(int.Parse(pet)).FirstOrDefault(x => x.itemId == int.Parse(pet));
+        if (model.IsAI)
+            foreach (var pet in aiPets)
+            {
+                var battlePet = PetBattlePets.GetPetEvolutionFamily(int.Parse(pet)).FirstOrDefault();
 
-            model.Pets.Add(battlePet);
-        }
-
+                if (battlePet == null)
+                    continue;
+        
+                model.Pets.Add(new PetBattlePetsXML.PetBattlePet
+                {
+                    itemId = battlePet.itemId,
+                    abilities = battlePet.abilities,
+                    accuracy = battlePet.accuracy,
+                    health = battlePet.health,
+                    id = battlePet.id,
+                    nextTierItemId = battlePet.nextTierItemId,
+                    nextTierBattlePointsNeeded = battlePet.nextTierBattlePointsNeeded,
+                    species = battlePet.species,
+                    speed = battlePet.speed,
+                    tier = battlePet.tier
+                });
+            }
+        
         Player.SendXt("BP", model.IsChallenger ? "1" : "0", 
             model.Pets[0].itemId, model.Pets[1].itemId, model.Pets[2].itemId,
             model.Pets[3].itemId, model.Pets[4].itemId, model.Pets[5].itemId);
