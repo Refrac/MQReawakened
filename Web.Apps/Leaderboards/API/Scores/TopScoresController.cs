@@ -1,17 +1,18 @@
 ﻿using LitJson;
 using Microsoft.AspNetCore.Mvc;
-using Server.Base.Core.Extensions;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Database.Characters;
 using Server.Reawakened.XMLs.Bundles.Internal;
+using System.Globalization;
 using Web.Apps.Leaderboards.Data;
 using Web.Apps.Leaderboards.Database.Scores;
+using Web.Apps.Leaderboards.Services;
 
 namespace Web.Apps.Leaderboards.API.Scores;
 [Route("Apps/leaderboards/api/top/scores/{gameId}")]
 public class TopScoresController(CharacterHandler characterHandler, TopScoresHandler topScoresHandler,
-    InternalLeaderboards leaderboards, ServerRConfig rConfig) : Controller
+    InternalLeaderboards leaderboards, ServerRConfig rConfig, LeaderboardHandler leaderboardHandler) : Controller
 {
     [HttpGet]
     public IActionResult GetScores([FromRoute] string gameId)
@@ -30,7 +31,7 @@ public class TopScoresController(CharacterHandler characterHandler, TopScoresHan
         {
             ["status"] = true,
             ["characters"] = NewArray(),
-            ["game"] = new JsonData()
+            ["game"] = new JsonData
             {
                 ["id"] = game.id,
                 ["name"] = game.name,
@@ -51,51 +52,94 @@ public class TopScoresController(CharacterHandler characterHandler, TopScoresHan
 
         var topScores = topScoresHandler.GetScoresFromId(_gameId);
 
-        if (topScores != null)
+        if (topScores != null && topScores.Scores != null)
         {
-            var topScoresList = topScores.Scores.DeepCopy();
-            var sortedScores = SortScores(game, topScoresList);
+            var sortedScores = SortScores(game, topScores.Scores);
 
-            var hasChanges = false;
+            var now = DateTime.Now;
+            var currentYear = now.Year;
+            var currentDate = now.Date;
+            var currentWeek = ISOWeek.GetWeekOfYear(now);
 
-            var rank = 1;
+            var seenCharacters = new HashSet<int>();
+            var allTimeChars = new HashSet<int>();
+            var weeklyChars = new HashSet<int>();
+            var dailyChars = new HashSet<int>();
+            
+            var characterCache = leaderboardHandler.CharacterCache; 
+            var invalidCharacters = new HashSet<int>();
+
+            var allRank = 1;
+            var weeklyRank = 1;
+            var dailyRank = 1;
+
             foreach (var score in sortedScores)
             {
-                var character = characterHandler.GetCharacterFromId(score.CharacterId);
+                if (!characterCache.TryGetValue(score.CharacterId, out var character))
+                {
+                    character = characterHandler.GetCharacterFromId(score.CharacterId);
+                    characterCache[score.CharacterId] = character;
+                }
 
                 if (character == null)
                 {
-                    topScores.Scores.Remove(score);
-                    hasChanges = true;
+                    characterCache.Remove(score.CharacterId);
+                    invalidCharacters.Add(score.CharacterId);
                     continue;
                 }
 
-                var charJson = new JsonData
+                if (seenCharacters.Add(character.Id))
                 {
-                    ["id"] = character.Id,
-                    ["name"] = character.CharacterName,
-                    ["gender"] = (short)character.Gender,
-                    ["level"] = (short)character.GlobalLevel,
-                    ["tribe"] = Enum.GetName(character.Allegiance)
-                };
+                    var charJson = new JsonData
+                    {
+                        ["id"] = character.Id,
+                        ["name"] = character.CharacterName,
+                        ["gender"] = (short)character.Gender,
+                        ["level"] = (short)character.GlobalLevel,
+                        ["tribe"] = Enum.GetName(character.Allegiance),
+                    };
+                    topScoresObject["characters"].Add(charJson);
+                }
 
-                topScoresObject["characters"].Add(charJson);
-
+                var dateTime = DateTime.ParseExact(score.Time, "yyyy'-'MM'-'dd'T'HH':'mm':'sszzz", null);
+                
                 var scoreJson = new JsonData
                 {
                     ["score"] = score.Score,
-                    ["rank"] = rank,
+                    ["rank"] = score.Rank,
                     ["characterId"] = score.CharacterId,
                     ["time"] = score.Time
                 };
 
-                topScoresObject["scores"]["alltime"].Add(scoreJson);
+                if (allTimeChars.Add(score.CharacterId))
+                {
+                    scoreJson["rank"] = allRank++;
+                    topScoresObject["scores"]["alltime"].Add(scoreJson);
+                    continue;
+                }
 
-                rank++;
+                if (dateTime.Year == currentYear && ISOWeek.GetWeekOfYear(dateTime) == currentWeek)
+                    if (weeklyChars.Add(score.CharacterId))
+                    {
+                        scoreJson["rank"] = weeklyRank++;
+                        topScoresObject["scores"]["week"].Add(scoreJson);
+                        continue;
+                    }
+
+                if (dateTime.Date == currentDate)
+                    if (dailyChars.Add(score.CharacterId))
+                    {
+                        scoreJson["rank"] = dailyRank++;
+                        topScoresObject["scores"]["day"].Add(scoreJson);
+                        continue;
+                    }
             }
 
-            if (hasChanges)
+            if (invalidCharacters.Count > 0)
+            {
+                topScores.Scores.RemoveAll(x => invalidCharacters.Contains(x.CharacterId));
                 topScoresHandler.Update(topScores.Write);
+            }
         }
 
         return Ok(JsonMapper.ToJson(topScoresObject));

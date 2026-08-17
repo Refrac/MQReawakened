@@ -24,6 +24,10 @@ public static class CharacterInventoryExtensions
             switch (effect.Type)
             {
                 case ItemEffectType.PetRegainEnergy:
+                    // Pet energy/abilities doesn't exist yet
+                    if (serverRConfig.GameVersion <= GameVersion.vMinigames2012)
+                        break;
+                    
                     if (!player.Character.Pets.TryGetValue(player.GetEquippedPetId(serverRConfig), out var pet))
                     {
                         logger.LogWarning("Couldn't find equipped pet for {characterName}", player.CharacterName);
@@ -64,6 +68,10 @@ public static class CharacterInventoryExtensions
                     player.Character.StatusEffects.Add(effect);
                     break;
                 case ItemEffectType.ColorTonic:
+                    // ColorTonic effect doesn't exist yet
+                    if (serverRConfig.GameVersion <= GameVersion.vLate2012)
+                        break;
+                    
                     if (player.Character.StatusEffects.HasEffect(ItemEffectType.ColorTonic))
                     {
                         sendFx = false;
@@ -117,7 +125,7 @@ public static class CharacterInventoryExtensions
             return;
 
         var characterData = player.Character;
-        var itemCount = 0;
+        var itemCount = count;
 
         if (!characterData.Inventory.Items.ContainsKey(item.ItemId))
             characterData.Inventory.Items.Add(item.ItemId, new ItemModel(item.ItemId, count, item.BindingCount, item.DelayUseExpiry));
