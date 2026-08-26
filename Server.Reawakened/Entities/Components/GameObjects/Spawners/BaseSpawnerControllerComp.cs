@@ -418,7 +418,8 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
         bool waveCleared;
         bool moreThisCycle;
 
-        LinkedEnemies.Remove(id);
+        if (LinkedEnemies != null && LinkedEnemies.ContainsKey(id))
+            LinkedEnemies.Remove(id);
 
         if (_arenaComp != null)
         {
@@ -426,7 +427,7 @@ public class BaseSpawnerControllerComp : Component<BaseSpawnerController>
             if (removed) Logger?.LogDebug("Removed spawned enemy {SpawnedId} from arena (arena id: {ArenaId})", id, _arenaComp.Id);
         }
 
-        waveCleared = LinkedEnemies.Count == 0;
+        waveCleared = LinkedEnemies != null && LinkedEnemies?.Count == 0;
         moreThisCycle = CanSpawnMoreThisCycle();
 
         if (waveCleared)
