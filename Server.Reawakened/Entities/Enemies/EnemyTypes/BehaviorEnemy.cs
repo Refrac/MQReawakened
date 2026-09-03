@@ -83,7 +83,7 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
             )
         );
 
-        ChangeBehavior(StateType.Patrol, Position.X, Position.Y, Generic.Patrol_ForceDirectionX);
+        ChangeBehavior(StateType.Patrol, Position.X, Position.Y, AiData.Intern_Dir);
     }
 
     public override void InternalUpdate()
@@ -162,9 +162,6 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
 
     public void ChangeBehavior(StateType behaviourType, float targetX, float targetY, int direction)
     {
-        if (direction == 0)
-            direction = AiData.Intern_Dir;
-
         if (AiData.Intern_PendingSpeedFactor >= 0f)
         {
             AiData.Sync_SpeedFactor = AiData.Intern_PendingSpeedFactor;

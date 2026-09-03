@@ -170,7 +170,8 @@ public abstract class BaseEnemy : IDestructible
 
     public void GenerateHitbox()
     {
-        var serverObjectSize = Room.GetEntityFromId<ServerObjectSizeInfoComp>(Id);
+        var serverObjectSize = Room.GetEntityFromId<
+            ServerObjectSizeInfoComp>(Id);
         var objectSize = Room.GetEntityFromId<ObjectSizeInfoComp>(Id);
 
         Logger.LogDebug("Generating hitbox for enemy {PrefabName} (ID: {Id})", PrefabName, Id);

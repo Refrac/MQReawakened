@@ -2562,7 +2562,6 @@
                     <ProjectilePrefabName value="COL_PRJ_WaspProjectile01" />
                 </GlobalProperties>
                 <Behaviors>
-                    <Patrol speed="0" smoothMove="false" endPathWaitTime="0" />
                     <Stinger speedForward="12" speedBackward="4" inDurationForward="0.43" attackDuration="2.67" damageAttackTimeOffset="1" inDurationBackward="1.29" damageDistance="2">
                         <Resource type="EABIL" name="PF_EABIL_Spite_Vespid_StingerAttack" />
                     </Stinger>
