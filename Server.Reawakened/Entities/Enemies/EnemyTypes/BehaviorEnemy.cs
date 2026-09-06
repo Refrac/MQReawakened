@@ -32,13 +32,9 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
     public AIBaseBehavior CurrentBehavior;
 
     private float _lastUpdate;
-
-    public TimerThread TimerThread;
-
+    
     public override void Initialize()
     {
-        TimerThread = Services.GetRequiredService<TimerThread>();
-
         Global = Room.GetEntityFromId<AIStatsGlobalComp>(Id);
         Generic = Room.GetEntityFromId<AIStatsGenericComp>(Id);
 
@@ -240,7 +236,7 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
             return;
         }
 
-            Logger.LogTrace("Enemy {PrefabName} aggroed on player {PlayerName}", PrefabName, player.CharacterName);
+        Logger.LogTrace("Enemy {PrefabName} aggroed on player {PlayerName}", PrefabName, player.CharacterName);
 
         AiData.Sync_TargetPosX = player.TempData.Position.X;
         AiData.Sync_TargetPosY = player.TempData.Position.Y;
