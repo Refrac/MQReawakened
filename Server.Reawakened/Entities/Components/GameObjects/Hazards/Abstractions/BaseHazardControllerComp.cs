@@ -13,7 +13,6 @@ using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using Server.Reawakened.Rooms.Models.Timers;
 using Server.Reawakened.XMLs.Bundles.Base;
-using UnityEngine;
 using static Server.Reawakened.Players.Extensions.PlayerStatusEffectExtensions;
 
 namespace Server.Reawakened.Entities.Components.GameObjects.Hazards.Abstractions;
@@ -46,7 +45,6 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
     public TimerThread TimerThread { get; set; }
     public ItemRConfig ItemRConfig { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
-    public WorldStatistics WorldStatistics { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public ILogger<BaseHazardControllerComp<HazardController>> Logger { get; set; }
 

@@ -11,16 +11,11 @@ using Server.Reawakened.XMLs.Bundles.Base;
 namespace Server.Reawakened.Entities.Colliders;
 
 public class AIProjectileCollider(string id, string ownerId, Room room,
-    Vector3Model position, RectModel size, string plane, float lifeTime, TimerThread timerThread, int damage, ItemEffectType effect,
-    ItemCatalog itemCatalog, ServerRConfig serverRConfig) : BaseCollider
+    Vector3Model position, RectModel size, string plane, float lifeTime, ItemEffectType effect) : BaseCollider
 {
     public float LifeTime = lifeTime + room.Time;
     public string OwnderId => ownerId;
-    public TimerThread TimerThread => timerThread;
-    public int Damage => damage;
     public ItemEffectType Effect => effect;
-    public ItemCatalog ItemCatalog => itemCatalog;
-    public ServerRConfig ServerRConfig => serverRConfig;
 
     public override Room Room => room;
     public override string Id => id;

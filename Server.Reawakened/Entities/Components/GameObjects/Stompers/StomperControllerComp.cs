@@ -16,8 +16,6 @@ public class StomperControllerComp : BaseMovingObjectControllerComp<StomperContr
     public bool Hazard => ComponentData.Hazard;
 
     private StomperZoneCollider _collider;
-    public TimerThread TimerThread { get; set; }
-    public ServerRConfig ServerRConfig { get; set; }
 
     public override void InitializeComponent()
     {

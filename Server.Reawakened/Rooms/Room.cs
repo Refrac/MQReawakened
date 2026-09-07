@@ -6,7 +6,6 @@ using Server.Base.Timers.Services;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Database.Characters;
-using Server.Reawakened.Entities.Colliders;
 using Server.Reawakened.Entities.Colliders.Abstractions;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Controller;
@@ -14,7 +13,6 @@ using Server.Reawakened.Entities.Components.GameObjects.Checkpoints;
 using Server.Reawakened.Entities.Components.GameObjects.Global;
 using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
 using Server.Reawakened.Entities.Components.GameObjects.Spawners;
-using Server.Reawakened.Entities.Components.GameObjects.Trigger;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Entities.Enemies.Extensions;
 using Server.Reawakened.Entities.Projectiles;
@@ -27,12 +25,11 @@ using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.Rooms.Services;
-using Server.Reawakened.XMLs.Bundles.Base;
 using Server.Reawakened.XMLs.Bundles.Internal;
-using UnityEngine;
 using WorldGraphDefines;
 using Random = System.Random;
 using Timer = Server.Base.Timers.Timer;
+using Vector2 = UnityEngine.Vector2;
 
 namespace Server.Reawakened.Rooms;
 
@@ -62,10 +59,7 @@ public class Room : Timer
     public Dictionary<string, List<List<BaseComponent>>> DuplicateEntities;
 
     private readonly ServerRConfig _config;
-    private readonly ItemRConfig _itemConfig;
-    private readonly TimerThread _timerThread;
-
-    public ItemCatalog ItemCatalog;
+	
     public InternalColliders ColliderCatalog;
 
     public WorldHandler World;
@@ -91,14 +85,11 @@ public class Room : Timer
 
         _roomId = roomId;
         _config = config;
-        _timerThread = timerThread;
         _lastTickTime = Time;
 
         IsOpen = true;
 
-        _itemConfig = services.GetRequiredService<ItemRConfig>();
         ColliderCatalog = services.GetRequiredService<InternalColliders>();
-        ItemCatalog = services.GetRequiredService<ItemCatalog>();
         Logger = services.GetRequiredService<ILogger<Room>>();
         World = services.GetRequiredService<WorldHandler>();
 
@@ -580,7 +571,7 @@ public class Room : Timer
 
         var aiProjectile = new AIProjectile(
             this, ownerId, projectileId.ToString(), prjPosition, size,
-            speed, lifeTime, _timerThread, damage, effect, isGrenade, _config, ItemCatalog
+            speed, lifeTime, effect, isGrenade
         );
 
         this.SendSyncEvent(

@@ -1,11 +1,12 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.Logging;
 using Server.Base.Core.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Protocols.External._Z__PetHandler;
 using Server.Base.Logging;
-using Server.Base.Timers.Extensions;
 using Server.Base.Timers.Services;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger;
 using Server.Reawakened.Entities.Projectiles;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
@@ -14,7 +15,6 @@ using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using Server.Reawakened.Rooms.Models.Planes;
-using Server.Reawakened.Rooms.Models.Timers;
 using Server.Reawakened.Rooms.Services;
 using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Bundles.Base;
@@ -30,9 +30,9 @@ public class State : ExternalProtocol
     public PetAbilities PetAbilities { get; set; }
     public SyncEventManager SyncEventManager { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
+    public ItemCatalog ItemCatalog { get; set; }
     public WorldStatistics WorldStatistics { get; set; }
     public FileLogger FileLogger { get; set; }
-    public TimerThread TimerThread { get; set; }
     public ILogger<State> Logger { get; set; }
 
     public override void Run(string[] message)
@@ -97,8 +97,8 @@ public class State : ExternalProtocol
                         new Vector3Model(attack.PosX, attack.PosY, Player.TempData.Position.Z),
                         new Vector3(attack.MaxPosX, attack.MaxPosY, Player.TempData.Position.Z),
                         new Vector2(attack.SpeedX, attack.SpeedY),
-                        15, itemId, zoneId, superStompDamage,
-                        Elemental.Standard, ServerRConfig, TimerThread
+                        15, ItemCatalog.GetItemFromId(attack.ItemId), attack.ZoneId,
+                        ServerRConfig
                     );
 
                     Player.Room.AddProjectile(chargeAttackProjectile);
@@ -155,7 +155,7 @@ public class State : ExternalProtocol
 
                     if (physicStatus.GravityEnabled && Player.TempData.Underwater)
                     {
-                        Player.StopUnderwater();
+                        Player.ResetUnderwaterTime();
                         Player.TempData.Underwater = false;
                     }
                     break;
@@ -163,7 +163,9 @@ public class State : ExternalProtocol
                     var fxEvent = new FX_SyncEvent(syncEvent);
 
                     if (fxEvent.PrefabName == ServerRConfig.FXWaterSplashName)
-                        Player.StartUnderwater(newPlayer.Character.MaxLife / ServerRConfig.UnderwaterDamageRatio, TimerThread, ServerRConfig);
+                        Player.RunUnderwaterTick(ServerRConfig);
+					else if (Player.TempData.UnderwaterTime != 0)
+                        Player.ResetUnderwaterTime();
                     break;
             }
 

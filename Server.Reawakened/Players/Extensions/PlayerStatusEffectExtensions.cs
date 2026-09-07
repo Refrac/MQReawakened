@@ -11,6 +11,18 @@ namespace Server.Reawakened.Players.Extensions;
 
 public static class PlayerStatusEffectExtensions
 {
+    public class StatusEffectData() : PlayerTimer
+    {
+        public string HazardId;
+        public int HazardDamage;
+        public ItemEffectType EffectType;
+        public float InitialDamageDelay;
+        public float DamageDelay;
+        public int DamageCount;
+        public int InvincibilityDuration;
+        public TimerThread TimerThread;
+    }
+
     public static void SendItemEffectToPlayer(this Player player, ItemEffect itemEffect, string prefabFrom, bool sendFx, bool premium = false)
     {
         if (player == null || itemEffect == null) return;
@@ -51,7 +63,7 @@ public static class PlayerStatusEffectExtensions
             (int)ItemEffectType.NullifySlowStatusEffect, 1, 1, true, string.Empty, false));
     }
 
-    public static void RunUnderwaterTick(this Player player, ServerRConfig config, TimerThread thread)
+    public static void RunUnderwaterTick(this Player player, ServerRConfig config)
     {
         if (player.Character.StatusEffects.GetEffect(ItemEffectType.WaterBreathing) > 0)
         {
@@ -70,7 +82,7 @@ public static class PlayerStatusEffectExtensions
         if (currentTime - player.TempData.UnderwaterTime < config.BaseUnderwaterTime)
             return;
 
-        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1, config);
+        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1);
         player.TempData.UnderwaterTime += 2.5f;
     }
 
@@ -127,8 +139,6 @@ public static class PlayerStatusEffectExtensions
             DamageDelay = delay,
             DamageCount = damageCount,
             InvincibilityDuration = invincibilityDuration,
-            HazardRConfig = hazardRConfig,
-            ServerRConfig = serverRConfig,
             TimerThread = timerThread
         };
     }

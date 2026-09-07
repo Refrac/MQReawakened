@@ -90,9 +90,7 @@ public abstract class BaseTriggerCoopController<T> : Component<T>, ITriggerComp,
 
     public FileLogger FileLogger { get; set; }
     public QuestCatalog QuestCatalog { get; set; }
-    public ServerRConfig ServerRConfig { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
-    public TimerThread TimerThread { get; set; }
 
     public List<string> CurrentPhysicalInteractors;
     public int CurrentInteractions;

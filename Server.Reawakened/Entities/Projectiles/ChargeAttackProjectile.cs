@@ -15,17 +15,16 @@ namespace Server.Reawakened.Entities.Projectiles;
 public class ChargeAttackProjectile : BaseProjectile
 {
     private readonly ServerRConfig _config;
-    private readonly TimerThread _timerThread;
     private readonly Player _player;
 
     private readonly int _itemId;
     private readonly int _zoneId;
 
-    public ChargeAttackProjectile(string id, Player player, Vector3Model startPosition, Vector3 endPosition, Vector2 speed, float lifeTime, int itemId, int zoneId, int damage, Elemental type, ServerRConfig config, TimerThread timerThread)
+    public ChargeAttackProjectile(string id, Player player, Vector3Model startPosition, Vector3 endPosition, Vector2 speed,
+        float lifeTime, ItemDescription item, int zoneId, ServerRConfig config)
         : base(id, lifeTime, player.Room, startPosition, speed, endPosition, false)
     {
         _config = config;
-        _timerThread = timerThread;
         _player = player;
         _itemId = itemId;
         _zoneId = zoneId;

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Protocols.External._Z__PetHandler;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Network.Protocols;
-using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Bundles.Base;
