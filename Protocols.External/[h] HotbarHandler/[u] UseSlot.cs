@@ -92,20 +92,11 @@ public class UseSlot : ExternalProtocol
         }
     }
 
-    private void HandleRelic(ItemDescription usedItem) //Needs rework.
-    {
-        StatusEffect_SyncEvent itemEffect = null;
-
-        foreach (var effect in usedItem.ItemEffects)
-            itemEffect = new StatusEffect_SyncEvent(Player.GameObjectId.ToString(), Player.Room.Time,
-                    (int)effect.Type, effect.Value, effect.Duration, true, usedItem.PrefabName, false);
-
-        Player.SendSyncEventToPlayer(itemEffect);
-    }
+    private void HandleRelic(ItemDescription usedItem) => Player.HandleItemEffect(usedItem, TimerThread, Logger, ItemCatalog);
 
     private void HandleConsumable(ItemDescription usedItem)
     {
-        Player.HandleItemEffect(usedItem, TimerThread, ItemRConfig, ServerRConfig, Logger);
+        Player.HandleItemEffect(usedItem, TimerThread, Logger, ItemCatalog);
         var removeFromHotBar = true;
 
         if (usedItem.InventoryCategoryID is

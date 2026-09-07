@@ -15,8 +15,8 @@ namespace Server.Reawakened.Players.Extensions;
 
 public static class CharacterInventoryExtensions
 {
-    public static void HandleItemEffect(this Player player, ItemDescription usedItem,
-        TimerThread timerThread, ItemRConfig config, ServerRConfig serverRConfig, ILogger<PlayerStatus> logger)
+    public static void HandleItemEffect(this Player player, ItemDescription usedItem, TimerThread timerThread,
+        ILogger<PlayerStatus> logger, ItemCatalog itemCatalog)
     {
         foreach (var effect in usedItem.ItemEffects)
         {

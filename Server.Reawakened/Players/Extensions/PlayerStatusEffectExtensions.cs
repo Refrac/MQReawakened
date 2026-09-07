@@ -113,7 +113,7 @@ public static class PlayerStatusEffectExtensions
     }
 
     public static StatusEffectData GetPoisonEffectData(this Player player, int poisonDamage, string hazardId,
-        HazardRConfig hazardRConfig, ServerRConfig serverRConfig, TimerThread timerThread, int initDelay, int delay)
+        HazardRConfig hazardRConfig, TimerThread timerThread, int initDelay, int delay)
     {
         var damageCount = (int)Math.Ceiling((double)player.Character.CurrentLife / poisonDamage);
         var invincibilityDuration = -1;

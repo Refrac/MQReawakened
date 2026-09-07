@@ -189,7 +189,11 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay));
                 break;
             case ItemEffectType.PoisonDamage:
-                TimerThread.RunDelayed(ApplyPoisonEffect, new PoisonEffect() { Hazzard = this, Player = player }, TimeSpan.FromSeconds(InitialDamageDelay));
+                if (!player.TempData.IsPoisoned)
+                {
+                    ApplyPoisonDamage(player.GetPoisonEffectData(Damage, Id, HazardRConfig,
+                        TimerThread, Convert.ToInt32(InitialDamageDelay), Convert.ToInt32(DamageDelay)));
+                }
                 break;
             case ItemEffectType.WaterBreathing:
                 ApplyWaterBreathing(player);
