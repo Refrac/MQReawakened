@@ -1,4 +1,6 @@
-﻿using Server.Reawakened.Entities.Colliders.Enums;
+﻿using System;
+using System.Collections.Generic;
+using Server.Reawakened.Entities.Colliders.Enums;
 using Server.Reawakened.Entities.Components.GameObjects.Attributes;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Models.Planes;
@@ -8,6 +10,15 @@ namespace Server.Reawakened.Entities.Colliders.Abstractions;
 
 public abstract class BaseCollider
 {
+    [ThreadStatic]
+    private static List<BaseCollider> s_colliderBuffer;
+
+    [ThreadStatic]
+    private static List<string> s_collidedIdBuffer;
+
+    [ThreadStatic]
+    private static HashSet<string> s_collidedSet;
+
     public abstract Room Room { get; }
     public abstract string Id { get; }
     public abstract Vector3Model Position { get; }
@@ -19,48 +30,77 @@ public abstract class BaseCollider
     public bool Active { get; set; }
 
     public Rect ColliderBox => new(
-            Position.X + BoundingBox.X,
-            Position.Y + BoundingBox.Y,
-            BoundingBox.Width,
-            BoundingBox.Height
-        );
+        Position.X + BoundingBox.X,
+        Position.Y + BoundingBox.Y,
+        BoundingBox.Width,
+        BoundingBox.Height
+    );
 
-    protected BaseCollider(bool addToRoom = true)
+    protected BaseCollider() => Active = true;
+    protected void InitializeCollider(bool addToRoom = true)
     {
-        Active = true;
-
         var invisible = Room.GetEntityFromId<InvisibilityControllerComp>(Id);
-
         IsInvisible = invisible != null && invisible.ApplyInvisibility;
 
         if (addToRoom)
             Room.AddColliderToList(this);
     }
 
-    public virtual string[] RunCollisionDetection() => [];
+    public virtual string[] RunCollisionDetection() => Array.Empty<string>();
 
     public virtual void SendCollisionEvent(BaseCollider received) { }
 
-    public bool CheckCollision(BaseCollider collided) =>
-        collided.ColliderBox.Overlaps(ColliderBox) && Plane == collided.Plane;
+    public bool CheckCollision(BaseCollider collided)
+    {
+        if (Plane != collided.Plane)
+            return false;
+
+        // Direct bounding box overlap check without instantiating UnityEngine.Rect
+        var selfMinX = Position.X + BoundingBox.X;
+        var selfMaxX = selfMinX + BoundingBox.Width;
+        var selfMinY = Position.Y + BoundingBox.Y;
+        var selfMaxY = selfMinY + BoundingBox.Height;
+
+        var otherMinX = collided.Position.X + collided.BoundingBox.X;
+        var otherMaxX = otherMinX + collided.BoundingBox.Width;
+        var otherMinY = collided.Position.Y + collided.BoundingBox.Y;
+        var otherMaxY = otherMinY + collided.BoundingBox.Height;
+
+        return selfMaxX > otherMinX && selfMinX < otherMaxX &&
+               selfMaxY > otherMinY && selfMinY < otherMaxY;
+    }
 
     public virtual bool CanCollideWithType(BaseCollider collider) => false;
     public virtual bool CanOverrideInvisibleDetection() => true;
-    
+
     public string[] RunBaseCollisionDetection()
     {
-        var colliders = Room.GetColliders();
-        var collidedWith = new HashSet<string>();
+        s_colliderBuffer ??= new List<BaseCollider>(256);
+        s_collidedIdBuffer ??= new List<string>(16);
+        s_collidedSet ??= new HashSet<string>();
 
-        foreach (var collider in colliders)
+        Room.GetColliders(s_colliderBuffer);
+        s_collidedIdBuffer.Clear();
+        s_collidedSet.Clear();
+
+        for (var i = 0; i < s_colliderBuffer.Count; i++)
         {
-            if (CheckCollision(collider) && CanCollideWithType(collider) && collider.Active && (!collider.IsInvisible || CanOverrideInvisibleDetection()))
+            var collider = s_colliderBuffer[i];
+
+            if (collider.Active &&
+                (!collider.IsInvisible || CanOverrideInvisibleDetection()) &&
+                CanCollideWithType(collider) &&
+                CheckCollision(collider))
             {
-                collidedWith.Add(collider.Id);
+                if (s_collidedSet.Add(collider.Id))
+                {
+                    s_collidedIdBuffer.Add(collider.Id);
+                }
+
                 collider.SendCollisionEvent(this);
             }
         }
 
-        return [.. collidedWith];
+        return s_collidedIdBuffer.ToArray();
     }
 }

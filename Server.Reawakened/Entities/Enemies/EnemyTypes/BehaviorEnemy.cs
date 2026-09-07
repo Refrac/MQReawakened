@@ -16,12 +16,18 @@ using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.XMLs.Data.Enemy.Enums;
 using Server.Reawakened.XMLs.Data.Enemy.Models;
+using Server.Reawakened.XMLs.Data.Enemy.States;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Server.Reawakened.Entities.Enemies.EnemyTypes;
 
-public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
+public class BehaviorEnemy : BaseEnemy
 {
+    [ThreadStatic]
+    private static List<Player> s_playerBuffer;
+
     public AIStatsGlobalComp Global;
     public AIStatsGenericComp Generic;
     public AIProcessData AiData;
@@ -32,7 +38,13 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
     public AIBaseBehavior CurrentBehavior;
 
     private float _lastUpdate;
-    
+	
+    private StateType _attackBehavior;
+
+    public BehaviorEnemy(EnemyData data) : base(data)
+    {
+    }
+
     public override void Initialize()
     {
         Global = Room.GetEntityFromId<AIStatsGlobalComp>(Id);
@@ -67,7 +79,15 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
             _suicide = new Runnable(this)
         };
 
-        Behaviors = EnemyModel.BehaviorData.ToDictionary(s => s.Key, s => s.Value.GetBaseBehaviour(this));
+        _attackBehavior = Global.AttackBehavior;
+
+        // Optimized dictionary allocation replacing LINQ ToDictionary
+        var behaviorData = EnemyModel.BehaviorData;
+        Behaviors = new Dictionary<StateType, AIBaseBehavior>(behaviorData.Count);
+        foreach (var kvp in behaviorData)
+        {
+            Behaviors.Add(kvp.Key, kvp.Value.GetBaseBehaviour(this));
+        }
 
         base.Initialize();
 
@@ -98,12 +118,17 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
         if (!hasDetected)
         {
             if (CurrentBehavior.TryUpdate())
+            {
                 if (AiData.Intern_FireProjectile)
                     FireProjectile(false);
+            }
 
-            if (Global != null && (CurrentState == Global.AwareBehavior || CurrentState == StateType.LookAround))
+            if (Global != null && CurrentState is var state &&
+                (state == Global.AwareBehavior || state is StateType.LookAround or StateType.Acting))
+            {
                 if (Room.Time >= _lastUpdate + CurrentBehavior.GetBehaviorTime())
                     CurrentBehavior.NextState();
+            }
         }
     }
 
@@ -112,22 +137,35 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
         if (!this.TryGetDetectionCollider(out var enemyCollider))
             return false;
 
+        var myPlane = ParentPlane;
+        var minX = AiData.Intern_MinPointX;
+        var maxX = AiData.Intern_MaxPointX;
+        var limitByPatrol = Global.Global_DetectionLimitedByPatrolLine;
+
         foreach (var player in Room.GetPlayers())
         {
-            if (player == null || player.Character == null)
+            if (player?.Character == null)
+                continue;
+
+            var character = player.Character;
+            if (character.CurrentLife <= 0)
+                continue;
+
+            if (character.StatusEffects.HasEffect(ItemEffectType.Invisibility))
+                continue;
+
+            if (myPlane != player.GetPlayersPlaneString())
                 continue;
 
             var temp = player.TempData;
-            var character = player.Character;
-            var statusEffects = character.StatusEffects;
+            if (temp == null)
+                continue;
 
-            var collides = temp.PlayerCollider != null && enemyCollider.CheckCollision(temp.PlayerCollider);
-            var withinPatrol = !Global.Global_DetectionLimitedByPatrolLine || temp != null && temp.Position.X > AiData.Intern_MinPointX && temp.Position.X < AiData.Intern_MaxPointX;
-            var samePlane = ParentPlane == player.GetPlayersPlaneString();
-            var invisible = statusEffects.HasEffect(ItemEffectType.Invisibility);
-            var alive = character.CurrentLife > 0;
+            if (limitByPatrol && (temp.Position.X <= minX || temp.Position.X >= maxX))
+                continue;
 
-            if (collides && withinPatrol && samePlane && !invisible && alive)
+            var playerCollider = temp.PlayerCollider;
+            if (playerCollider != null && enemyCollider.CheckCollision(playerCollider))
             {
                 EnemyAggroPlayer(player);
                 return true;
@@ -145,11 +183,10 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
             Position.Z
         );
 
-        var speed = new Vector2
-        {
-            x = (float)Math.Cos(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed,
-            y = (float)Math.Sin(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed
-        };
+        var speed = new Vector2(
+            (float)Math.Cos(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed,
+            (float)Math.Sin(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed
+        );
 
         FireProjectile(position, speed, isGrenade);
 
@@ -226,7 +263,7 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
                     this
                 )
             );
-    }
+        }
 
     public void EnemyAggroPlayer(Player player)
     {
