@@ -36,9 +36,8 @@ public class God : SlashCommand
         player.AddNCash(ServerRConfig.CashKitAmount);
         player.SendCashUpdate();
 
-        player.LevelUp(ServerRConfig.MaxLevel, WorldStatistics, ServerRConfig, Logger, ItemCatalog);
-        player.AddPoints(ServerRConfig, ItemCatalog);
-        player.DiscoverAllTribes();
+        player.LevelUp(ServerRConfig.MaxLevel, WorldStatistics, ServerRConfig, Logger, InternalAchievement, ServerRwConfig, ItemCatalog);
+        player.AddPoints(InternalAchievement, Logger, ServerRwConfig, ItemCatalog);
 
         player.Character.Write.CurrentLife = player.Character.MaxLife;
 

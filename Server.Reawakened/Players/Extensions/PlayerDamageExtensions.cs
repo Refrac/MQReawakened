@@ -36,18 +36,18 @@ public static class PlayerDamageExtensions
         }
 
         player.ApplyCharacterDamage(status.HazardDamage, ItemEffectType.PoisonDamage,
-            status.HazardId, status.InvincibilityDuration, timerThread);
+            status.HazardId, status.InvincibilityDuration, status.ServerRConfig);
     }
 
     public static void ApplyCharacterDamage(this Player player, float damage, ItemEffectType effectType,
-        string originId, int duration, TimerThread timerThread)
+        string originId, int duration, ServerRConfig serverRConfig)
     {
         if (player == null || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.Character.CurrentLife <= 0) return;
 
         if (damage <= 0)
             damage = 1;
 
-        if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet) && pet.ShieldingPlayer)
+        if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(serverRConfig), out var pet) && pet.ShieldingPlayer)
             Math.Ceiling(damage *= pet.AbilityParams.DefensiveBonusRatio);
 
         if (player.Character.Pets.TryGetValue(player.GetEquippedPetId(serverRConfig), out var pet))
@@ -81,13 +81,13 @@ public static class PlayerDamageExtensions
     }
 
     public static void ApplyDamageByPercent(this Player player, double percentage, ItemEffectType effectType,
-        string hazardId, int duration, TimerThread timerThread)
+        string hazardId, int duration, ServerRConfig serverRConfig)
     {
         var health = (double)player.Character.MaxLife;
 
         var damage = Convert.ToSingle(Math.Ceiling(health * percentage));
 
-        ApplyCharacterDamage(player, damage, effectType, hazardId, duration, timerThread);
+        ApplyCharacterDamage(player, damage, effectType, hazardId, duration, serverRConfig);
     }
 
     public static void KnockoutPlayer(this Player player)

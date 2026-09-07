@@ -195,5 +195,108 @@ public class FinishedMinigame : ExternalProtocol
         player.SendXt("Mp", minigameId, sb.ToString());
 
         player.SendCashUpdate();
+
+        CheckPlacementObjective(player, placement, membersInRoom);
+    }
+    public class RepData() : ITimerData
+    {
+        public Player Player;
+        public int Reputation;
+
+        public bool IsValid() => Player != null;
+    }
+
+    private void AddReputation(ITimerData data)
+    {
+        if (data is not RepData rep)
+            return;
+
+        var player = rep.Player;
+
+        if (!player.Character.CurrentCollectedDailies.TryGetValue("WarriorGames", out var daily))
+            daily = AddDailyHarvest(player);
+
+        daily.TimesHarvested++;
+
+        player.AddReputation(rep.Reputation, Config, InternalAchievement, Logger, RwConfig, ItemCatalog);
+    }
+
+    private bool CanGetDailyBoost(Player player)
+    {
+        if (player.Character.CurrentCollectedDailies.TryGetValue("WarriorGames", out var daily))
+        {
+            Logger.LogInformation("Player {character} has run Warrior Games {runs} times today.", player.CharacterName, daily.TimesHarvested);
+            if (DateTime.Now.Date > daily.TimeOfHarvest.Date)
+            {
+                player.Character.CurrentCollectedDailies.Remove("WarriorGames");
+                return true;
+            }
+            if (daily.TimesHarvested > 9)
+                return false;
+        }
+        return true;
+    }
+
+    private DailiesModel AddDailyHarvest(Player player)
+    {
+        Logger.LogInformation("Adding new Warrior Games daily for player {character}.", player.CharacterName);
+        player.Character.CurrentCollectedDailies.TryAdd("WarriorGames", new DailiesModel
+        {
+            GameObjectId = "WarriorGames",
+            TimeOfHarvest = DateTime.Now,
+            TimesHarvested = 0,
+        }
+        );
+
+        player.Character.CurrentCollectedDailies.TryGetValue("WarriorGames", out var daily);
+        return daily;
+    }
+
+    public int CalculateXpMultiplier(double xp, int placement, int numPlayers)
+    {
+        if (numPlayers == 2)
+        {
+            if (placement < 4)
+                xp *= 1.1;
+        }
+        else if (numPlayers == 3)
+        {
+            if (placement < 3)
+                xp *= 1.2;
+            else if (placement == 3)
+                xp *= 1.1;
+        }
+        else if (numPlayers == 4)
+        {
+            if (placement == 2)
+                xp *= 1.3;
+            else if (placement == 2)
+                xp *= 1.2;
+            else if (placement == 3)
+                xp *= 1.1;
+        }
+
+        return (int) xp;
+    }
+
+    public void CheckPlacementObjective(Player player, int placement, int numPlayers)
+    {
+        if (numPlayers < 2)
+            return;
+
+        var relative = 4 - numPlayers;
+        var place = placement - relative;
+
+        for (var j = numPlayers; j > 1; j-- )
+            for (var i = place; i <= j; i++)
+                if (j >= i )
+                    player.CheckObjective(ObjectiveEnum.MinigameMedal, string.Empty, j + "Players_" + i, 1, QuestCatalog);
+
+    }
+
+    public void CheckMedalObjective(Player player, List<string> medals)
+    {
+        foreach(var medal in medals)
+            player.CheckObjective(ObjectiveEnum.MinigameMedal, string.Empty, medal, 1, QuestCatalog);
     }
 }

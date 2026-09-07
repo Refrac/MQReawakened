@@ -70,7 +70,7 @@ public static class PlayerStatusEffectExtensions
         if (currentTime - player.TempData.UnderwaterTime < config.BaseUnderwaterTime)
             return;
 
-        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1, thread);
+        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1, config);
         player.TempData.UnderwaterTime += 2.5f;
     }
 
@@ -98,5 +98,38 @@ public static class PlayerStatusEffectExtensions
 
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
                  (int)ItemEffectType.Invincibility, 0, (int)durationInSeconds, true, player.CharacterName, true));
+    }
+
+    public static StatusEffectData GetPoisonEffectData(this Player player, int poisonDamage, string hazardId,
+        HazardRConfig hazardRConfig, ServerRConfig serverRConfig, TimerThread timerThread, int initDelay, int delay)
+    {
+        var damageCount = (int)Math.Ceiling((double)player.Character.CurrentLife / poisonDamage);
+        var invincibilityDuration = -1;
+
+        var hazardIsEnemy = player.Room.ContainsEnemy(hazardId);
+
+        if (hazardIsEnemy)
+        {
+            poisonDamage /= hazardRConfig.PoisonDamageOverTimeDeduction;
+            damageCount = hazardRConfig.PoisonDamageCountFromEnemy;
+            initDelay = 0;
+            delay = hazardRConfig.PoisonEffectInterval;
+            invincibilityDuration = 1;
+        }
+
+        return new StatusEffectData()
+        {
+            Player = player,
+            HazardDamage = poisonDamage,
+            EffectType = ItemEffectType.PoisonDamage,
+            HazardId = hazardId,
+            InitialDamageDelay = initDelay,
+            DamageDelay = delay,
+            DamageCount = damageCount,
+            InvincibilityDuration = invincibilityDuration,
+            HazardRConfig = hazardRConfig,
+            ServerRConfig = serverRConfig,
+            TimerThread = timerThread
+        };
     }
 }

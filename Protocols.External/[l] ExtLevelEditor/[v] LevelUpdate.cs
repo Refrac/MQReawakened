@@ -67,8 +67,9 @@ public class RoomUpdate : ExternalProtocol
 
             Player.UpdateTribeProgression();
 
-			UpdateLeaderboards();
-			
+            // Add existing scores to leaderboards
+            UpdateLeaderboards();
+            
             Player.TempData.FirstLogin = false;
         }
         else

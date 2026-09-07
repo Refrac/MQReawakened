@@ -90,7 +90,7 @@ public static class PlayerExtensions
         receive.SendXt("ci", send.UserId, info, send.GameObjectId, levelInfo.Name);
     }
 
-    public static void SendLevelUp(this Player player, ServerRConfig rConfig, ItemCatalog itemCatalog)
+    public static void SendLevelUp(this Player player, int level, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger, ServerRwConfig rwConfig, ItemCatalog itemCatalog)
     {
         var levelUpData = new LevelUpDataModel
         {
@@ -119,11 +119,11 @@ public static class PlayerExtensions
                     player.AddItem(item, amount, itemCatalog);
                 }
             }
-        
-        foreach (var currentPlayer in player.Room.GetPlayers())
-            currentPlayer.SendXt("ce", levelUpData, player.UserId);
 
         player.Character.Write.BadgePoints++;
+        
+		foreach (var currentPlayer in player.Room.GetPlayers())
+            currentPlayer.SendXt("ce", levelUpData, player.UserId);
 
         player.Character.AddHealthOnLevelUp(100);
 
@@ -133,7 +133,7 @@ public static class PlayerExtensions
 
         player.SendSyncEventToPlayer(new Health_SyncEvent(player.GameObjectId.ToString(), player.Room.Time,
             player.Character.MaxLife, player.Character.MaxLife, player.GameObjectId.ToString()));
-			
+
         if (player.Character.Allegiance != TribeType.Invalid)
         {
             if (player.Character.Write.TribesProgression.TryGetValue(player.Character.Allegiance, out var tribe))
