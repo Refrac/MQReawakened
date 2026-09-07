@@ -127,7 +127,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
             return;
         }
-        if (Room.ContainsEnemy(Id) && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(ServerRConfig), out var pet))
+        if (Room.ContainsEnemy(Id) && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
         {
             if (player.TempData.PetDefensiveBarrier)
             {

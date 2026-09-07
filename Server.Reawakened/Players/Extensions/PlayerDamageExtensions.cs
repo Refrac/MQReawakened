@@ -47,7 +47,7 @@ public static class PlayerDamageExtensions
         if (damage <= 0)
             damage = 1;
 
-        if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(serverRConfig), out var pet) && pet.ShieldingPlayer)
+        if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet) && pet.ShieldingPlayer)
             Math.Ceiling(damage *= pet.AbilityParams.DefensiveBonusRatio);
 
         if (player.Character.Pets.TryGetValue(player.GetEquippedPetId(serverRConfig), out var pet))
