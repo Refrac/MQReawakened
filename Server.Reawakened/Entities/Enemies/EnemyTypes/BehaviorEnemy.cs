@@ -18,16 +18,12 @@ using Server.Reawakened.XMLs.Data.Enemy.Enums;
 using Server.Reawakened.XMLs.Data.Enemy.Models;
 using Server.Reawakened.XMLs.Data.Enemy.States;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Server.Reawakened.Entities.Enemies.EnemyTypes;
 
-public class BehaviorEnemy : BaseEnemy
+public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
 {
-    [ThreadStatic]
-    private static List<Player> s_playerBuffer;
-
     public AIStatsGlobalComp Global;
     public AIStatsGenericComp Generic;
     public AIProcessData AiData;
@@ -40,11 +36,7 @@ public class BehaviorEnemy : BaseEnemy
     private float _lastUpdate;
 	
     private StateType _attackBehavior;
-
-    public BehaviorEnemy(EnemyData data) : base(data)
-    {
-    }
-
+    
     public override void Initialize()
     {
         Global = Room.GetEntityFromId<AIStatsGlobalComp>(Id);
@@ -81,7 +73,6 @@ public class BehaviorEnemy : BaseEnemy
 
         _attackBehavior = Global.AttackBehavior;
 
-        // Optimized dictionary allocation replacing LINQ ToDictionary
         var behaviorData = EnemyModel.BehaviorData;
         Behaviors = new Dictionary<StateType, AIBaseBehavior>(behaviorData.Count);
         foreach (var kvp in behaviorData)
@@ -118,17 +109,13 @@ public class BehaviorEnemy : BaseEnemy
         if (!hasDetected)
         {
             if (CurrentBehavior.TryUpdate())
-            {
                 if (AiData.Intern_FireProjectile)
                     FireProjectile(false);
-            }
 
             if (Global != null && CurrentState is var state &&
-                (state == Global.AwareBehavior || state is StateType.LookAround or StateType.Acting))
-            {
+            (state == Global.AwareBehavior || state is StateType.LookAround or StateType.Acting))
                 if (Room.Time >= _lastUpdate + CurrentBehavior.GetBehaviorTime())
                     CurrentBehavior.NextState();
-            }
         }
     }
 
@@ -183,10 +170,11 @@ public class BehaviorEnemy : BaseEnemy
             Position.Z
         );
 
-        var speed = new Vector2(
-            (float)Math.Cos(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed,
-            (float)Math.Sin(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed
-        );
+        var speed = new Vector2
+        {
+            x = (float)Math.Cos(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed,
+            y = (float)Math.Sin(AiData.Intern_FireAngle) * AiData.Intern_FireSpeed
+        };
 
         FireProjectile(position, speed, isGrenade);
 
@@ -256,14 +244,14 @@ public class BehaviorEnemy : BaseEnemy
         );
 
         if (sendAIDo)
-            player.SendSyncEventToPlayer(
-                AISyncEventHelper.AIDo(
-                    AiData.Sync_PosX, AiData.Sync_PosY, 1.0f,
-                    AiData.Sync_TargetPosX, AiData.Sync_TargetPosY, AiData.Intern_Dir, Global != null && CurrentState == Global.AwareBehavior,
-                    this
-                )
-            );
-        }
+			player.SendSyncEventToPlayer(
+				AISyncEventHelper.AIDo(
+					AiData.Sync_PosX, AiData.Sync_PosY, 1.0f,
+					AiData.Sync_TargetPosX, AiData.Sync_TargetPosY, AiData.Intern_Dir, Global != null && CurrentState == Global.AwareBehavior,
+					this
+				)
+			);
+    }
 
     public void EnemyAggroPlayer(Player player)
     {
