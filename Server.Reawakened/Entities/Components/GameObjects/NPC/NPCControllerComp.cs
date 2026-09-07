@@ -642,7 +642,7 @@ public class NPCControllerComp : Component<NPCController>
     {
         if (!player.Character.CurrentQuestDailies.ContainsKey(dailyObjectId) ||
             player.Character.CurrentQuestDailies.TryGetValue(dailyObjectId, out var dailyObject) &&
-            dailyObject.GameObjectId == dailyObjectId && DateTime.Now.Date > dailyObject.TimeOfHarvest.Date)
+            dailyObject.GameObjectId == dailyObjectId && DateTime.UtcNow.Date > dailyObject.TimeOfHarvest.Date)
         {
             player.Character.CurrentQuestDailies.Remove(dailyObjectId);
             return true;

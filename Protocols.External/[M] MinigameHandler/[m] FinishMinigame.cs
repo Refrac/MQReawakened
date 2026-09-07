@@ -81,7 +81,7 @@ public class FinishedMinigame : ExternalProtocol
         if (game == null)
             return;
 
-        var scoreTime = DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
+        var scoreTime = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
 
         var score = new TopScore
         (
@@ -120,7 +120,7 @@ public class FinishedMinigame : ExternalProtocol
                 switch (existingScore.ScoreType)
                 {
                     case ScoreType.Daily:
-                        if (existingScore.Score > score.Score || scoreDate.Date < DateTime.Now.Date)
+                        if (existingScore.Score > score.Score || scoreDate.Date < DateTime.UtcNow.Date)
                         {
                             topScores.Scores.Remove(existingScore);
                             topScores.Scores.Add(new TopScore(score, ScoreType.Daily));
@@ -128,7 +128,7 @@ public class FinishedMinigame : ExternalProtocol
                         }
                         break;
                     case ScoreType.Weekly:
-                        if (existingScore.Score > score.Score || ISOWeek.GetWeekOfYear(scoreDate) != ISOWeek.GetWeekOfYear(DateTime.Now) || scoreDate.Year != DateTime.Now.Year)
+                        if (existingScore.Score > score.Score || ISOWeek.GetWeekOfYear(scoreDate) != ISOWeek.GetWeekOfYear(DateTime.UtcNow) || scoreDate.Year != DateTime.UtcNow.Year)
                         {
                             topScores.Scores.Remove(existingScore);
                             topScores.Scores.Add(new TopScore(score, ScoreType.Weekly));
@@ -226,7 +226,7 @@ public class FinishedMinigame : ExternalProtocol
         if (player.Character.CurrentCollectedDailies.TryGetValue("WarriorGames", out var daily))
         {
             Logger.LogInformation("Player {character} has run Warrior Games {runs} times today.", player.CharacterName, daily.TimesHarvested);
-            if (DateTime.Now.Date > daily.TimeOfHarvest.Date)
+            if (DateTime.UtcNow.Date > daily.TimeOfHarvest.Date)
             {
                 player.Character.CurrentCollectedDailies.Remove("WarriorGames");
                 return true;
@@ -243,7 +243,7 @@ public class FinishedMinigame : ExternalProtocol
         player.Character.CurrentCollectedDailies.TryAdd("WarriorGames", new DailiesModel
         {
             GameObjectId = "WarriorGames",
-            TimeOfHarvest = DateTime.Now,
+            TimeOfHarvest = DateTime.UtcNow,
             TimesHarvested = 0,
         }
         );

@@ -56,7 +56,7 @@ public class TopScoresController(CharacterHandler characterHandler, TopScoresHan
         {
             var sortedScores = SortScores(game, topScores.Scores);
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var currentYear = now.Year;
             var currentDate = now.Date;
             var currentWeek = ISOWeek.GetWeekOfYear(now);

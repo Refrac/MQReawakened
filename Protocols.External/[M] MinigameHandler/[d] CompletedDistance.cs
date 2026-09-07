@@ -34,7 +34,7 @@ public class CompletedDistance : ExternalProtocol
         if (game == null)
             return;
 
-        var scoreTime = DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
+        var scoreTime = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
 
         var score = new TopScore
         (
@@ -73,7 +73,7 @@ public class CompletedDistance : ExternalProtocol
                 switch (existingScore.ScoreType)
                 {
                     case ScoreType.Daily:
-                        if (existingScore.Score < score.Score || scoreDate.Date < DateTime.Now.Date)
+                        if (existingScore.Score < score.Score || scoreDate.Date < DateTime.UtcNow.Date)
                         {
                             topScores.Scores.Remove(existingScore);
                             topScores.Scores.Add(new TopScore(score, ScoreType.Daily));
@@ -81,7 +81,7 @@ public class CompletedDistance : ExternalProtocol
                         }
                         break;
                     case ScoreType.Weekly:
-                        if (existingScore.Score < score.Score || ISOWeek.GetWeekOfYear(scoreDate) != ISOWeek.GetWeekOfYear(DateTime.Now) || scoreDate.Year != DateTime.Now.Year)
+                        if (existingScore.Score < score.Score || ISOWeek.GetWeekOfYear(scoreDate) != ISOWeek.GetWeekOfYear(DateTime.UtcNow) || scoreDate.Year != DateTime.UtcNow.Year)
                         {
                             topScores.Scores.Remove(existingScore);
                             topScores.Scores.Add(new TopScore(score, ScoreType.Weekly));

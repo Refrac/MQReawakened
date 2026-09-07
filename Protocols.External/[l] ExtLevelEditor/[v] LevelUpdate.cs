@@ -96,7 +96,7 @@ public class RoomUpdate : ExternalProtocol
         foreach (var status in Player.Character.StatusEffects.Effects)
         {
             Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(Player.GameObjectId, Player.Room.Time,
-                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.Now).TotalSeconds, true, status.Value.PrefabName, false));
+                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.UtcNow).TotalSeconds, true, status.Value.PrefabName, false));
         }
 
         foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
@@ -208,7 +208,7 @@ public class RoomUpdate : ExternalProtocol
             if (characterScore != null)
                 continue;
 
-            var scoreTime = DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
+            var scoreTime = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
             
             var leaderboardScore = score.Key == "LV_CRS_Minigame_MonkeyBlast" ? score.Value : score.Value * 100;
 

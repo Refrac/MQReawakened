@@ -136,6 +136,6 @@ public class ItemRConfig : IRConfig
         PetPosYOffset = 0.75f;
         PetPosOnButtonYOffset = 0.25f;
 
-        EmptySlot = new ItemModel(-1, 0, 0, DateTime.Now);
+        EmptySlot = new ItemModel(-1, 0, 0, DateTime.UtcNow);
     }
 }

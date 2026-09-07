@@ -71,7 +71,7 @@ public class Ban : SlashCommand
             online.SendXt("yM", type.ToJson());
 
             online.Account.SetBanned(true);
-            online.Account.SetBanTags(null, DateTime.Now, time);
+            online.Account.SetBanTags(null, DateTime.UtcNow, time);
 
             Log($"Banned {online.Account.Username}'s account{online.Account.FormatBanTime()}.", player);
             
@@ -87,7 +87,7 @@ public class Ban : SlashCommand
                 time = args.Length < 3 ? TimeSpan.MaxValue : target.ParseTime(args[2]);
 
                 target.SetBanned(true);
-                target.SetBanTags(null, DateTime.Now, time);
+                target.SetBanTags(null, DateTime.UtcNow, time);
 
                 AccountHandler.Update(target.Write);
 

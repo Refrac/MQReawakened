@@ -36,11 +36,11 @@ public static class PlayerDamageExtensions
         }
 
         player.ApplyCharacterDamage(status.HazardDamage, ItemEffectType.PoisonDamage,
-            status.HazardId, status.InvincibilityDuration, status.ServerRConfig);
+            status.HazardId, status.InvincibilityDuration);
     }
 
     public static void ApplyCharacterDamage(this Player player, float damage, ItemEffectType effectType,
-        string originId, int duration, ServerRConfig serverRConfig)
+        string originId, int duration)
     {
         if (player == null || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.Character.CurrentLife <= 0) return;
 
@@ -81,13 +81,13 @@ public static class PlayerDamageExtensions
     }
 
     public static void ApplyDamageByPercent(this Player player, double percentage, ItemEffectType effectType,
-        string hazardId, int duration, ServerRConfig serverRConfig)
+        string hazardId, int duration)
     {
         var health = (double)player.Character.MaxLife;
 
         var damage = Convert.ToSingle(Math.Ceiling(health * percentage));
 
-        ApplyCharacterDamage(player, damage, effectType, hazardId, duration, serverRConfig);
+        ApplyCharacterDamage(player, damage, effectType, hazardId, duration);
     }
 
     public static void KnockoutPlayer(this Player player)

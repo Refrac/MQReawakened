@@ -63,7 +63,7 @@ public class Mute : SlashCommand
             time = args.Length < 3 ? TimeSpan.MaxValue : online.Account.ParseTime(args[2]);
 
             online.Account.SetMuted(true);
-            online.Account.SetMuteTags(null, DateTime.Now, time);
+            online.Account.SetMuteTags(null, DateTime.UtcNow, time);
 
             Log($"Muted {online.Account.Username}'s account{online.Account.FormatMuteTime()}.", player);
 
@@ -83,7 +83,7 @@ public class Mute : SlashCommand
                 time = args.Length < 3 ? TimeSpan.MaxValue : target.ParseTime(args[2]);
 
                 target.SetMuted(true);
-                target.SetMuteTags(null, DateTime.Now, time);
+                target.SetMuteTags(null, DateTime.UtcNow, time);
 
                 AccountHandler.Update(target.Write);
 

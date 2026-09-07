@@ -28,7 +28,7 @@ public static class GetInternalXml
             var itemName = string.Empty;
             var count = -1;
             var bindingCount = -1;
-            var delayUseExpiry = DateTime.Now;
+            var delayUseExpiry = DateTime.UtcNow;
             var weight = 1;
 
             foreach (XmlAttribute itemAttribute in item.Attributes)

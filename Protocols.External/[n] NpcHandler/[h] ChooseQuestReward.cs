@@ -70,7 +70,7 @@ public class ChooseQuestReward : ExternalProtocol
                 {
                     GameObjectId = completedQuest.Id.ToString(),
                     LevelId = Player.Room.LevelInfo.LevelId,
-                    TimeOfHarvest = DateTime.Now
+                    TimeOfHarvest = DateTime.UtcNow
                 });
             }
             else

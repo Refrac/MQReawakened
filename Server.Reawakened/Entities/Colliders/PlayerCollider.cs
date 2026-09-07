@@ -39,7 +39,7 @@ public class PlayerCollider(Player player) : BaseCollider
             //        aiProjectileCollider.HazardRConfig, aiProjectileCollider.ServerRConfig, aiProjectileCollider.TimerThread));
             //
             //else
-            player.ApplyCharacterDamage(damage, aiProjectileCollider.Effect, aiProjectileCollider.Id, 1, aiProjectileCollider.ServerRConfig);
+            player.ApplyCharacterDamage(damage, aiProjectileCollider.Effect, aiProjectileCollider.Id, 1);
 
             player.TemporaryInvincibility(1);
 			
@@ -54,7 +54,7 @@ public class PlayerCollider(Player player) : BaseCollider
             if (!player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
             {
                 if (stomper.Hazard)
-                    player.ApplyDamageByPercent(0.1, ItemEffectType.StompDamage, stomper.Id, 1, stomper.ServerRConfig);
+                    player.ApplyDamageByPercent(0.1, ItemEffectType.StompDamage, stomper.Id, 1);
 
                 Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.StompDamage, 1, 2, true, stomper.Id, false));
                 player.TemporaryInvincibility(2);
