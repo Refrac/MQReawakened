@@ -70,7 +70,7 @@ public static class PlayerStatusEffectExtensions
         if (currentTime - player.TempData.UnderwaterTime < config.BaseUnderwaterTime)
             return;
 
-        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1, config);
+        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1, thread);
         player.TempData.UnderwaterTime += 2.5f;
     }
 

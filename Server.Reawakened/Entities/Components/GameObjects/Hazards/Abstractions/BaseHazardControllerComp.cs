@@ -127,8 +127,8 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
             return;
         }
-
-        if (Room.ContainsEnemy(Id))
+		
+        if (Room.ContainsEnemy(Id) && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
         {
             if (player.TempData.PetDefensiveBarrier)
             {
@@ -189,7 +189,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
             case ItemEffectType.EarthDamage:
             case ItemEffectType.IceDamage:
             case ItemEffectType.LightningDamage:
-                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay), ServerRConfig);
+                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay), TimerThread);
                 break;
             case ItemEffectType.PoisonDamage:
                 TimerThread.RunDelayed(ApplyPoisonEffect, new PoisonEffect() { Hazzard = this, Player = player }, TimeSpan.FromSeconds(InitialDamageDelay));
@@ -201,8 +201,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 Logger.LogInformation("Unknown status effect {statusEffect} from {prefabName}", HurtEffect, PrefabName);
 
                 Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.BluntDamage, 1, 1, true, Id, false));
-
-                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay), ServerRConfig);
+                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay), TimerThread);
 				
                 break;
         }

@@ -23,10 +23,10 @@ public static class PetAbilityExtensions
             )
         );
 
-    public static void SendAbility(this Player petOwner, ItemCatalog itemCatalog,
-        ServerRConfig serverRConfig, TimerThread timerThread, WorldStatistics worldStatistics)
+    public static void SendAbility(this Player petOwner,
+        TimerThread timerThread, ServerRConfig serverRConfig)
     {
-        if (!petOwner.Character.Pets.TryGetValue(petOwner.GetEquippedPetId(serverRConfig), out var pet))
+        if (!petOwner.Character.Pets.TryGetValue(petOwner.GetItemIdOfEquippedPet(), out var pet))
             return;
 
         pet.InCoopJumpState = false;
@@ -39,13 +39,7 @@ public static class PetAbilityExtensions
         petOwner.Room.SendSyncEvent(new PetState_SyncEvent(petOwner.GameObjectId, petOwner.Room.Time,
             PetInformation.StateSyncType.Ability, petOwner.GetSyncParams(pet.AbilityParams)));
 
-        if (pet.AbilityParams.AbilityType is PetAbilityType.Defence or PetAbilityType.DefensiveBarrier)
-            petOwner.Room.SendSyncEvent(new StatusEffect_SyncEvent(petOwner.GameObjectId, petOwner.Room.Time,
-                (int)ItemEffectType.Defence, (int)pet.AbilityParams.DefensiveBonusRatio, (int)pet.AbilityParams.Duration,
-                true, itemCatalog.GetItemFromId(int.Parse(pet.PetId)).PrefabName, false));
-
         pet.UseEnergy(petOwner);
-        pet.StartEnergyRegeneration(petOwner, timerThread, worldStatistics);
 
         //Sends method of ability type after a short delay.
         timerThread.RunInterval(pet.GetAbilityType(), new PlayerTimer() { Player = petOwner },
@@ -65,8 +59,14 @@ public static class PetAbilityExtensions
             _ => null,
         };
 
-    private static string GetSyncParams(this Player petOwner, PetAbilityParams abilityParams) =>
-        abilityParams.IsAttackAbility() ? petOwner.GetDetectedEnemies().GetClosestEnemy().Id : petOwner.GameObjectId;
+    private static string GetSyncParams(this Player petOwner, ServerRConfig serverRConfig) =>
+        petOwner.Character.Pets.TryGetValue(petOwner.GetItemIdOfEquippedPet(), out var pet)
+            ? pet.AbilityParams.IsAttackAbility()
+                ? petOwner.TempData.EnemiesInPetAbilityZone.Count > 0
+                    ? GetClosestEnemy(petOwner.TempData.EnemiesInPetAbilityZone).Id
+                    : string.Empty
+                : petOwner.GameObjectId
+            : string.Empty;
 
     private static void PetHealPlayer(ITimerData data)
     {
@@ -78,7 +78,7 @@ public static class PetAbilityExtensions
         if (player.TempData.IsKnockedOut)
             return;
 
-        if (!player.Character.Pets.TryGetValue(player.GetEquippedPetId(new ServerRConfig()), out var pet))
+        if (!player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
         {
             player.SendDeactivateState();
             return;
@@ -98,8 +98,8 @@ public static class PetAbilityExtensions
         if (player.TempData.IsKnockedOut)
             return;
 
-        if (!player.Character.Pets.TryGetValue(player.GetEquippedPetId
-            (new ServerRConfig()), out var pet) || !pet.AbilityParams.IsAttackAbility())
+        if (!player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet
+            (), out var pet) || !pet.AbilityParams.IsAttackAbility())
             return;
 
         var detectedEnemies = player.GetDetectedEnemies();
@@ -129,8 +129,8 @@ public static class PetAbilityExtensions
         if (player.TempData.IsKnockedOut)
             return;
 
-        if (!player.Character.Pets.ContainsKey
-            (player.GetEquippedPetId(new ServerRConfig())))
+        if (!player.Character.Pets.TryGetValue
+            (player.GetItemIdOfEquippedPet(), out var pet))
         {
             player.SendDeactivateState();
             return;
@@ -149,8 +149,8 @@ public static class PetAbilityExtensions
         if (player.TempData.IsKnockedOut)
             return;
 
-        if (!player.Character.Pets.ContainsKey
-            (player.GetEquippedPetId(new ServerRConfig())))
+        if (!player.Character.Pets.TryGetValue
+            (player.GetItemIdOfEquippedPet(), out var pet))
         {
             player.SendDeactivateState();
             return;
@@ -194,6 +194,32 @@ public static class PetAbilityExtensions
         return detectedEnemies[closestDistance];
     }
 
+    public static Dictionary<float, BaseEnemy> GetPetDetectedEnemies(this PetAbilityParams abilityParams,
+        Player player, ServerRConfig serverRConfig)
+    {
+        if (player == null || !player.Character.Pets.TryGetValue
+            (player.GetItemIdOfEquippedPet(), out var pet) ||
+            player.TempData.EnemiesInPetAbilityZone == null)
+            return null;
+
+        player.TempData.EnemiesInPetAbilityZone.Clear();
+
+        var petPosition = player.GetCurrentPetPos();
+        var detectedEnemies = new Dictionary<float, BaseEnemy>();
+
+        foreach (var enemy in player.Room.GetEnemies().Where
+            (enemy => enemy.ParentPlane == player.GetPlayersPlaneString() &&
+            abilityParams.EnemyInDetectionZone(enemy, petPosition)))
+        {
+            var distanceFromPlayer = (float)Math.Sqrt(
+                Math.Pow(petPosition.x - enemy.Position.X, 2) +
+                Math.Pow(petPosition.y - enemy.Position.Y, 2));
+
+            detectedEnemies.TryAdd(distanceFromPlayer, enemy);
+        }
+
+        return player.TempData.EnemiesInPetAbilityZone = detectedEnemies;
+    }
     private static bool EnemyInDetectionZone(this PetAbilityParams abilityParams, BaseEnemy enemy, Vector3 petPosition) =>
        petPosition.x + abilityParams.DetectionZone.x >= enemy.Position.X &&
         petPosition.y + abilityParams.DetectionZone.y >= enemy.Position.Y &&

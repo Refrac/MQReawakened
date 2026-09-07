@@ -250,7 +250,7 @@ public abstract class BaseEnemy : IDestructible
         if (Room.IsObjectKilled(Id) || player == null)
             return;
 
-        if (!player.Character.Pets.TryGetValue(player.GetEquippedPetId(ServerRConfig), out var pet))
+        if (player == null || !player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
         {
             Logger.LogError("Could not find pet that damaged {PrefabName}! Returning...", PrefabName);
             return;

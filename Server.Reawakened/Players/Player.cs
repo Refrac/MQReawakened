@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using A2m.Server;
+using Microsoft.Extensions.Logging;
 using Server.Base.Core.Models;
 using Server.Base.Database.Accounts;
 using Server.Base.Network;
@@ -8,9 +9,11 @@ using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Players.Models.Misc;
+using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Services;
+using Server.Reawakened.XMLs.Bundles.Base;
 
 namespace Server.Reawakened.Players;
 
@@ -36,6 +39,21 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
 
     public void RemovedState(NetState _, IServiceProvider services,
         Microsoft.Extensions.Logging.ILogger logger) => Remove(logger);
+
+    public void Update()
+    {
+        TempData.PlayerCollider?.RunCollisionDetection();
+        UpdatePet();
+    }
+
+    public void UpdatePet()
+    {
+        if (Character.PetItemId == 0 || !Character.Pets.TryGetValue(Character.PetItemId.ToString(), out var pet))
+            return;
+
+        pet.RegenEnegy(this);
+    }
+
 
     public void Remove(Microsoft.Extensions.Logging.ILogger logger)
     {

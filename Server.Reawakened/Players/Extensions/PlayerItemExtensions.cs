@@ -118,7 +118,7 @@ public static class PlayerItemExtensions
 
         if (player == null)
             foreach (var nearPlayer in room.GetNearbyPlayers(position, radius))
-                nearPlayer.ApplyCharacterDamage(damage, ItemEffectType.BluntDamage, nearPlayer.GameObjectId, 1, serverRConfig);
+                nearPlayer.ApplyCharacterDamage(damage, ItemEffectType.BluntDamage, nearPlayer.GameObjectId, 1, thread);
         }
         else
         {

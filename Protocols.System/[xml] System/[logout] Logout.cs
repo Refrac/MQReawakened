@@ -2,6 +2,9 @@
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Extensions;
+using Server.Reawakened.Players.Helpers;
+using Server.Reawakened.Players.Models.Pets;
+using Server.Reawakened.XMLs.Bundles.Base;
 using System.Xml;
 
 namespace Protocols.System._xml__System;
@@ -17,7 +20,13 @@ public class Logout : SystemProtocol
     {
         if (Player != null)
         {
-            if (Player.Character != null)
+            PetModel pet = null;
+            Player?.Character?.Pets.TryGetValue(Player.GetItemIdOfEquippedPet(), out pet);
+
+            if (Player.GetItemIdOfEquippedPet() != "0" && pet != null)
+                pet.LogoutAndDespawnPet(Player);
+
+            lock (PlayerContainer.Lock)
             {
                 if (Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var pet))
                 {

@@ -24,8 +24,8 @@ public class UpdatePetMode : ExternalProtocol
     public override void Run(string[] message)
     {
         if (Player == null || !Player.Character.Pets.TryGetValue
-            (Player.GetEquippedPetId(ServerRConfig), out var pet) || Player.Character.Pets.Count == 0 ||
-            !PetAbilities.PetAbilityData.TryGetValue(int.Parse(Player.GetEquippedPetId(ServerRConfig)), out var petAbilityParams))
+            (Player.GetItemIdOfEquippedPet(), out var pet) || Player.Character.Pets.Count == 0 ||
+            !PetAbilities.PetAbilityData.TryGetValue(int.Parse(Player.GetItemIdOfEquippedPet()), out var petAbilities))
         {
             Logger.LogInformation("{characterName} has no pet equipped!", Player.CharacterName);
             return;
@@ -56,6 +56,6 @@ public class UpdatePetMode : ExternalProtocol
             return;
         }
 
-        Player.SendAbility(ItemCatalog, ServerRConfig, TimerThread, WorldStatistics);
+        Player.SendAbility(TimerThread, ServerRConfig);
     }
 }

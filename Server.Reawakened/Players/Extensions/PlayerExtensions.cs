@@ -265,8 +265,8 @@ public static class PlayerExtensions
         player.Character.SetLevelXp(level, config);
         player.SendLevelUp(config, itemCatalog);
 
-        if (player.Character.Pets.TryGetValue(player.GetEquippedPetId(config), out var pet))
-            pet.GainEnergy(player, player.GetMaxPetEnergy(worldStatistics, config));
+        if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
+            pet.GainMaxPetEnergy(player, worldStatistics);
 
         //Temporary NCash reward until original level up system is implemented.
         player.AddNCash(config.LevelUpNCashReward);

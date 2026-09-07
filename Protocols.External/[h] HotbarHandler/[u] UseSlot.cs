@@ -78,7 +78,7 @@ public class UseSlot : ExternalProtocol
                 HandlePetUse(usedItem);
                 break;
             case ItemActionType.Pet:
-                if (!Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var pet))
+                if (!Player.Character.Pets.TryGetValue(Player.Character.PetItemId.ToString(), out var pet))
                 {
                     Logger.LogInformation("Could not find pet for {characterName}!", Player.CharacterName);
                     return;
@@ -207,7 +207,7 @@ public class UseSlot : ExternalProtocol
 
     private void HandlePetUse(ItemDescription usedItem)
     {
-        if (!Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var petUse))
+        if (!Player.Character.Pets.TryGetValue(Player.GetItemIdOfEquippedPet(), out var petUse))
         {
             Logger.LogInformation("Could not find pet for {characterName}!", Player.CharacterName);
             return;

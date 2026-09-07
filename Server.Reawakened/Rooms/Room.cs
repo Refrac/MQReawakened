@@ -221,7 +221,7 @@ public class Room : Timer
             }
             else
             {
-                player.TempData.PlayerCollider?.RunCollisionDetection();
+                player.Update();
             }
         }
 
@@ -373,11 +373,11 @@ public class Room : Timer
             return _players.TryGetValue(id, out var value) ? value : null;
     }
 
-    public bool IsGameObjectOfPet(string id, ServerRConfig serverRConfig)
+    public bool IsGameObjectOfPet(string id)
     {
         foreach (var player in _players)
-            if (player.Value.Character.Pets.TryGetValue(player.Value.GetEquippedPetId(serverRConfig), out var pet))
-                if (pet.CoopTriggerableId == id) return true;
+            if (player.Value.Character.Pets.TryGetValue(player.Value.GetItemIdOfEquippedPet(), out var pet))
+                if (pet.GameObjectId == id) return true;
 
         return false;
     }

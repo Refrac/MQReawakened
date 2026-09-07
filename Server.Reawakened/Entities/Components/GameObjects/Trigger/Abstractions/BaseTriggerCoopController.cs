@@ -103,7 +103,8 @@ public abstract class BaseTriggerCoopController<T> : Component<T>, ITriggerComp,
 
         var validQuestProgress = true;
 
-        if (player == null && !Room.IsGameObjectOfPet(ci, ServerRConfig) || ci == "0")
+        if (player == null && !Room.IsGameObjectOfPet(ci) || ci == "0")
+
         {
             CurrentPhysicalInteractors.Remove(ci);
             return null;
@@ -399,8 +400,8 @@ public abstract class BaseTriggerCoopController<T> : Component<T>, ITriggerComp,
             if (StayTriggeredOnReceiverActivated && triggerReceiverActivated)
                 return;
 
-            if (StayTriggeredOnUnpressed || player.Character != null && player.Character.Pets.TryGetValue(player.GetEquippedPetId(ServerRConfig), out var pet)
-                && Id == pet.CoopTriggerableId && pet.InCoopState())
+            if (StayTriggeredOnUnpressed || player.Character != null && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet)
+                && player.TempData.CurrentCoopTriggerId == Id && pet.InCoopState())
                 return;
 
             if (LastActivationTime + ActivationTimeAfterFirstInteraction > Room.Time && ActivationTimeAfterFirstInteraction > 0)

@@ -54,11 +54,7 @@ public class RoomUpdate : ExternalProtocol
             enemy.SendAiData(Player, Player.Room.GetPlayers().Length > 1);
 
         Player.TempData.CurrentArena = null;
-
-        Player.Room.SendCharacterInfo(Player);
-
-        foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
-            npc.SendNpcInfo(Player);
+        Player.TempData.CashFromCurrentTrail = 0;
 
         if (Player.TempData.FirstLogin)
         {
@@ -84,9 +80,34 @@ public class RoomUpdate : ExternalProtocol
             Player.DiscoverTribe(levelInfo.Tribe);
         }
 
-        if (Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var pet) &&
-            pet != null && pet.IsEquipped && PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.PetId), out var petAbility))
-            Player.EquipPet(petAbility, WorldStatistics, ServerRConfig, ItemCatalog);
+        Player.Room.SendCharacterInfo(Player);
+
+        //Check for player life
+        if (Player.Character.CurrentLife < 1)
+        {
+            Player.Character.SetHealthStat(ItemCatalog);
+            Player.Room.SendSyncEvent(new Health_SyncEvent(Player.GameObjectId.ToString(), Player.Room.Time,
+                Player.Character.CurrentLife, Player.Character.MaxLife, Player.GameObjectId.ToString()));
+        }
+
+        //Reapply still-active status effects
+        Player.Character.StatusEffects.UpdateStatus();
+        foreach (var status in Player.Character.StatusEffects.Effects)
+        {
+            Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(Player.GameObjectId, Player.Room.Time,
+                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.Now).TotalSeconds, true, status.Value.PrefabName, false));
+        }
+
+        foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
+            npc.SendNpcInfo(Player);
+
+        if (Player.Character.Pets.TryGetValue(Player.GetItemIdOfEquippedPet(), out var pet) && pet != null)
+        {
+            pet.ItemId ??= Player.GetItemIdOfEquippedPet();
+
+            if (PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.ItemId), out var petAbility))
+                Player.EquipPet(pet.ItemId, petAbility, ItemCatalog, WorldStatistics, ServerRConfig, ItemRConfig);
+        }
     }
 
     private string GetGameObjectStore(Room room)

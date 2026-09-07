@@ -17,9 +17,8 @@ public class TemporaryDataModel
     public int Locale { get; set; }
 
     public bool OnGround { get; set; } = false;
-    public bool Underwater { get; set; } = false;
-    public Timer UnderwaterTimer { get; set; } = null;
-    public Timer PetEnergyRegenTimer { get; set; } = null;
+    public float UnderwaterTime { get; set; } = 0;
+    public Timer PoisonEffectTimer { get; set; } = null;
     public bool BananaBoostsElixir { get; set; }
     public bool ReputationBoostsElixir { get; set; }
     public bool IsSuperStomping { get; set; } = false;
@@ -43,6 +42,8 @@ public class TemporaryDataModel
 
     public PlayerCollider PlayerCollider { get; set; }
 
-    public Vector3 CopyPosition() =>
+    public DateTime LastPetEnergyRegen { get; set; }
+
+    public Vector3Model CopyPosition() =>
         new(Position.X, Position.Y, Position.Z);
 }

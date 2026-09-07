@@ -97,7 +97,22 @@ public class UseItem : ExternalProtocol
 
     private void HandleConsumable(ItemDescription usedItem)
     {
-        Player.HandleItemEffect(usedItem, TimerThread, ItemRConfig, ServerRConfig, Logger);
+        if (usedItem.ItemActionType == ItemActionType.PetUse)
+        {
+            if (!Player.Character.Pets.TryGetValue(Player.GetItemIdOfEquippedPet(), out var pet))
+            {
+                Logger.LogWarning("Couldn't find equipped pet for {characterName}", Player.CharacterName);
+                return;
+            }
+
+            if (pet.PetIsBusy(Player))
+            {
+                //Send pet is busy popup.
+                return;
+            }
+        }
+
+        Player.HandleItemEffect(usedItem, TimerThread, ServerRConfig, Logger, ItemCatalog);
 
         var removeFromHotbar = true;
 

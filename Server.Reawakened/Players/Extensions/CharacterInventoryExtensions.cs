@@ -28,7 +28,7 @@ public static class CharacterInventoryExtensions
                     if (serverRConfig.GameVersion <= GameVersion.vMinigames2012)
                         break;
                     
-                    if (!player.Character.Pets.TryGetValue(player.GetEquippedPetId(serverRConfig), out var pet))
+                    if (!player.Character.Pets.TryGetValue(player.Character.PetItemId.ToString(), out var pet))
                     {
                         logger.LogWarning("Couldn't find equipped pet for {characterName}", player.CharacterName);
                         return;
@@ -206,8 +206,8 @@ public static class CharacterInventoryExtensions
         hotbar.HotbarButtons[slotId] = config.EmptySlot;
     }
 
-    public static void EquipPet(this Player player, PetAbilityParams petAbilityParams,
-     WorldStatistics worldStatistics, ServerRConfig serverRConfig, ItemCatalog itemCatalog)
+    public static void EquipPet(this Player player, string petId, PetAbilityParams petAbilityParams, ItemCatalog itemCatalog,
+        WorldStatistics worldStatistics, ServerRConfig serverRConfig, ItemRConfig itemRConfig)
     {
         if (player == null || !player.Character.Hotbar.HotbarButtons.ContainsKey(serverRConfig.PetHotbarIndex))
             return;
@@ -227,13 +227,12 @@ public static class CharacterInventoryExtensions
 
         player.Character.Write.PetItemId = int.Parse(petId);
 
-        currentPet.LastTimePetWasEquipped = DateTime.Now;
-        currentPet.IsEquipped = true;
-        currentPet.SpawnPet(player, petAbilityParams, refillCurrentEnergy, worldStatistics, serverRConfig);
+        currentPet.SpawnPet(player, petAbilityParams, true, refillEnergy, itemCatalog,
+            worldStatistics, itemRConfig);
     }
 
-    public static void UnequipPet(this Player player, PetAbilityParams petAbilityParams,
-        WorldStatistics worldStatistics, ServerRConfig serverRConfig, ItemCatalog itemCatalog)
+    public static void UnequipPet(this Player player, string petId, PetAbilityParams petAbilityParams, ItemCatalog itemCatalog,
+        WorldStatistics worldStatistics, ItemRConfig itemRConfig)
     {
         if (player == null) return;
 
@@ -245,19 +244,17 @@ public static class CharacterInventoryExtensions
 
         else
         {
+            currentPet.SpawnPet(player, petAbilityParams, false, false, itemCatalog,
+                worldStatistics, itemRConfig);
             player.Character.Write.PetItemId = 0;
             currentPet.IsEquipped = false;
             currentPet.DespawnPet(player, petAbilityParams, worldStatistics, serverRConfig);
         }
     }
 
-    public static string GetEquippedPetId(this Player player, ServerRConfig serverRConfig) =>
-        player.Character.Hotbar.HotbarButtons.TryGetValue
-        (serverRConfig.PetHotbarIndex, out var petItem) ? petItem.ItemId.ToString() : 0.ToString();
+    public static string GetItemIdOfEquippedPet(this Player player) => player?.Character == null ? "0" : player.Character.PetItemId.ToString();
 
-    public static int GetMaxPetEnergy(this Player player, WorldStatistics worldStatistics, ServerRConfig config) =>
-        // Needed due to pets not having abilities/energy in early 2012
-        config.GameVersion < GameVersion.vLate2012
-            ? 0
-            : worldStatistics.Statistics[ItemEffectType.PetEnergyValue][WorldStatisticsGroup.Pet][player.Character.GlobalLevel];
+    public static string GetGameObjectIdOfEquippedPet(this Player player) =>
+        player != null && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet)
+            ? pet.GameObjectId : "0";
 }
