@@ -72,7 +72,7 @@ public class RoomUpdate : ExternalProtocol
             Player.UpdateTribeProgression();
 
 			UpdateLeaderboards();
-
+			
             Player.TempData.FirstLogin = false;
         }
         else

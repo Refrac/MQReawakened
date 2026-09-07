@@ -69,7 +69,6 @@ public class State : ExternalProtocol
                     break;
                 case SyncEvent.EventType.ChargeAttack:
                     Player.TempData.IsSuperStomping = true;
-                    Player.TempData.Invincible = true;
 
                     var attack = new ChargeAttack_SyncEvent(syncEvent);
                     var superStompDamage = (int)Math.Ceiling(WorldStatistics.GetValue(ItemEffectType.AbilityPower, WorldStatisticsGroup.Player, Player.Character.GlobalLevel) +
@@ -106,7 +105,6 @@ public class State : ExternalProtocol
                     break;
                 case SyncEvent.EventType.ChargeAttackStop:
                     Player.TempData.IsSuperStomping = false;
-                    Player.TempData.Invincible = false;
 
                     Player.RemovePlayerProjectile();
                     
@@ -199,6 +197,7 @@ public class State : ExternalProtocol
 
     private void RequestRespawn(string entityId, float triggerTime)
     {
+        Player.TemporaryInvincibility(2);
         Player.SendSyncEventToPlayer(new RequestRespawn_SyncEvent(entityId.ToString(), triggerTime));
 
         Player.TempData.Invincible = true;
@@ -216,18 +215,9 @@ public class State : ExternalProtocol
             Player.SendSyncEventToPlayer(new PhysicTeleport_SyncEvent(Player.GameObjectId.ToString(), Player.Room.Time,
             respawnPosition.Position.X, respawnPosition.Position.Y, respawnPosition.IsOnBackPlane(Logger)));
 
-        TimerThread.RunDelayed(DisableInvincibility, new PlayerTimer() { Player = Player }, TimeSpan.FromSeconds(1.5));
-    }
+        Player.ResetUnderwaterTime();
 
-    private static void DisableInvincibility(ITimerData data)
-    {
-        if (data is not PlayerTimer playerTimer)
-            return;
-
-        if (playerTimer.Player.TempData.Invincible)
-            playerTimer.Player.TempData.Invincible = false;
-
-        playerTimer.Player.TempData.IsKnockedOut = false;
+        Player.TempData.IsKnockedOut = false;
     }
 
     public void LogEvent(SyncEvent syncEvent, string entityId, Room room)

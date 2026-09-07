@@ -26,7 +26,55 @@ public static class PlayerStatusEffectExtensions
     //Doesn't seem to apply fast enough.
     public static void NullifySlowStatusEffect(this Player player, string hazardId) =>
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-                (int)ItemEffectType.NullifySlowStatusEffect, 1, 1, true, hazardId, true));
+                (int)status.EffectType, -1, -1, false, status.HazardId, false));
+    }
+
+    // SLOW EFFECT
+    public static void ApplySlowEffect(this Player player)
+    {
+        player.TempData.IsSlowed = true;
+
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+        (int)ItemEffectType.SlowStatusEffect, -1, -1, true, string.Empty, false));
+    }
+
+    public static void NullifySlowStatusEffect(this Player player)
+    {
+        if (player == null) return;
+
+        player.TempData.IsSlowed = false;
+
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+                (int)ItemEffectType.SlowStatusEffect, -1, -1, false, string.Empty, false));
+
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+            (int)ItemEffectType.NullifySlowStatusEffect, 1, 1, true, string.Empty, false));
+    }
+
+    public static void RunUnderwaterTick(this Player player, ServerRConfig config, TimerThread thread)
+    {
+        if (player.Character.StatusEffects.GetEffect(ItemEffectType.WaterBreathing) > 0)
+        {
+            player.ResetUnderwaterTime();
+            return;
+        }
+
+        var currentTime = player.Room.Time;
+
+        if (player.TempData.UnderwaterTime == 0)
+        {
+            player.TempData.UnderwaterTime = currentTime;
+            return;
+        }
+
+        if (currentTime - player.TempData.UnderwaterTime < config.BaseUnderwaterTime)
+            return;
+
+        player.ApplyDamageByPercent(0.1, ItemEffectType.WaterDamage, "0", 1, config);
+        player.TempData.UnderwaterTime += 2.5f;
+    }
+
+    public static void ResetUnderwaterTime(this Player player) => player.TempData.UnderwaterTime = 0;
 
     public static bool HasNullifyEffect(this Player player, ItemCatalog itemCatalog) =>
      player.Character.Equipment.EquippedItems
@@ -44,36 +92,11 @@ public static class PlayerStatusEffectExtensions
         player.ApplyCharacterDamage(damage, hazardId, hurtLength, serverRConfig, timerThread);
     }
 
-    public static void TemporaryInvincibility(this Player player, TimerThread timerThread,
-        ServerRConfig serverRConfig, double durationInSeconds)
+    public static void TemporaryInvincibility(this Player player, double durationInSeconds)
     {
-        player.TempData.Invincible = true;
-
-        //ItemEffectType Invincibility doesn't exist <= Late 2012.
-        var effectType = serverRConfig.GameVersion > Core.Enums.GameVersion.vLate2012 ? ItemEffectType.Invincibility : ItemEffectType.Unknown;
+        if (durationInSeconds <= 0) return;
 
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-                 (int)effectType, 0, (int)durationInSeconds, true, player.CharacterName, true));
-
-        var invincibleData = new InvincibilityData()
-        {
-            Player = player,
-            IsInvincible = false
-        };
-
-        timerThread.RunDelayed(DisableInvincibility, invincibleData, TimeSpan.FromSeconds(durationInSeconds));
-    }
-
-    public class InvincibilityData() : PlayerTimer
-    {
-        public bool IsInvincible;
-    }
-
-    public static void DisableInvincibility(ITimerData data)
-    {
-        if (data is not InvincibilityData invincible)
-            return;
-
-        invincible.Player.TempData.Invincible = false;
+                 (int)ItemEffectType.Invincibility, 0, (int)durationInSeconds, true, player.CharacterName, true));
     }
 }

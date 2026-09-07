@@ -14,6 +14,8 @@ public class StartPlayRoom : ExternalProtocol
 
     public override void Run(string[] message)
     {
+        Player.TemporaryInvincibility(2);
+		
         Player.QuickJoinRoom(Player.GetLevelId(), WorldHandler, out var reason);
 
         SendXt("lz", reason.GetJoinReasonError(), Player.Room.LevelInfo.LevelId, Player.Room.LevelInfo.Name);

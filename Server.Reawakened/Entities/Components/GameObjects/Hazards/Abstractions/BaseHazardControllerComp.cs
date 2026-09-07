@@ -120,7 +120,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
     //Standard Hazards
     public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player)
     {
-        if (!notifyCollisionEvent.Colliding || player.TempData.Invincible)
+        if (!notifyCollisionEvent.Colliding || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
         {
             if (EffectType == ItemEffectType.WaterBreathing)
                 ApplyWaterBreathing(player);
@@ -145,7 +145,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
         if (player == null)
             return;
 
-        if (player.TempData.Invincible)
+        if (player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
             return;
 
         if ((TimedHazard || EffectType == ItemEffectType.WaterBreathing) && !IsActive)
@@ -184,7 +184,12 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 ApplySlowEffect(player);
                 break;
             case ItemEffectType.BluntDamage:
-                player.ApplyCharacterDamage(Damage, Id, DamageDelay, ServerRConfig, TimerThread);
+            case ItemEffectType.FireDamage:
+            case ItemEffectType.AirDamage:
+            case ItemEffectType.EarthDamage:
+            case ItemEffectType.IceDamage:
+            case ItemEffectType.LightningDamage:
+                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay), ServerRConfig);
                 break;
             case ItemEffectType.PoisonDamage:
                 TimerThread.RunDelayed(ApplyPoisonEffect, new PoisonEffect() { Hazzard = this, Player = player }, TimeSpan.FromSeconds(InitialDamageDelay));
@@ -196,8 +201,9 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 Logger.LogInformation("Unknown status effect {statusEffect} from {prefabName}", HurtEffect, PrefabName);
 
                 Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.BluntDamage, 1, 1, true, Id, false));
-                player.ApplyCharacterDamage(Damage, Id, DamageDelay, ServerRConfig, TimerThread);
 
+                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay), ServerRConfig);
+				
                 break;
         }
     }

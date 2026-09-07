@@ -1,4 +1,5 @@
-﻿using Server.Reawakened.Entities.Colliders.Abstractions;
+﻿using A2m.Server;
+using Server.Reawakened.Entities.Colliders.Abstractions;
 using Server.Reawakened.Entities.Colliders.Enums;
 using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
@@ -29,7 +30,7 @@ public class EnemyCollider(BaseEnemy enemy, RectModel box) : BaseCollider
         }
         else if (received is PlayerCollider playerCollider)
         {
-            if (Room.IsObjectKilled(enemy.Id) || playerCollider.Player.TempData.Invincible)
+            if (Room.IsObjectKilled(enemy.Id) || playerCollider.Player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
                 return;
 
             enemy.OnCollideWithPlayer(playerCollider.Player);

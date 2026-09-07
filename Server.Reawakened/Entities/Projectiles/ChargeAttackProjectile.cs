@@ -55,7 +55,7 @@ public class ChargeAttackProjectile : BaseProjectile
             hitGoID = "-1";
 
         _player.TempData.IsSuperStomping = false;
-        _player.TemporaryInvincibility(_timerThread, _config, 1);
+        _player.TemporaryInvincibility(0.2);
 
         var syncEvent = new ChargeAttackStop_SyncEvent(new SyncEvent(
             _player.GameObjectId.ToString(), SyncEvent.EventType.ChargeAttackStop, Room.Time));

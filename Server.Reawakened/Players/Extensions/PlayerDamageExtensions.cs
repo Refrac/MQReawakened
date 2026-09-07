@@ -12,57 +12,37 @@ public static class PlayerDamageExtensions
 {
     public class UnderwaterData() : PlayerRoomTimer
     {
-        public int Damage;
-        public TimerThread TimerThread;
-        public ServerRConfig ServerRConfig;
-    }
-
-    public static void StartUnderwater(this Player player, int damage, TimerThread timerThread, ServerRConfig serverRConfig)
-    {
-        player.StopUnderwater();
-
-        var underwaterData = new UnderwaterData()
-        {
-            Damage = damage,
-            TimerThread = timerThread,
-            ServerRConfig = serverRConfig,
-            Player = player
-        };
-
-        var ticksTillDeath = (int)Math.Ceiling((double)player.Character.CurrentLife / damage);
-
-        player.TempData.Underwater = true;
-        player.TempData.UnderwaterTimer = timerThread.RunInterval(ApplyUnderwaterDamage, underwaterData,
-            TimeSpan.FromSeconds(serverRConfig.UnderwaterDamageInterval), ticksTillDeath, TimeSpan.FromSeconds(serverRConfig.BreathTimerDuration));
-    }
-
-    public static void ApplyUnderwaterDamage(ITimerData data)
-    {
-        if (data is not UnderwaterData water)
+        if (data is not StatusEffectData status)
             return;
 
-        if (!water.Player.TempData.Underwater)
+        if (player == null || !player.TempData.IsPoisoned) return;
+
+        var hazardCollider = player.Room.GetCollidersById(status.HazardId).FirstOrDefault();
+        if (hazardCollider is null)
             return;
-
-        water.Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(water.Player.GameObjectId, water.Player.Room.Time,
-            (int)ItemEffectType.WaterDamage, water.Damage, 1, true, water.Player.GameObjectId, false));
-
-        water.Player.ApplyCharacterDamage(water.Player.Character.MaxLife / water.ServerRConfig.UnderwaterDamageRatio,
-            string.Empty, 1, water.ServerRConfig, water.TimerThread);
-    }
-
-    public static void StopUnderwater(this Player player)
-    {
-        if (player.TempData.UnderwaterTimer != null)
+        
+        if (!hazardCollider.CheckCollision(player.GetCollider()))
         {
-            player.TempData.UnderwaterTimer.Stop();
-            player.TempData.UnderwaterTimer = null;
+            if (player.TempData.PoisonEffectTimer != null)
+            {
+                player.TempData.PoisonEffectTimer.Stop();
+                player.TempData.PoisonEffectTimer = null;
+            }
+
+            player.TempData.IsPoisoned = false;
+
+            player.StopPoisonEffect();
+            return;
         }
+
+        player.ApplyCharacterDamage(status.HazardDamage, ItemEffectType.PoisonDamage,
+            status.HazardId, status.InvincibilityDuration, status.ServerRConfig);
     }
 
-    public static void ApplyCharacterDamage(this Player player, float damage, string originId, double invincibilityDuration, ServerRConfig serverRConfig, TimerThread timerThread)
+    public static void ApplyCharacterDamage(this Player player, float damage, ItemEffectType effectType,
+        string originId, int duration, ServerRConfig serverRConfig)
     {
-        if (player == null || player.TempData.Invincible || player.Character.CurrentLife <= 0) return;
+        if (player == null || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.Character.CurrentLife <= 0) return;
 
         if (damage <= 0)
             damage = 1;
@@ -96,24 +76,26 @@ public static class PlayerDamageExtensions
         if (invincibilityDuration <= 0)
             invincibilityDuration = 1;
 
-        player.TemporaryInvincibility(timerThread, serverRConfig, invincibilityDuration);
+        player.TemporaryInvincibility(duration);
     }
 
-    public static void ApplyDamageByPercent(this Player player, double percentage, string hazardId, float duration, ServerRConfig serverRConfig, TimerThread timerThread)
+    public static void ApplyDamageByPercent(this Player player, double percentage, ItemEffectType effectType,
+        string hazardId, int duration, ServerRConfig serverRConfig)
     {
         var health = (double)player.Character.MaxLife;
 
         var damage = Convert.ToSingle(Math.Ceiling(health * percentage));
 
-        ApplyCharacterDamage(player, damage, hazardId, duration, serverRConfig, timerThread);
+        ApplyCharacterDamage(player, damage, effectType, hazardId, duration, serverRConfig);
     }
 
     public static void KnockoutPlayer(this Player player)
     {
-        player.TempData.IsSlowed = false;
+        player.TempData.EnemiesInPetAbilityZone = [];
+
+        player.TempData.IsPoisoned = false;
         player.TempData.IsSuperStomping = false;
-        player.TempData.Underwater = false;
-        player.TempData.Invincible = true;
+        player.TempData.UnderwaterTime = 0;
         player.TempData.IsKnockedOut = true;
 
         if (player.TempData.UnderwaterTimer != null)

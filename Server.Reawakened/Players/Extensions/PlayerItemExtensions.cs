@@ -118,7 +118,15 @@ public static class PlayerItemExtensions
 
         if (player == null)
             foreach (var nearPlayer in room.GetNearbyPlayers(position, radius))
-                nearPlayer.ApplyCharacterDamage(damage, nearPlayer.GameObjectId, 1, serverRConfig, thread);
+                nearPlayer.ApplyCharacterDamage(damage, ItemEffectType.BluntDamage, nearPlayer.GameObjectId, 1, serverRConfig);
+        }
+        else
+        {
+            foreach (var component in room.GetEntitiesFromType<EnemyControllerComp>().Where(comp =>
+                Vector3.Distance(position, new Vector3(comp.Position.X, comp.Position.Y, comp.Position.Z)) <= radius
+            ))
+                component.Damage(player, damage);
+        }
 
         room.Logger.LogInformation("Running bomb at coords: {Position} of radius {Radius}", position, radius);
     }
