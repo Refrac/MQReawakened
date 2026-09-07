@@ -48,7 +48,7 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
 
     public void UpdatePet()
     {
-        if (Character.PetItemId == 0 || !Character.Pets.TryGetValue(Character.PetItemId.ToString(), out var pet))
+        if (Character?.PetItemId == 0 || !Character.Pets.TryGetValue(Character.PetItemId.ToString(), out var pet))
             return;
 
         pet.RegenEnegy(this);
@@ -63,7 +63,9 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
         _hasLoggedOut = true;
 
         lock (PlayerContainer.Lock)
+        {
             playerContainer.RemovePlayer(this);
+        }
 
         this.RemoveFromGroup();
 
@@ -78,34 +80,27 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
             if (TempData.TradeModel != null)
             {
                 var tradingPlayer = TempData.TradeModel.TradingPlayer;
-                tradingPlayer.TempData.TradeModel = null;
-                tradingPlayer.SendXt("tc", Character.CharacterName);
+                if (tradingPlayer?.TempData != null)
+                {
+                    tradingPlayer.TempData.TradeModel = null;
+                    tradingPlayer.SendXt("tc", Character.CharacterName);
+                }
             }
 
+            this.RemoveAssociatedTriggers();
             Character = null;
         }
 
         if (Room != null)
         {
-            if (!Room.LevelInfo.IsValid())
-                return;
-
-            var roomName = Room.LevelInfo.Name;
-
-            if (!string.IsNullOrEmpty(roomName))
-                logger.LogDebug("Dumped player with ID '{User}' from room '{Room}'", UserId, roomName);
+            if (Room.LevelInfo.IsValid())
+            {
+                var roomName = Room.LevelInfo.Name;
+                if (!string.IsNullOrEmpty(roomName))
+                    logger.LogDebug("Dumped player with ID '{User}' from room '{Room}'", UserId, roomName);
+            }
         }
 
         this.DumpToLobby(worldHandler);
-
-        try
-        {
-            NetState.RemoveAllData();
-            NetState.Dispose();
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error when disposing on logout");
-        }
     }
 }

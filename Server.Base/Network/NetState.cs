@@ -48,7 +48,7 @@ public class NetState : IDisposable
     public bool Running { get; private set; }
 
     private const string PolicyFileRequest = "<policy-file-request/>";
-	
+
     private const string AllPolicy =
         @"<?xml version=""1.0""?>
                         <!DOCTYPE cross-domain-policy SYSTEM ""/xml/dtds/cross-domain-policy.dtd"">
@@ -335,9 +335,21 @@ public class NetState : IDisposable
 
     public override string ToString() => Identifier;
 
-    public T Get<T>() where T : class => !_data.ContainsKey(typeof(T)) ? null : _data[typeof(T)] as T;
+    public T Get<T>() where T : class
+    {
+        lock (_data)
+        {
+            return _data.TryGetValue(typeof(T), out var value) ? value as T : null;
+        }
+    }
 
-    public void Set<T>(T data) where T : INetStateData => _data.Add(typeof(T), data);
+    public void Set<T>(T data) where T : INetStateData
+    {
+        lock (_data)
+        {
+            _data[typeof(T)] = data;
+        }
+    }
 
     public void RemoveAllData()
     {
@@ -346,10 +358,24 @@ public class NetState : IDisposable
 
         _hasRemovedData = true;
 
-        foreach (var data in _data)
-            data.Value?.RemovedState(this, _services, _logger);
+        List<INetStateData> dataValues;
+        lock (_data)
+        {
+            dataValues = _data.Values.ToList();
+            _data.Clear();
+        }
 
-        _data.Clear();
+        foreach (var data in dataValues)
+        {
+            try
+            {
+                data?.RemovedState(this, _services, _logger);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while executing RemovedState for {DataType} on {NetState}", data?.GetType().Name, this);
+            }
+        }
     }
 
     public void TraceBufferError(int byteCount)
