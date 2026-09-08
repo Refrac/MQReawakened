@@ -122,6 +122,10 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
     //Standard Hazards
     public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player)
     {
+        if (!notifyCollisionEvent.Colliding || player.TempData.Invincible)
+            return;
+
+        ApplyHazardEffect(player);
     }
 
     public void ApplyHazardEffect(Player player)
