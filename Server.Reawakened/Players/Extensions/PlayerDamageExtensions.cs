@@ -42,7 +42,7 @@ public static class PlayerDamageExtensions
     public static void ApplyCharacterDamage(this Player player, float damage, ItemEffectType effectType,
         string originId, int duration)
     {
-        if (player == null || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.Character.CurrentLife <= 0) return;
+        if (player == null || player.TempData.Invincible || player.Character.CurrentLife <= 0) return;
 
         if (damage <= 0)
             damage = 1;
@@ -50,18 +50,8 @@ public static class PlayerDamageExtensions
         if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet) && pet.ShieldingPlayer)
             Math.Ceiling(damage *= pet.AbilityParams.DefensiveBonusRatio);
 
-        if (player.Character.Pets.TryGetValue(player.GetEquippedPetId(serverRConfig), out var pet))
-        {
-            if (player.TempData.PetDefense)
-            {
-                isShielded = true;
-                Math.Ceiling(damage *= pet.AbilityParams.DefensiveBonusRatio);
-            }
-        }
-
-        if (!isShielded)
-            player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-                (int)ItemEffectType.BluntDamage, (int)damage, (int)invincibilityDuration, true, originId, false));
+        if (player.Character.StatusEffects.HasEffect(ItemEffectType.IncreaseAllResist))
+            Math.Ceiling(damage -= (float)(damage * (player.Character.StatusEffects.GetEffect(ItemEffectType.IncreaseAllResist) / 100.0)));
 
         player.Character.Write.CurrentLife -= (int)damage;
 
@@ -95,8 +85,10 @@ public static class PlayerDamageExtensions
         player.TempData.EnemiesInPetAbilityZone = [];
 
         player.TempData.IsPoisoned = false;
+        player.TempData.IsSlowed = false;
         player.TempData.IsSuperStomping = false;
         player.TempData.UnderwaterTime = 0;
+        player.TempData.Invincible = true;
         player.TempData.IsKnockedOut = true;
 
         if (player.TempData.UnderwaterTimer != null)

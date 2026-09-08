@@ -105,6 +105,7 @@ public class State : ExternalProtocol
                     break;
                 case SyncEvent.EventType.ChargeAttackStop:
                     Player.TempData.IsSuperStomping = false;
+                    Player.TempData.Invincible = false;
 
                     Player.RemovePlayerProjectile();
                     

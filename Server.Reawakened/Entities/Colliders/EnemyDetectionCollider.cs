@@ -5,7 +5,7 @@ using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Models.Planes;
 
 namespace Server.Reawakened.Entities.Colliders;
-public class EnemyDetectionCollider(BaseEnemy enemy, RectModel box) : BaseCollider()
+public class EnemyDetectionCollider(BaseEnemy enemy, RectModel box) : BaseCollider(false)
 {
     public override Vector3Model Position => enemy.Position;
     public override Room Room => enemy.Room;

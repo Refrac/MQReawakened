@@ -88,7 +88,9 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
             if (EffectType == ItemEffectType.SlowStatusEffect)
                 Rectangle.X = 0;
 
-            _ = new HazardEffectCollider(this, Logger);
+            _collider = new HazardEffectCollider(this, Logger);
+            
+            Logger.LogInformation("Created Hazard Collider with ID: {Id} for Prefab: {PrefabName}", Id, PrefabName);
         }
     }
 
@@ -113,28 +115,13 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 IsActive = true;
             }
         }
+
+        _collider?.RunCollisionDetection();
     }
 
     //Standard Hazards
     public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player)
     {
-        if (!notifyCollisionEvent.Colliding || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
-        {
-            if (EffectType == ItemEffectType.WaterBreathing)
-                ApplyWaterBreathing(player);
-
-            return;
-        }
-        if (Room.ContainsEnemy(Id) && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
-        {
-            if (player.TempData.PetDefensiveBarrier)
-            {
-                Room.GetEnemy(Id).PetDamage(player);
-                return;
-            }
-        }
-
-        ApplyHazardEffect(player);
     }
 
     public void ApplyHazardEffect(Player player)
@@ -142,7 +129,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
         if (player == null)
             return;
 
-        if (player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
+        if (player.TempData.Invincible || player.TempData.IsKnockedOut)
             return;
 
         if ((TimedHazard || EffectType == ItemEffectType.WaterBreathing) && !IsActive)

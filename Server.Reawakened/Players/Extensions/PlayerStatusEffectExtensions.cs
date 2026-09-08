@@ -107,9 +107,14 @@ public static class PlayerStatusEffectExtensions
     public static void TemporaryInvincibility(this Player player, double durationInSeconds)
     {
         if (durationInSeconds <= 0) return;
-
-        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-                 (int)ItemEffectType.Invincibility, 0, (int)durationInSeconds, true, player.CharacterName, true));
+        
+        var itemEffect = new ItemEffect(ItemEffectType.Invincibility, 0, (int)durationInSeconds);
+        
+        player.Character.StatusEffects.Add(itemEffect, string.Empty);
+        
+        player.SendItemEffectToPlayer(itemEffect, string.Empty, true, true);
+        
+        player.TempData.Invincible = true;
     }
 
     public static StatusEffectData GetPoisonEffectData(this Player player, int poisonDamage, string hazardId,

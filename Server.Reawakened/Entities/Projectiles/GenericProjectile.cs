@@ -25,9 +25,10 @@ public class GenericProjectile : BaseProjectile
         _gameObjectId = player.GameObjectId;
         _gravityFactor = isGrenade ? config.GrenadeGravityFactor : config.ProjectileGravityFactor;
 
-        Collider = new AttackCollider(id, Position, new RectModel(0, 0, config.ProjectileWidth, config.ProjectileHeight), PrjPlane, player, damage, damageType, LifeTime, 0, player.Character.StatusEffects.HasEffect(ItemEffectType.Detect));
-
-        var prj = new LaunchItem_SyncEvent(new SyncEvent(_gameObjectId, SyncEvent.EventType.LaunchItem, StartTime));
+        Collider = new AttackCollider(id, Position, new RectModel(0, 0, config.ProjectileWidth, config.ProjectileHeight), PrjPlane,
+            player, item.ItemEffects, item.PrefabName, LifeTime, 0, player.Character.StatusEffects.HasEffect(ItemEffectType.Detect));
+			
+        var prj = new LaunchItem_SyncEvent(_gameObjectId, StartTime, Position.X, Position.Y, Position.Z, Speed.x, Speed.y, LifeTime, int.Parse(ProjectileId), item.PrefabName);
         prj.EventDataList.Add(Position.X);
         prj.EventDataList.Add(Position.Y);
         prj.EventDataList.Add(Position.Z);

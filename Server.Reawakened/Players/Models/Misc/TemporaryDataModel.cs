@@ -16,6 +16,7 @@ public class TemporaryDataModel
     public int Direction { get; set; } = 0;
     public int Locale { get; set; }
 
+    public bool Invincible { get; set; } = false;
     public bool OnGround { get; set; } = false;
     public float UnderwaterTime { get; set; } = 0;
     public Timer PoisonEffectTimer { get; set; } = null;
@@ -26,8 +27,8 @@ public class TemporaryDataModel
     public BaseComponent CurrentArena { get; set; } = null;
     public bool IsKnockedOut { get; set; } = false;
 
-    public List<string> CollidingHazards { get; set; } = [];
     public Dictionary<int, bool> VotedForItem { get; set; } = [];
+    public Dictionary<float, BaseEnemy> EnemiesInPetAbilityZone { get; set; }
 
     public Vector3Model Position { get; set; } = new Vector3Model(0, 0, 0);
     public Vector3 Velocity { get; set; } = new Vector3();

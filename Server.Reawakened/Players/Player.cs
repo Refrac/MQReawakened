@@ -44,6 +44,7 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
     {
         TempData.PlayerCollider?.RunCollisionDetection();
         UpdatePet();
+        UpdateInvincibility();
     }
 
     public void UpdatePet()
@@ -54,6 +55,11 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
         pet.RegenEnegy(this);
     }
 
+    public void UpdateInvincibility()
+    {
+        if (TempData.Invincible && !Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
+            TempData.Invincible = false;
+    }
 
     public void Remove(Microsoft.Extensions.Logging.ILogger logger)
     {
