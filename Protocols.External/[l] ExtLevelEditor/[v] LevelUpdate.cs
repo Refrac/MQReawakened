@@ -6,10 +6,12 @@ using Server.Base.Timers.Services;
 using Server.Reawakened.Chat.Services;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
+using Protocols.External._Z__PetHandler;
+using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Entities.Components.GameObjects.NPC;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
-using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Rooms;
@@ -20,7 +22,6 @@ using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Bundles.Base;
 using Server.Reawakened.XMLs.Bundles.Internal;
 using Server.Reawakened.XMLs.Data.Achievements;
-using Web.Apps.Leaderboards.Data;
 using Web.Apps.Leaderboards.Database.Scores;
 using Web.Apps.Leaderboards.Enums;
 
@@ -192,37 +193,30 @@ public class RoomUpdate : ExternalProtocol
     {
         foreach (var score in Player.Character.BestMinigameTimes)
         {
-            var gameId = Leaderboards.Games.FirstOrDefault(x => x.name == score.Key).id;
+            var game = Leaderboards.Games.FirstOrDefault(x => x.name == score.Key);
+            
+            if (game == null)
+                return;
+            
+            var gameId = game.id;
+            
+            var characterScores = TopScoresHandler.GetScoresFromCharacter(Player.Character.Id);
 
-            var topScores = TopScoresHandler.GetScoresFromId(gameId);
-
-            if (topScores == null)
+            var leaderboardScore = score.Key == "LV_CRS_Minigame_MonkeyBlast" ? score.Value : score.Value * 100;
+            
+            if (characterScores == null || characterScores.Count == 0 || characterScores.All(x => x.GameId != gameId))
             {
-                var topScore = TopScoresHandler.Create(gameId, []);
-                topScores = TopScoresHandler.GetScoresFromData(topScore);
+                TopScoresHandler.Create(gameId, (int)leaderboardScore, 0, DateTime.UtcNow, Player.Character.Id, ScoreType.AllTime);
+                continue;
             }
 
-            var characterScore = topScores.Scores
+            var characterScore = characterScores
                 .FirstOrDefault(x => x.CharacterId == Player.Character.Id);
 
             if (characterScore != null)
                 continue;
-
-            var scoreTime = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'sszzz");
             
-            var leaderboardScore = score.Key == "LV_CRS_Minigame_MonkeyBlast" ? score.Value : score.Value * 100;
-
-            var newScore = new TopScore
-            (
-                (int)leaderboardScore,
-                0,
-                scoreTime,
-                Player.Character.Id
-            );
-
-            topScores.Scores.Add(newScore);
-
-            TopScoresHandler.Update(topScores.Write);
+            TopScoresHandler.Create(gameId, (int)leaderboardScore, 0, DateTime.UtcNow, Player.Character.Id, ScoreType.AllTime);
         }
     }
 }
