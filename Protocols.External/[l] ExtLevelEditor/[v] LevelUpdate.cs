@@ -97,7 +97,7 @@ public class RoomUpdate : ExternalProtocol
         foreach (var status in Player.Character.StatusEffects.Effects)
         {
             Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(Player.GameObjectId, Player.Room.Time,
-                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.UtcNow).TotalSeconds, true, status.Value.PrefabName, false));
+                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.UtcNow).TotalSeconds, true, status.Value.PrefabName, true));
         }
 
         foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())

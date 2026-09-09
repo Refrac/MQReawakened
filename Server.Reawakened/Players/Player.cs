@@ -49,7 +49,10 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
 
     public void UpdatePet()
     {
-        if (Character?.PetItemId == 0 || !Character.Pets.TryGetValue(Character.PetItemId.ToString(), out var pet))
+        if (Character is null || Character.Pets is null || Character.PetItemId == 0)
+            return;
+
+        if (!Character.Pets.TryGetValue(Character.PetItemId.ToString(), out var pet))
             return;
 
         pet.RegenEnergy(this);

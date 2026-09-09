@@ -78,7 +78,7 @@ public static class CharacterInventoryExtensions
 
                         player.Character.StatusEffects.Remove(ItemEffectType.ColorTonic);
 
-                        player.SendItemEffectToPlayer(effect, string.Empty, sendFx, usedItem.Currency == CurrencyType.NickCash);
+                        player.SendItemEffectToPlayer(itemEffect, string.Empty, sendFx, true);
                     }
 
                     player.Character.StatusEffects.Add(effect);
