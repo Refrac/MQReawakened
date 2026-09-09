@@ -28,10 +28,7 @@ public class PetModel()
     public int CurrentEnergy { get; set; }
     public bool InCoopJumpState { get; set; }
     public bool InCoopSwitchState { get; set; }
-    public string CoopTriggerableId { get; set; }
-    public bool HasGainedOfflineEnergy { get; set; }
-    public DateTime LastTimePetWasEquipped { get; set; }
-
+    public string MostRecentCoopTriggerId { get; set; }
     public DateTime LastEnergyRegenTime { get; set; }
 
     // PET SUMMONING
@@ -91,19 +88,19 @@ public class PetModel()
         InCoopSwitchState = false;
     }
 
-    public void RegenEnegy(Player player)
+    public void RegenEnergy(Player player)
     {
-        if (CurrentEnergy >= MaxEnergy)
+        if (CurrentEnergy >= MaxEnergy || MaxEnergy <= 0)
         {
             LastEnergyRegenTime = DateTime.UtcNow;
             return;
         }
 
         var totalRegainDelayMinutes = GameFlow.StatisticData.GetGlobalStat(Globals.PetFullEnergyRegainDelay);
-        var now = DateTime.UtcNow;
-
         if (totalRegainDelayMinutes <= 0)
             return;
+
+        var now = DateTime.UtcNow;
 
         if (LastEnergyRegenTime == DateTime.MinValue)
         {
@@ -111,27 +108,16 @@ public class PetModel()
             return;
         }
 
+        var intervalMinutes = (double)totalRegainDelayMinutes / MaxEnergy;
         var elapsedMinutes = (now - LastEnergyRegenTime).TotalMinutes;
 
-        if (elapsedMinutes < 1.0)
-            return;
-
-        var minutesPerEnergy = (double)totalRegainDelayMinutes / MaxEnergy;
-        var energyGained = (int)(elapsedMinutes / minutesPerEnergy);
+        var energyGained = (int)(elapsedMinutes / intervalMinutes);
 
         if (energyGained > 0)
         {
             GainEnergy(player, energyGained, false);
 
-            if (CurrentEnergy >= MaxEnergy)
-            {
-                LastEnergyRegenTime = now;
-            }
-            else
-            {
-                var minutesConsumed = energyGained * minutesPerEnergy;
-                LastEnergyRegenTime = LastEnergyRegenTime.AddMinutes(minutesConsumed);
-            }
+            LastEnergyRegenTime = CurrentEnergy >= MaxEnergy ? now : LastEnergyRegenTime.AddMinutes(energyGained * intervalMinutes);
         }
     }
 

@@ -52,7 +52,7 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
         if (Character?.PetItemId == 0 || !Character.Pets.TryGetValue(Character.PetItemId.ToString(), out var pet))
             return;
 
-        pet.RegenEnegy(this);
+        pet.RegenEnergy(this);
     }
 
     public void UpdateInvincibility()

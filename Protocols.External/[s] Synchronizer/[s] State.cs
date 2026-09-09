@@ -60,7 +60,7 @@ public class State : ExternalProtocol
             switch (syncEvent.Type)
             {
                 case SyncEvent.EventType.PetState:
-                    if (Player.Character.Pets.TryGetValue(Player.GetItemIdOfEquippedPet(), out var pet) &&
+                    if (Player.Character.Pets.TryGetValue(Player.Character.PetItemId.ToString(), out var pet) &&
                         PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.ItemId), out var petAbilityParams))
                     {
                         Player.Room.SendSyncEvent(new PetState_SyncEvent(Player.GameObjectId, Player.Room.Time, PetInformation.StateSyncType.PetStateVanish, Player.GameObjectId));

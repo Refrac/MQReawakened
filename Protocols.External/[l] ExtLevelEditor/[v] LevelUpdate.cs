@@ -103,9 +103,10 @@ public class RoomUpdate : ExternalProtocol
         foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
             npc.SendNpcInfo(Player);
 
-        if (Player.Character.Pets.TryGetValue(Player.GetItemIdOfEquippedPet(), out var pet) && pet != null)
+        if (Player.Character.Pets.TryGetValue(Player.Character.PetItemId.ToString(), out var pet) && pet != null)
         {
-            pet.ItemId ??= Player.GetItemIdOfEquippedPet();
+            // not sure why we have this line
+            //pet.ItemId = Player.Character.PetItemId.ToString();
 
             if (PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.ItemId), out var petAbility))
                 Player.EquipPet(pet.ItemId, petAbility, ItemCatalog, WorldStatistics, ServerRConfig, ItemRConfig);

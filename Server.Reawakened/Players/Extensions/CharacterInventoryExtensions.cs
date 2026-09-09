@@ -209,7 +209,7 @@ public static class CharacterInventoryExtensions
     public static void EquipPet(this Player player, string petId, PetAbilityParams petAbilityParams, ItemCatalog itemCatalog,
         WorldStatistics worldStatistics, ServerRConfig serverRConfig, ItemRConfig itemRConfig)
     {
-        if (player == null || !player.Character.Hotbar.HotbarButtons.ContainsKey(serverRConfig.PetHotbarIndex))
+        if (player == null || !player.Character.Hotbar.HotbarButtons.ContainsKey(4))
             return;
 
         var petId = player.GetEquippedPetId(serverRConfig);
@@ -231,25 +231,22 @@ public static class CharacterInventoryExtensions
             worldStatistics, itemRConfig);
     }
 
-    public static void UnequipPet(this Player player, string petId, PetAbilityParams petAbilityParams, ItemCatalog itemCatalog,
-        WorldStatistics worldStatistics, ItemRConfig itemRConfig)
+    public static void UnequipPet(this Player player, string petId, PetAbilityParams petAbilityParams,
+    ItemCatalog itemCatalog, WorldStatistics worldStatistics, ItemRConfig itemRConfig)
     {
-        if (player == null) return;
+        if (player == null || itemCatalog == null || string.IsNullOrEmpty(petId) || petId == "0") return;
 
-        var petId = player.GetEquippedPetId(serverRConfig);
+        if (!int.TryParse(petId, out var parsedPetId)) return;
 
-        if (petId == "0" || petId == string.Empty || itemCatalog.GetItemFromId(int.Parse(petId)) == null ||
-            !itemCatalog.GetItemFromId(int.Parse(petId)).IsPet() ||
-            !player.Character.Pets.TryGetValue(petId, out var currentPet)) return;
+        var petItem = itemCatalog.GetItemFromId(parsedPetId);
+        if (petItem == null || !petItem.IsPet()) return;
 
-        else
-        {
-            currentPet.SpawnPet(player, petAbilityParams, false, false, itemCatalog,
-                worldStatistics, itemRConfig);
+        if (!player.Character.Pets.TryGetValue(petId, out var currentPet)) return;
+
+        currentPet.SpawnPet(player, petAbilityParams, false, false, itemCatalog, worldStatistics, itemRConfig);
+
+        if (!player.Character.Hotbar.HotbarButtons.ContainsKey(4))
             player.Character.Write.PetItemId = 0;
-            currentPet.IsEquipped = false;
-            currentPet.DespawnPet(player, petAbilityParams, worldStatistics, serverRConfig);
-        }
     }
 
     public static string GetItemIdOfEquippedPet(this Player player) => player?.Character == null ? "0" : player.Character.PetItemId.ToString();
