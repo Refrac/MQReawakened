@@ -83,13 +83,13 @@ public class FinishedMinigame : ExternalProtocol
 
         var topScores = TopScoresHandler.GetScoresFromGame(game.id);
 
-        var leaderboardTime = (int)finishedRaceTime * 100;
+        var leaderboardTime = finishedRaceTime * 100;
         
         if (topScores == null)
         {
-            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.AllTime);
-            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Daily);
-            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Weekly);
+            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.AllTime);
+            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Daily);
+            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Weekly);
 
             Player.SendXt("Ms", Player.Room.LevelInfo.Name);
             return;
@@ -113,7 +113,7 @@ public class FinishedMinigame : ExternalProtocol
                         if (existingScore.Score > leaderboardTime || scoreDate.Date < DateTime.UtcNow.Date)
                         {
                             TopScoresHandler.Remove(existingScore.Id);
-                            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Daily);
+                            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Daily);
                             newHighScore = true;
                         }
                         break;
@@ -121,7 +121,7 @@ public class FinishedMinigame : ExternalProtocol
                         if (existingScore.Score > leaderboardTime || ISOWeek.GetWeekOfYear(scoreDate) != ISOWeek.GetWeekOfYear(DateTime.UtcNow) || scoreDate.Year != DateTime.UtcNow.Year)
                         {
                             TopScoresHandler.Remove(existingScore.Id);
-                            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Weekly);
+                            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Weekly);
                             newHighScore = true;
                         }
                         break;
@@ -129,7 +129,7 @@ public class FinishedMinigame : ExternalProtocol
                         if (existingScore.Score > leaderboardTime)
                         {
                             TopScoresHandler.Remove(existingScore.Id);
-                            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.AllTime);
+                            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.AllTime);
                             newHighScore = true;
                         }
                         break;
@@ -140,16 +140,16 @@ public class FinishedMinigame : ExternalProtocol
             {
                 if (!existingTypes.Contains(scoreType))
                 {
-                    TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, scoreType);
+                    TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, scoreType);
                     newHighScore = true;
                 }
             }
         }
         else
         {
-            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.AllTime);
-            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Daily);
-            TopScoresHandler.Create(game.id, leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Weekly);
+            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.AllTime);
+            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Daily);
+            TopScoresHandler.Create(game.id, (int)leaderboardTime, 0, scoreTime, Player.Character.Id, ScoreType.Weekly);
             
             newHighScore = true;
         }
