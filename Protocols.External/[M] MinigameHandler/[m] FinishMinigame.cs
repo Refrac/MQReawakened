@@ -99,11 +99,13 @@ public class FinishedMinigame : ExternalProtocol
 
         if (topScores.Any(x => x.CharacterId == Player.Character.Id))
         {
+            var existingScores = topScores
+                .Where(x => x.CharacterId == Player.Character.Id).ToList();
             var existingTypes = topScores
                 .Where(x => x.CharacterId == Player.Character.Id)
                 .Select(x => x.ScoreType).ToList();
 
-            foreach (var existingScore in topScores)
+            foreach (var existingScore in existingScores)
             {
                 var scoreDate = existingScore.Time;
 
