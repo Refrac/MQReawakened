@@ -9,6 +9,7 @@ using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Planes;
+using Server.Reawakened.XMLs.Bundles.Base;
 using UnityEngine;
 
 namespace Server.Reawakened.Entities.Projectiles;
@@ -21,16 +22,22 @@ public class ChargeAttackProjectile : BaseProjectile
     private readonly int _zoneId;
 
     public ChargeAttackProjectile(string id, Player player, Vector3Model startPosition, Vector3 endPosition, Vector2 speed,
-        float lifeTime, ItemDescription item, int zoneId, ServerRConfig config)
+        float lifeTime, ItemDescription item, int zoneId, ServerRConfig config, ItemCatalog itemCatalog)
         : base(id, lifeTime, player.Room, startPosition, speed, endPosition, false)
     {
         _config = config;
         _player = player;
-        _itemId = itemId;
+        _itemId = item != null ? item.ItemId : -1;
         _zoneId = zoneId;
 
-        Collider = new AttackCollider(id, Position, new RectModel(-0.4f, -0.5f, 0.8f, 0.8f), PrjPlane, player, damage, type, 15f, 0, player.Character.StatusEffects.HasEffect(ItemEffectType.Detect));
+        var itemEffects = item != null ? item.ItemEffects : new List<ItemEffect>
+            { new(ItemEffectType.StompDamage, 20, 0) };
+        var prefabName = item != null ? item.PrefabName : player.GameObjectId;
 
+        Collider = new AttackCollider(id, Position, new RectModel(-0.4f, -0.5f, 0.8f, 0.8f),
+            PrjPlane, player, item, itemEffects, prefabName, 15f, 0,
+            player.Character.StatusEffects.HasEffect(ItemEffectType.Detect), itemCatalog);
+        
         var syncEvent = new ChargeAttackStart_SyncEvent(new SyncEvent(
             _player.GameObjectId.ToString(), SyncEvent.EventType.ChargeAttackStart, Room.Time));
         

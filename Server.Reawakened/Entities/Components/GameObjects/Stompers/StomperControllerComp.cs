@@ -58,6 +58,5 @@ public class StomperControllerComp : BaseMovingObjectControllerComp<StomperContr
 
         if (movement.CurrentStep == Stomper_Movement.StomperState.WaitDown)
             _collider.RunCollisionDetection();
-        }
     }
 }

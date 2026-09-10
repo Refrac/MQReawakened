@@ -16,12 +16,12 @@ namespace Server.Reawakened.Players.Extensions;
 public static class CharacterInventoryExtensions
 {
     public static void HandleItemEffect(this Player player, ItemDescription usedItem, TimerThread timerThread,
-        ILogger<PlayerStatus> logger, ItemCatalog itemCatalog)
+        ServerRConfig serverRConfig, ILogger<PlayerStatus> logger)
     {
-        foreach (var effect in usedItem.ItemEffects)
+        var sendFx = true;
+        foreach (var itemEffect in usedItem.ItemEffects)
         {
-			var sendFx = true;
-            switch (effect.Type)
+            switch (itemEffect.Type)
             {
                 case ItemEffectType.PetRegainEnergy:
                     // Pet energy/abilities doesn't exist yet
@@ -33,7 +33,8 @@ public static class CharacterInventoryExtensions
                         logger.LogWarning("Couldn't find equipped pet for {characterName}", player.CharacterName);
                         return;
                     }
-                    pet.GainEnergy(player, effect != null ? effect.Value : 0);
+                    
+                    pet.EatSnack(player, itemEffect.Value);
                     break;
                 case ItemEffectType.Healing:
                 case ItemEffectType.HealthBoost:
@@ -42,7 +43,7 @@ public static class CharacterInventoryExtensions
                     if (player.Character.CurrentLife >= player.Character.MaxLife)
                         return;
 
-                    player.HealCharacter(usedItem, timerThread, config, effect.Type);
+                    player.HealCharacter(usedItem, itemEffect, timerThread, itemEffect.Type);
                     break;
                 case ItemEffectType.IncreaseBluntDamage:
                 case ItemEffectType.IncreaseAirDamage:
@@ -57,7 +58,7 @@ public static class CharacterInventoryExtensions
                 case ItemEffectType.ResistEarth:
                 case ItemEffectType.ResistIce:
                 case ItemEffectType.ResistLightning:
-					player.Character.StatusEffects.Add(effect);
+					player.Character.StatusEffects.Add(itemEffect);
                     sendFx = false;
                     break;
                 case ItemEffectType.WaterBreathing:
@@ -65,7 +66,7 @@ public static class CharacterInventoryExtensions
                 case ItemEffectType.Invisibility:
                 case ItemEffectType.BananaMultiplier:
                 case ItemEffectType.ExperienceMultiplier:
-                    player.Character.StatusEffects.Add(effect);
+                    player.Character.StatusEffects.Add(itemEffect);
                     break;
                 case ItemEffectType.ColorTonic:
                     // ColorTonic effect doesn't exist yet
@@ -81,7 +82,7 @@ public static class CharacterInventoryExtensions
                         player.SendItemEffectToPlayer(itemEffect, string.Empty, sendFx, true);
                     }
 
-                    player.Character.StatusEffects.Add(effect);
+                    player.Character.StatusEffects.Add(itemEffect);
                     sendFx = true;
                     break;
                 case ItemEffectType.Invalid:
@@ -90,14 +91,14 @@ public static class CharacterInventoryExtensions
                 case ItemEffectType.Unknown_70:
                 case ItemEffectType.Unknown_74:
                 default:
-                    logger.LogError("Unknown ItemEffectType of ({effectType}) for item {usedItemName}", effect.Type, usedItem.PrefabName);
+                    logger.LogError("Unknown ItemEffectType of ({effectType}) for item {usedItemName}", itemEffect.Type, usedItem.PrefabName);
                     return;
             }
 
-            player.SendItemEffectToPlayer(effect, usedItem.PrefabName, sendFx, usedItem.Currency == CurrencyType.NickCash);
+            player.SendItemEffectToPlayer(itemEffect, usedItem.PrefabName, sendFx, usedItem.Currency == CurrencyType.NickCash);
 
             logger.LogInformation("Applied ItemEffectType of ({effectType}) from item {usedItemName} for _player {playerName}",
-                effect.Type, usedItem.PrefabName, player.CharacterName);
+                itemEffect.Type, usedItem.PrefabName, player.CharacterName);
         }
     }
 
@@ -212,17 +213,15 @@ public static class CharacterInventoryExtensions
         if (player == null || !player.Character.Hotbar.HotbarButtons.ContainsKey(4))
             return;
 
-        var petId = player.GetEquippedPetId(serverRConfig);
-        var refillCurrentEnergy = false;
+        if (petId == "0" || petId == string.Empty || itemCatalog.GetItemFromId(int.Parse(petId)) == null ||
+            !itemCatalog.GetItemFromId(int.Parse(petId)).IsPet()) return;
 
-        if (petId == "0" || petId == string.Empty || itemCatalog.GetItemFromId(int.Parse(petId)) == null
-            || !itemCatalog.GetItemFromId(int.Parse(petId)).IsPet()) return;
+        var refillEnergy = false;
 
         if (!player.Character.Pets.TryGetValue(petId, out var currentPet))
         {
             player.Character.Pets.Add(petId, currentPet = new PetModel());
-
-            refillCurrentEnergy = true;
+            refillEnergy = true;
         }
 
         player.Character.Write.PetItemId = int.Parse(petId);
@@ -232,7 +231,7 @@ public static class CharacterInventoryExtensions
     }
 
     public static void UnequipPet(this Player player, string petId, PetAbilityParams petAbilityParams,
-    ItemCatalog itemCatalog, WorldStatistics worldStatistics, ItemRConfig itemRConfig)
+        ItemCatalog itemCatalog, WorldStatistics worldStatistics, ItemRConfig itemRConfig)
     {
         if (player == null || itemCatalog == null || string.IsNullOrEmpty(petId) || petId == "0") return;
 

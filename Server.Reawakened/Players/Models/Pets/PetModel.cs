@@ -1,4 +1,4 @@
-﻿using A2m.Server;
+﻿﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
 using PetDefines;
 using Server.Base.Core.Abstractions;
@@ -20,12 +20,16 @@ namespace Server.Reawakened.Players.Models.Pets;
 
 public class PetModel()
 {
-    public string PetId { get; set; }
+    public string ItemId { get; set; }
+    public string GameObjectId { get; set; }
+    public string PrefabName { get; set; }
     public PetAbilityParams AbilityParams { get; set; }
-    public bool IsEquipped { get; set; }
     public float AbilityCooldown { get; set; }
     public int MaxEnergy { get; set; }
     public int CurrentEnergy { get; set; }
+    public DateTime LastTimePetWasEquipped { get; set; }
+    public bool ShieldingPlayer { get; set; }
+    public bool GuardingPlayer { get; set; }
     public bool InCoopJumpState { get; set; }
     public bool InCoopSwitchState { get; set; }
     public string MostRecentCoopTriggerId { get; set; }
@@ -131,10 +135,12 @@ public class PetModel()
 
     private void NotifyPet(Player petOwner, int currentEnergy, ItemRConfig itemRConfig) =>
         petOwner.SendXt("Za", petOwner.UserId, PetProfile(int.Parse(petOwner.GameObjectId),
-                int.Parse(PetId), (int)PetType.coop, CurrentEnergy, 0, 0, 0));
+                int.Parse(ItemId), (int)PetType.coop, CurrentEnergy,
+                currentEnergy, (long)itemRConfig.PetSnackConsumptionDuration,
+                (int)Math.Ceiling(petOwner.Character.Reputation / itemRConfig.PetSnackBoostXP)));
 
     //Unsure how NotifyAllPets/Zp is supposed to work, needs to be looked into more.
-    public static void NotifyAllPets(Player petOwner)
+    public void NotifyAllPets(Player petOwner)
     {
         var sb = new SeparatedStringBuilder('>');
 
@@ -145,12 +151,28 @@ public class PetModel()
         petOwner.SendXt("Zp", petOwner.UserId, sb.ToString());
     }
 
+    private static string PetProfile(int id, int itemId, int typeId, int energy, int foodToConsume, long timeToConsume, int boostXp)
+    {
+        var sb = new SeparatedStringBuilder('|');
+
+        sb.Append(id);
+        sb.Append(itemId);
+        sb.Append(typeId);
+        sb.Append(energy);
+        sb.Append(foodToConsume);
+        sb.Append(timeToConsume);
+        sb.Append(boostXp);
+
+        return sb.ToString();
+    }
+
+    // PET STATE
     public void HandlePetState(Player petOwner, TimerThread timerThread, ItemRConfig itemRConfig, ILogger<PlayerStatus> logger)
     {
-        var newPetState = ChangePetState(petOwner);
+        var stateSyncType = ChangePetState(petOwner);
         var syncParams = string.Empty;
 
-        switch (newPetState)
+        switch (stateSyncType)
         {
             case PetInformation.StateSyncType.Deactivate:
                 RemoveTriggerInteraction(petOwner, MostRecentCoopTriggerId, timerThread, itemRConfig.PetPressButtonDelay);
@@ -174,11 +196,11 @@ public class PetModel()
 
             case PetInformation.StateSyncType.Unknown:
             default:
-                logger.LogWarning("Unknown pet state type {petState}", newPetState);
+                logger.LogWarning("Unknown pet state type {petState}", stateSyncType);
                 break;
         }
 
-        petOwner.Room.SendSyncEvent(new PetState_SyncEvent(petOwner.GameObjectId, petOwner.Room.Time, newPetState, syncParams));
+        petOwner.Room.SendSyncEvent(new PetState_SyncEvent(petOwner.GameObjectId, petOwner.Room.Time, stateSyncType, syncParams));
     }
 
     private bool IsPlayerOnCoopTrigger(Player petOwner)
@@ -210,8 +232,6 @@ public class PetModel()
         InCoopJumpState = false;
         return PetInformation.StateSyncType.PetStateCoopSwitch;
     }
-
-    public bool InCoopState() => InCoopJumpState || InCoopSwitchState;
 
     public static string GetPetPosition(Vector3Model position, bool OnButton, ItemRConfig itemConfig)
     {
@@ -275,19 +295,33 @@ public class PetModel()
     {
         public TriggerCoopControllerComp TriggerCoopController { get; set; }
         public MultiInteractionTriggerCoopControllerComp MultiInteractionTrigger { get; set; }
-        public string PetId { get; set; }
 
         public override bool IsValid() => base.IsValid() &&
             (TriggerCoopController == null || TriggerCoopController.IsValid()) &&
             (MultiInteractionTrigger == null || MultiInteractionTrigger.IsValid());
     }
 
-    public InteractionData GetInteractionData(Player player) => new()
+    private void AddTriggerInteraction(Player player, string currentTriggerIdFromPlayer, TimerThread timerThread, float delay)
     {
-        TriggerCoopController = player.Room.GetEntityFromId<TriggerCoopControllerComp>(CoopTriggerableId),
-        MultiInteractionTrigger = player.Room.GetEntityFromId<MultiInteractionTriggerCoopControllerComp>(CoopTriggerableId),
-        Player = player,
-        PetId = PetId
+        if (!string.IsNullOrEmpty(currentTriggerIdFromPlayer) && currentTriggerIdFromPlayer != "0")
+            timerThread.RunDelayed(AddTriggerInteraction, GetInteractionData(player, currentTriggerIdFromPlayer), TimeSpan.FromSeconds(delay));
+
+        MostRecentCoopTriggerId = currentTriggerIdFromPlayer;
+    }
+
+    private void RemoveTriggerInteraction(Player player, string triggerId, TimerThread timerThread, float delay = 0)
+    {
+        if (!string.IsNullOrEmpty(triggerId) && triggerId != "0")
+            timerThread.RunDelayed(RemoveTriggerInteraction, GetInteractionData(player, triggerId), delay != 0 ? TimeSpan.FromSeconds(delay) : TimeSpan.Zero);
+
+        MostRecentCoopTriggerId = string.Empty;
+    }
+
+    public InteractionData GetInteractionData(Player player, string triggerId) => new()
+    {
+        TriggerCoopController = player.Room.GetEntityFromId<TriggerCoopControllerComp>(triggerId),
+        MultiInteractionTrigger = player.Room.GetEntityFromId<MultiInteractionTriggerCoopControllerComp>(triggerId),
+        Player = player
     };
 
     private void AddTriggerInteraction(ITimerData data) => ProcessTriggerInteraction(data, isAdding: true);

@@ -41,9 +41,10 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
     private IEnemyController _enemyController;
     private float _activationStartTime = 0;
+    private HazardEffectCollider _collider;
 
     public TimerThread TimerThread { get; set; }
-    public ItemRConfig ItemRConfig { get; set; }
+    public HazardRConfig HazardRConfig { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public ILogger<BaseHazardControllerComp<HazardController>> Logger { get; set; }
@@ -63,6 +64,10 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
             if (PrefabName.Contains("ToxicCloud"))
             {
                 EffectType = ItemEffectType.PoisonDamage;
+            }
+            else if (PrefabName.Contains("Deathplane"))
+            {
+                EffectType = ItemEffectType.BluntDamage;
             }
             else
             {
@@ -147,7 +152,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
         // Reduces slow status effect spam.
         if ((EffectType == ItemEffectType.SlowStatusEffect || !player.TempData.OnGround) &&
-            player.TempData.IsSlowed || EffectType == ItemEffectType.SlowStatusEffect && player.HasNullifyEffect(ItemCatalog))
+            player.TempData.IsSlowed || player.HasNullifyEffect(ItemCatalog))
             return;
 
         Damage = (int)Math.Ceiling(player.Character.MaxLife * HealthRatioDamage);
@@ -194,17 +199,22 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
                 Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.BluntDamage, 1, 1, true, Id, false));
                 player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay));
-				
+
                 break;
         }
     }
 
-    public int EnemyDamagePlayer(Player player, BaseEnemy enemy) => 
-        WorldStatistics.GetValue(ItemEffectType.AbilityPower, WorldStatisticsGroup.Enemy, enemy.Level) -
-                     player.Character.CalculateDefense(EffectType, ItemCatalog);
+    public int EnemyDamagePlayer(Player player, BaseEnemy enemy) => enemy.EnemyDamagePlayer(player);
+
+    private void ActivateHazardDelay(ITimerData data)
+    {
+        if (data is not BaseHazardControllerComp<T> hazard)
+            return;
+
+        hazard.IsActive = true;
+    }
 
     // WATER BREATHING
-
     public void ApplyWaterBreathing(object playerData)
     {
         if (playerData == null || playerData is not Player player)
@@ -213,68 +223,33 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
         Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time,
                     (int)ItemEffectType.WaterBreathing, 1, 1, true, Id, false));
 
-        player.StartUnderwater(player.Character.MaxLife / ServerRConfig.UnderwaterDamageRatio, TimerThread, ServerRConfig);
-
         IsActive = false;
 
-        TimerThread.RunDelayed(RestartTimerDelay, this, TimeSpan.FromSeconds(1));
-        Logger.LogDebug("Reset underwater timer for {characterName}", player.CharacterName);
-    }
+        TimerThread.RunDelayed(ActivateHazardDelay, this, TimeSpan.FromSeconds(1));
 
-    public static void RestartTimerDelay(ITimerData data)
-    {
-        if (data is not BaseHazardControllerComp<T> hazard)
-            return;
+        player.ResetUnderwaterTime();
 
-        hazard.IsActive = true;
-    }
-
-    // POISON
-
-    public class PoisonEffect() : PlayerRoomTimer
-    {
-        public BaseHazardControllerComp<T> Hazzard;
-
-        public override bool IsValid() => base.IsValid() && Hazzard != null && Hazzard.IsValid();
-    }
-
-    public static void ApplyPoisonEffect(ITimerData data)
-    {
-        if (data is not PoisonEffect poison)
-            return;
-
-        var colliders = poison.Hazzard.Room.GetCollidersById(poison.Hazzard.Id);
-
-        if (colliders != null)
-        {
-            foreach (var collider in colliders)
-            {
-                if (poison.Player.TempData.PlayerCollider != null && !collider.CheckCollision(poison.Player.TempData.PlayerCollider))
-                    return;
-            }
-        }
-
-        poison.Player.StartPoisonDamage(poison.Hazzard.Id, poison.Hazzard.Damage,
-            (int)poison.Hazzard.HurtLength, poison.Hazzard.ServerRConfig, poison.Hazzard.TimerThread);
+        Logger.LogInformation("Reset underwater timer for {characterName}", player.CharacterName);
     }
 
     // SLOW EFFECT
-
     private void ApplySlowEffect(Player player)
     {
-        player.ApplySlowEffect(Id, Damage);
+        player.ApplySlowEffect();
 
-        // Reduces slow status effect log spam.  
         player.TempData.IsSlowed = true;
 
-        TimerThread.RunDelayed(DisableSlowEffect, new PlayerTimer() { Player = player }, TimeSpan.FromSeconds(0.50));
+        TimerThread.RunDelayed(DisableSlowEffect, new PlayerTimer() { Player = player }, TimeSpan.FromSeconds(HazardRConfig.SlowEffectInterval));
     }
 
-    private static void DisableSlowEffect(ITimerData data)
+    private void DisableSlowEffect(ITimerData data)
     {
         if (data is not PlayerTimer playerTimer)
             return;
 
-        playerTimer.Player.TempData.IsSlowed = false;
+        var player = playerTimer.Player;
+
+        if (_collider.CheckCollision(player.GetCollider()))
+            player.NullifySlowStatusEffect();
     }
 }

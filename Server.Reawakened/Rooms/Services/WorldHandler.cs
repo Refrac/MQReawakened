@@ -29,6 +29,8 @@ public class WorldHandler(EventSink sink, ServerRConfig config, WorldGraph world
     public Dictionary<string, Type> ProcessableComponents { get; private set; } = [];
     public Dictionary<string, Dictionary<string, OrderedDictionary>> PrefabOverrides { get; private set; } = [];
 
+    public ServerRConfig Config => config;
+    
     public void Initialize() => sink.WorldLoad += LoadRooms;
 
     private void LoadRooms()

@@ -21,5 +21,5 @@ public class BadgePoints : SlashCommand
     public ItemCatalog ItemCatalog { get; set; }
 
     public override void Execute(Player player, string[] args) =>
-        player.AddPoints(InternalAchievement, Logger, ServerRwConfig, ItemCatalog);
+        player.AddPoints(ServerRConfig, ItemCatalog);
 }

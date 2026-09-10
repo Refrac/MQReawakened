@@ -76,7 +76,7 @@ public static class PlayerExtensions
         }
     }
 
-    public static void AddReputation(this Player player, int reputation, ServerRConfig config, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger, ServerRwConfig rwConfig, ItemCatalog itemCatalog, bool applyMultiplier = true)
+    public static void AddReputation(this Player player, int reputation, ServerRConfig config, ItemCatalog itemCatalog)
     {
         if (player == null)
             return;
@@ -89,8 +89,7 @@ public static class PlayerExtensions
             var newLevel = player.Character.GlobalLevel + 1;
 
             player.Character.SetLevelXp(newLevel, config);
-            player.SendLevelUp(newLevel, internalAchievement, logger, rwConfig, itemCatalog);
-            nextLevel = GetRepForNextLevel(player);
+            player.SendLevelUp(config, itemCatalog);
         }
 
         player.Character.Write.Reputation = reputation;
@@ -142,10 +141,8 @@ public static class PlayerExtensions
         player.Character.Write.Cash += collectedBananas;
         player.SendCashUpdate();
 
-        player.CheckAchievement(AchConditionType.CollectBanana, [], internalAchievement, logger, rwConfig, (int)Math.Floor(collectedBananas));
+        player.CheckAchievement(AchConditionType.CollectBanana, [], internalAchievement, logger, (int)Math.Floor(collectedBananas));
     }
-
-    public static void ResetLostBananas(this Player player) => player.TempData.CashFromCurrentTrail = 0;
 
     public static void AddCash(this Player player, float collectedCash)
     {
@@ -179,10 +176,10 @@ public static class PlayerExtensions
         player.SendCashUpdate();
     }
 
-    public static void AddPoints(this Player player, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger, ServerRwConfig rwConfig, ItemCatalog itemCatalog)
+    public static void AddPoints(this Player player, ServerRConfig rConfig, ItemCatalog itemCatalog)
     {
         player.Character.Write.BadgePoints += 100;
-        player.SendLevelUp(player.Character.GlobalLevel, internalAchievement, logger, rwConfig, itemCatalog);
+        player.SendLevelUp(rConfig, itemCatalog);
 	}
 
     public static void SendCashUpdate(this Player player) =>
@@ -269,10 +266,10 @@ public static class PlayerExtensions
     }
 
     public static void LevelUp(this Player player, int level, WorldStatistics worldStatistics,
-        ServerRConfig config, Microsoft.Extensions.Logging.ILogger logger, InternalAchievement internalAchievement, ServerRwConfig rwConfig, ItemCatalog itemCatalog)
+        ServerRConfig config, Microsoft.Extensions.Logging.ILogger logger, ItemCatalog itemCatalog)
     {
         player.Character.SetLevelXp(level, config);
-        player.SendLevelUp(player.Character.GlobalLevel, internalAchievement, logger, rwConfig, itemCatalog);
+        player.SendLevelUp(config, itemCatalog);
 
         if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet))
             pet.GainMaxPetEnergy(player, worldStatistics);

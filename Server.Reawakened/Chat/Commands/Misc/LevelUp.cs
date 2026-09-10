@@ -39,7 +39,7 @@ public class LevelUp : SlashCommand
             level = ServerRConfig.MaxLevel;
         }
 
-        player.LevelUp(level, WorldStatistics, ServerRConfig, Logger, InternalAchievement, ServerRwConfig, ItemCatalog);
+        player.LevelUp(level, WorldStatistics, ServerRConfig, Logger, ItemCatalog);
 
         player.Character.Write.Reputation = player.Character.ReputationForCurrentLevel;
     }

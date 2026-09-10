@@ -4,6 +4,8 @@ using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Entities.Colliders;
+using Server.Reawakened.Entities.Colliders.Abstractions;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
@@ -54,12 +56,27 @@ public static class PlayerExtensions
     public static int GetLevelId(this Player player) =>
         player.Character?.LevelId ?? -1;
 
+    public static BaseCollider GetCollider(this Player player) => 
+        player.TempData.PlayerCollider;
+    
     public static void SentEntityTriggered(this Room room, string id, Player player, bool success, bool active)
     {
         var collectedEvent =
             new Trigger_SyncEvent(id.ToString(), room.Time, success, player.GameObjectId.ToString(), active);
 
         room.SendSyncEvent(collectedEvent);
+    }
+    
+    public static void RemoveAssociatedTriggers(this Player player)
+    {
+        var triggers = player.Room.GetEntitiesFromType<TriggerCoopControllerComp>() ?? Enumerable.Empty<TriggerCoopControllerComp>();
+
+        foreach (var trigger in triggers.Where(coopTrig =>
+                     coopTrig.CurrentPhysicalInteractors.Contains(player.GameObjectId)))
+        {
+            trigger.RemovePhysicalInteractor(player, player.GameObjectId);
+            trigger.RunTrigger(player);
+        }
     }
 
     public static void SendUserEnterDataTo(this Player send, Player receive) =>
@@ -90,7 +107,7 @@ public static class PlayerExtensions
         receive.SendXt("ci", send.UserId, info, send.GameObjectId, levelInfo.Name);
     }
 
-    public static void SendLevelUp(this Player player, int level, InternalAchievement internalAchievement, Microsoft.Extensions.Logging.ILogger logger, ServerRwConfig rwConfig, ItemCatalog itemCatalog)
+    public static void SendLevelUp(this Player player, ServerRConfig rConfig, ItemCatalog itemCatalog)
     {
         var levelUpData = new LevelUpDataModel
         {

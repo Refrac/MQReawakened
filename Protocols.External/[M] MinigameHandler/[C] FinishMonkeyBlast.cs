@@ -25,8 +25,8 @@ public class FinishMonkeyBlast : ExternalProtocol
         var bounces = int.Parse(message[7]);
         var perfectLaunches = int.Parse(message[8]);
 
-        Player.AddReputation(GetXpReward(stars), ServerRConfig, InternalAchievement, Logger, ServerRwConfig, ItemCatalog);
-        Player.AddBananas(GetBananaReward(stars), InternalAchievement, Logger, ServerRwConfig, true, true);
+        Player.AddReputation(GetXpReward(stars), ServerRConfig, ItemCatalog);
+        Player.AddBananas(GetBananaReward(stars), InternalAchievement, Logger);
 
         Player.SendCashUpdate();
 

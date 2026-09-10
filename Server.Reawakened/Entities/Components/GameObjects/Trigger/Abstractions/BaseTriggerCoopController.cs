@@ -282,9 +282,7 @@ public abstract class BaseTriggerCoopController<T> : Component<T>, ITriggerComp,
         {
             var valid = true;
 
-            if (PlayerHasPet(player, out var pet))
-                if (pet != null)
-                    pet.CoopTriggerableId = Id;
+            player.TempData.CurrentCoopTriggerId = Id;
 
             if (!string.IsNullOrEmpty(QuestCompletedRequired))
             {
@@ -322,17 +320,12 @@ public abstract class BaseTriggerCoopController<T> : Component<T>, ITriggerComp,
     {
         if (!CurrentPhysicalInteractors.Contains(interactionId)) return;
 
-        if (PlayerHasPet(player, out var pet))
-            if (pet != null)
-                pet.CoopTriggerableId = string.Empty;
+        if (player.Room.GetPlayerById(interactionId) != null)
+            player.TempData.CurrentCoopTriggerId = string.Empty;
 
         CurrentPhysicalInteractors.Remove(interactionId);
         SendInteractionUpdate();
     }
-
-    public bool PlayerHasPet(Player player, out PetModel pet) =>
-        player.Character.Pets.TryGetValue(player.GetEquippedPetId(ServerRConfig), out pet) && !pet.InCoopState() &&
-                (InteractType == InteractionType.PetChain || InteractType == InteractionType.PetSwitch);
 
     public void SendInteractionUpdate()
     {

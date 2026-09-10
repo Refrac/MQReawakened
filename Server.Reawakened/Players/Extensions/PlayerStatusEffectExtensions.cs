@@ -31,12 +31,20 @@ public static class PlayerStatusEffectExtensions
             itemEffect.Value, itemEffect.Duration, sendFx, prefabFrom, premium));
     }
 
-    public static void ApplySlowEffect(this Player player, string hazardId, int damage) =>
-        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-        (int)ItemEffectType.SlowStatusEffect, damage, 1, true, hazardId, false));
+    // DAMAGE
+    public static void StartDamageEffect(this Player player, ItemEffectType effectType,
+        int effectValue, int effectDuration, string originId)
+    {
+        if (player == null) return;
 
-    //Doesn't seem to apply fast enough.
-    public static void NullifySlowStatusEffect(this Player player, string hazardId) =>
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+                (int)effectType, effectValue, effectDuration, true, originId, false));
+    }
+
+    public static void StopDamageEffect(this Player player, ITimerData data)
+    {
+        if (data is not StatusEffectData status) return;
+
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
                 (int)status.EffectType, -1, -1, false, status.HazardId, false));
     }
@@ -57,7 +65,7 @@ public static class PlayerStatusEffectExtensions
         player.TempData.IsSlowed = false;
 
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-                (int)ItemEffectType.SlowStatusEffect, -1, -1, false, string.Empty, false));
+            (int)ItemEffectType.SlowStatusEffect, -1, -1, false, string.Empty, false));
 
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
             (int)ItemEffectType.NullifySlowStatusEffect, 1, 1, true, string.Empty, false));
@@ -65,6 +73,8 @@ public static class PlayerStatusEffectExtensions
 
     public static void RunUnderwaterTick(this Player player, ServerRConfig config)
     {
+        player.TempData.Underwater = true;
+        
         if (player.Character.StatusEffects.GetEffect(ItemEffectType.WaterBreathing) > 0)
         {
             player.ResetUnderwaterTime();
@@ -93,15 +103,28 @@ public static class PlayerStatusEffectExtensions
          .Select(x => itemCatalog.GetItemFromId(x.Value))
          .Any(item => item != null && item.ItemEffects.Any(effect => effect.Type == ItemEffectType.NullifySlowStatusEffect));
 
-    public static void StartPoisonDamage(this Player player, string hazardId, int damage, int hurtLength, ServerRConfig serverRConfig, TimerThread timerThread)
+
+    public static void ApplyPoisonDamage(ITimerData data)
     {
-        if (player == null || player.TempData.Invincible)
-            return;
+        if (data == null || data is not StatusEffectData poisonData) return;
+
+        var player = poisonData.Player;
+
+        player.TempData.IsPoisoned = true;
+
+        poisonData.TimerThread.RunInterval(player.ApplyPoisonDamage, poisonData,
+            TimeSpan.FromSeconds(poisonData.DamageDelay), poisonData.DamageCount, TimeSpan.FromSeconds(poisonData.InitialDamageDelay));
+    }
+
+    public static void StopPoisonEffect(this Player player)
+    {
+        player.TempData.IsPoisoned = false;
 
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-        (int)ItemEffectType.PoisonDamage, damage, hurtLength, true, hazardId, false));
+                (int)ItemEffectType.PoisonDamage, -1, -1, false, string.Empty, false));
 
-        player.ApplyCharacterDamage(damage, hazardId, hurtLength, serverRConfig, timerThread);
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+                (int)ItemEffectType.CurePoison, 1, 1, true, string.Empty, false));
     }
 
     public static void TemporaryInvincibility(this Player player, double durationInSeconds)
@@ -112,7 +135,7 @@ public static class PlayerStatusEffectExtensions
         
         var itemEffect = new ItemEffect(ItemEffectType.Invincibility, 0, (int)durationInSeconds);
             
-        player.Character.StatusEffects.Add(itemEffect, string.Empty);
+        player.Character.StatusEffects.Add(itemEffect);
             
         player.SendItemEffectToPlayer(itemEffect, string.Empty, true, true);
             

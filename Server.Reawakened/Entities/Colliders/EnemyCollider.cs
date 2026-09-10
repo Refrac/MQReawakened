@@ -1,7 +1,5 @@
-﻿using A2m.Server;
-using Server.Reawakened.Entities.Colliders.Abstractions;
+﻿using Server.Reawakened.Entities.Colliders.Abstractions;
 using Server.Reawakened.Entities.Colliders.Enums;
-using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Models.Planes;
@@ -23,10 +21,7 @@ public class EnemyCollider(BaseEnemy enemy, RectModel box) : BaseCollider
             if (enemy == null || Room.IsObjectKilled(enemy.Id))
                 return;
 
-            var damage = Room.GetEntityFromId<IDamageable>(enemy.Id)
-                .GetDamageAmount(attack.Damage, attack.DamageType);
-
-            enemy.Damage(attack.Owner, damage);
+            enemy.SendTypeOfDamage(attack.Owner, attack.ItemEffects, attack.PrefabFrom, attack.DamageScale);
         }
         else if (received is PlayerCollider playerCollider)
         {

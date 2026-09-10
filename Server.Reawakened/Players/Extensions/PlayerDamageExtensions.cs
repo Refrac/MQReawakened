@@ -1,16 +1,13 @@
 ﻿using A2m.Server;
 using Server.Base.Core.Abstractions;
-using Server.Base.Timers.Extensions;
-using Server.Base.Timers.Services;
-using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Rooms.Extensions;
-using Server.Reawakened.Rooms.Models.Timers;
+using static Server.Reawakened.Players.Extensions.PlayerStatusEffectExtensions;
 
 namespace Server.Reawakened.Players.Extensions;
 
 public static class PlayerDamageExtensions
 {
-    public class UnderwaterData() : PlayerRoomTimer
+    public static void ApplyPoisonDamage(this Player player, ITimerData data)
     {
         if (data is not StatusEffectData status)
             return;
@@ -55,17 +52,19 @@ public static class PlayerDamageExtensions
 
         player.Character.Write.CurrentLife -= (int)damage;
 
-        if (player.Character.CurrentLife < 0 && !player.TempData.IsKnockedOut)
+        if (player.Character.CurrentLife <= 0 && !player.TempData.IsKnockedOut)
         {
             player.Character.Write.CurrentLife = 0;
-            KnockoutPlayer(player);
+            player.KnockoutPlayer();
         }
+
+        player.StartDamageEffect(effectType, Convert.ToInt32(damage), duration, originId);
 
         player.Room.SendSyncEvent(new Health_SyncEvent(player.GameObjectId.ToString(), player.Room.Time,
             player.Character.CurrentLife, player.Character.MaxLife, originId));
 
-        if (invincibilityDuration <= 0)
-            invincibilityDuration = 1;
+        if (duration <= 0)
+            duration = 1;
 
         player.TemporaryInvincibility(duration);
     }
@@ -84,6 +83,7 @@ public static class PlayerDamageExtensions
     {
         player.TempData.EnemiesInPetAbilityZone = [];
 
+        player.TempData.Underwater = false;
         player.TempData.IsPoisoned = false;
         player.TempData.IsSlowed = false;
         player.TempData.IsSuperStomping = false;
@@ -91,10 +91,10 @@ public static class PlayerDamageExtensions
         player.TempData.Invincible = true;
         player.TempData.IsKnockedOut = true;
 
-        if (player.TempData.UnderwaterTimer != null)
+        if (player.TempData.PoisonEffectTimer != null)
         {
-            player.TempData.UnderwaterTimer.Stop();
-            player.TempData.UnderwaterTimer = null;
+            player.TempData.PoisonEffectTimer.Stop();
+            player.TempData.PoisonEffectTimer = null;
         }
     }
 }

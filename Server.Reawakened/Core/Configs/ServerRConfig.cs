@@ -75,7 +75,7 @@ public class ServerRConfig : IRConfig
     public int PetHotbarIndex { get; }
 
     public string FXWaterSplashName { get; }
-    public int BreathTimerDuration { get; }
+    public int BaseUnderwaterTime { get; }
     public int UnderwaterDamageInterval { get; }
     public int UnderwaterDamageRatio { get; }
     
@@ -208,7 +208,7 @@ public class ServerRConfig : IRConfig
         Gifting = true;
 
         FXWaterSplashName = "FX_WaterSplash";
-        BreathTimerDuration = 31;
+        BaseUnderwaterTime = 31;
         UnderwaterDamageInterval = 2;
         UnderwaterDamageRatio = 10;
     }

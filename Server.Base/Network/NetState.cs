@@ -335,21 +335,9 @@ public class NetState : IDisposable
 
     public override string ToString() => Identifier;
 
-    public T Get<T>() where T : class
-    {
-        lock (_data)
-        {
-            return _data.TryGetValue(typeof(T), out var value) ? value as T : null;
-        }
-    }
+    public T Get<T>() where T : class => !_data.ContainsKey(typeof(T)) ? null : _data[typeof(T)] as T;
 
-    public void Set<T>(T data) where T : INetStateData
-    {
-        lock (_data)
-        {
-            _data[typeof(T)] = data;
-        }
-    }
+    public void Set<T>(T data) where T : INetStateData => _data.Add(typeof(T), data);
 
     public void RemoveAllData()
     {
@@ -358,24 +346,10 @@ public class NetState : IDisposable
 
         _hasRemovedData = true;
 
-        List<INetStateData> dataValues;
-        lock (_data)
-        {
-            dataValues = _data.Values.ToList();
-            _data.Clear();
-        }
-
-        foreach (var data in dataValues)
-        {
-            try
-            {
-                data?.RemovedState(this, _services, _logger);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while executing RemovedState for {DataType} on {NetState}", data?.GetType().Name, this);
-            }
-        }
+        foreach (var data in _data)
+            data.Value?.RemovedState(this, _services, _logger);
+        
+        _data.Clear();
     }
 
     public void TraceBufferError(int byteCount)

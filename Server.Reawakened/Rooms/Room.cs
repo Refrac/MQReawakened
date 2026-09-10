@@ -13,6 +13,7 @@ using Server.Reawakened.Entities.Components.GameObjects.Checkpoints;
 using Server.Reawakened.Entities.Components.GameObjects.Global;
 using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
 using Server.Reawakened.Entities.Components.GameObjects.Spawners;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Entities.Enemies.Extensions;
 using Server.Reawakened.Entities.Projectiles;
@@ -25,6 +26,7 @@ using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.Rooms.Services;
+using Server.Reawakened.XMLs.Bundles.Base;
 using Server.Reawakened.XMLs.Bundles.Internal;
 using WorldGraphDefines;
 using Random = System.Random;
@@ -64,7 +66,9 @@ public class Room : Timer
     public Dictionary<string, List<List<BaseComponent>>> DuplicateEntities;
 
     private readonly ServerRConfig _config;
-	
+    private readonly ItemRConfig _itemConfig;
+    
+    public ItemCatalog ItemCatalog;
     public InternalColliders ColliderCatalog;
 
     public WorldHandler World;
@@ -94,7 +98,9 @@ public class Room : Timer
 
         IsOpen = true;
 
+        _itemConfig = services.GetRequiredService<ItemRConfig>();
         ColliderCatalog = services.GetRequiredService<InternalColliders>();
+        ItemCatalog = services.GetRequiredService<ItemCatalog>();
         Logger = services.GetRequiredService<ILogger<Room>>();
         World = services.GetRequiredService<WorldHandler>();
 
@@ -572,6 +578,24 @@ public class Room : Timer
                 : [.. _entities.SelectMany(x => x.Value).Where(x => x is T and not null).Select(x => x as T)];
     }
 
+    public string CreatePetGameObjectId()
+    {
+        var gameObjectId = new Random().Next(1000000, int.MaxValue);
+
+        while (_gameObjectIds.Contains(gameObjectId.ToString()))
+            gameObjectId++;
+
+        _gameObjectIds.Add(gameObjectId.ToString());
+
+        return gameObjectId.ToString();
+    }
+
+    public void RemovePetGameObjectId(string petGameObjectId)
+    {
+        if (_gameObjectIds.Contains(petGameObjectId))
+            _gameObjectIds.Remove(petGameObjectId);
+    }
+    
     // Projectiles
 
     public void AddProjectile(BaseProjectile projectile)
@@ -605,7 +629,7 @@ public class Room : Timer
     }
 
     public void AddRangedProjectile(string ownerId, Vector3Model position, Vector2 speed,
-        float lifeTime, int damage, ItemEffectType effect, bool isGrenade, string prefabName = "")
+        float lifeTime, ItemEffectType effect, bool isGrenade, string prefabName = "")
     {
         var projectileId = CreateProjectileId();
 

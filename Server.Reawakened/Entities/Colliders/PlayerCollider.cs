@@ -31,8 +31,7 @@ public class PlayerCollider(Player player) : BaseCollider
         {
             var enemy = Room?.GetEnemy(aiProjectileCollider.OwnderId);
 
-            var damage = 1;
-            enemy?.EnemyDamagePlayer(Player);
+            var damage = enemy is null ? 1 : enemy.EnemyDamagePlayer(Player);
 
             //if (aiProjectileCollider.Effect == ItemEffectType.PoisonDamage)
             //    player.ApplyPoisonDamage(player.GetPoisonEffectData(damage, Id, string.Empty,
@@ -42,7 +41,7 @@ public class PlayerCollider(Player player) : BaseCollider
             player.ApplyCharacterDamage(damage, aiProjectileCollider.Effect, aiProjectileCollider.Id, 1);
 
             player.TemporaryInvincibility(1);
-			
+
             Room.RemoveCollider(aiProjectileCollider.Id);
         }
 
@@ -69,6 +68,6 @@ public class PlayerCollider(Player player) : BaseCollider
             ColliderType.Attack => false,
             _ => true
         };
-
+	
     public override string[] RunCollisionDetection() => RunBaseCollisionDetection();
 }

@@ -92,11 +92,11 @@ public class UseSlot : ExternalProtocol
         }
     }
 
-    private void HandleRelic(ItemDescription usedItem) => Player.HandleItemEffect(usedItem, TimerThread, Logger, ItemCatalog);
+    private void HandleRelic(ItemDescription usedItem) => Player.HandleItemEffect(usedItem, TimerThread, ServerRConfig, Logger);
 
     private void HandleConsumable(ItemDescription usedItem)
     {
-        Player.HandleItemEffect(usedItem, TimerThread, Logger, ItemCatalog);
+        Player.HandleItemEffect(usedItem, TimerThread, ServerRConfig, Logger);
         var removeFromHotBar = true;
 
         if (usedItem.InventoryCategoryID is
@@ -152,9 +152,7 @@ public class UseSlot : ExternalProtocol
         var id = Player.Room.CreateProjectileId().ToString();
 
         // Add weapon stats later
-        var prj = new DamageZoneEntity(id, new Vector3Model(position.x, position.y, position.z), Player, direction, usedItem,
-            Player.Character.CalculateDamage(usedItem, ItemCatalog),
-            usedItem.Elemental);
+        var prj = new DamageZoneEntity(id, new Vector3Model(position.x, position.y, position.z), Player, direction, usedItem, ItemCatalog);
 
         Player.Room.AddProjectile(prj);
     }
@@ -178,8 +176,7 @@ public class UseSlot : ExternalProtocol
 
         var genericProjectile = new GenericProjectile(projectile.ProjectileId, projectile.Player, projectile.Config.GrenadeLifeTime,
             projectile.Position, projectile.Config, projectile.Direction, projectile.UsedItem,
-            projectile.Player.Character.CalculateDamage(projectile.UsedItem, projectile.Catalog),
-            projectile.UsedItem.Elemental, projectile.IsGrenade, projectile.ServerRConfig);
+            projectile.IsGrenade, projectile.ServerRConfig, projectile.Catalog);
 
         projectile.Player.Room.AddProjectile(genericProjectile);
     }
@@ -189,9 +186,8 @@ public class UseSlot : ExternalProtocol
         var prjId = Player.Room.CreateProjectileId().ToString();
 
         // Add weapon stats later
-        var prj = new MeleeEntity(prjId, new Vector3Model(position.x, position.y, position.z), Player, direction, 0.51f, usedItem,
-            Player.Character.CalculateDamage(usedItem, ItemCatalog),
-            usedItem.Elemental, ItemRConfig, ServerRConfig);
+        var prj = new MeleeEntity(prjId, new Vector3Model(position.x, position.y, position.z), Player, direction,
+            0.51f, usedItem, ItemRConfig, ServerRConfig, ItemCatalog);
 
         Player.Room.AddProjectile(prj);
     }
@@ -207,7 +203,7 @@ public class UseSlot : ExternalProtocol
         if (usedItem.ItemEffects.Count != 0)
         {
             var petSnackEnergyValue = usedItem.ItemEffects.First().Value;
-            petUse.GainEnergy(Player, petSnackEnergyValue);
+            petUse.EatSnack(Player, petSnackEnergyValue);
             var removeFromHotBar = true;
 
             if (usedItem.InventoryCategoryID is

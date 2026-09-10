@@ -27,19 +27,12 @@ public class Logout : SystemProtocol
 
             lock (PlayerContainer.Lock)
             {
-                if (Player.Character.Pets.TryGetValue(Player.GetEquippedPetId(ServerRConfig), out var pet))
-                {
-                    Player.TempData.PetEnergyRegenTimer?.Stop();
-                    pet.LastTimePetWasEquipped = DateTime.Now;
-                    pet.HasGainedOfflineEnergy = false;
-                }
-                if (Player.Character.CurrentLife >= 0)
-                {
-                    Player.Character.Write.CurrentLife = Player.Character.MaxLife;
-                }
+                if (Player.Character != null)
+                    foreach (var player in PlayerContainer.GetPlayersByFriend(Player.CharacterId))
+                        player?.SendXt("fz", Player.CharacterName);
             }
 
-            Player.Remove(Logger);
+            Player?.Remove(Logger);
         }
 
         SendXml("logout", string.Empty);

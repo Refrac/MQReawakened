@@ -70,4 +70,9 @@ public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
             Health, MaxHealth, HealthModifier, ScaleModifier, ResistanceModifier,
             Status.Stars, Level, AISyncEventHelper.CreateDefaultGlobalProperties(), []
         );
+    
+    public override void StartActing(ActingStateType state, float duration)
+    {
+        // put code here
+    }
 }

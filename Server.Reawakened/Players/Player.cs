@@ -111,5 +111,15 @@ public class Player(AccountModel account, UserInfoModel userInfo, NetState state
         }
 
         this.DumpToLobby(worldHandler);
+        
+        try
+        {
+            NetState.RemoveAllData();
+            NetState.Dispose();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error when disposing on logout");
+        }
     }
 }

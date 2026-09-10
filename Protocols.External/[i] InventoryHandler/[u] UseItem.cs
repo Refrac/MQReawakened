@@ -80,12 +80,12 @@ public class UseItem : ExternalProtocol
 
     private void HandleBomb(ItemDescription usedItem, Vector3 position, int direction)
     {
-        Player.CheckAchievement(AchConditionType.Bomb, [usedItem.PrefabName], InternalAchievement, Logger, ServerRwConfig);
+        Player.CheckAchievement(AchConditionType.Bomb, [usedItem.PrefabName], InternalAchievement, Logger);
 
         if (usedItem.ItemEffects.Any())
-            Player.HandleItemEffect(usedItem, TimerThread, Logger, ItemCatalog);
+            Player.HandleItemEffect(usedItem, TimerThread, ServerRConfig, Logger);
 
-        Player.HandleDrop(ItemRConfig, TimerThread, Logger, usedItem, position, direction);
+        Player.HandleDrop(ItemRConfig, TimerThread, Logger, usedItem, position, direction, ServerRConfig);
 
         var removeFromHotbar = true;
 
@@ -117,7 +117,7 @@ public class UseItem : ExternalProtocol
             }
         }
 
-        Player.HandleItemEffect(usedItem, TimerThread, Logger, ItemCatalog);
+        Player.HandleItemEffect(usedItem, TimerThread, ServerRConfig, Logger);
 
         var removeFromHotbar = true;
 

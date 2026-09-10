@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Network.Protocols;
-using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Bundles.Base;
@@ -14,6 +13,7 @@ public class RemoveSlot : ExternalProtocol
 
     public PetAbilities PetAbilities { get; set; }
     public WorldStatistics WorldStatistics { get; set; }
+    public ItemRConfig ItemRConfig { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
     public ItemRConfig ItemConfig { get; set; }
     public ItemCatalog ItemCatalog { get; set; }

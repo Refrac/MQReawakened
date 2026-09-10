@@ -1,9 +1,6 @@
 ﻿using A2m.Server;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Base.Timers.Services;
 using Server.Reawakened.Entities.Components.AI.Stats;
-using Server.Reawakened.Entities.Enemies.Behaviors;
 using Server.Reawakened.Entities.Enemies.Behaviors.Abstractions;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Entities.Enemies.Extensions;
@@ -11,13 +8,9 @@ using Server.Reawakened.Entities.Enemies.Models;
 using Server.Reawakened.Entities.Enemies.Services;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.XMLs.Data.Enemy.Enums;
-using Server.Reawakened.XMLs.Data.Enemy.Models;
-using Server.Reawakened.XMLs.Data.Enemy.States;
-using System;
 using UnityEngine;
 
 namespace Server.Reawakened.Entities.Enemies.EnemyTypes;
@@ -34,8 +27,6 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
     public AIBaseBehavior CurrentBehavior;
 
     private float _lastUpdate;
-	
-    private StateType _attackBehavior;
     
     public override void Initialize()
     {
@@ -71,14 +62,7 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
             _suicide = new Runnable(this)
         };
 
-        _attackBehavior = Global.AttackBehavior;
-
-        var behaviorData = EnemyModel.BehaviorData;
-        Behaviors = new Dictionary<StateType, AIBaseBehavior>(behaviorData.Count);
-        foreach (var kvp in behaviorData)
-        {
-            Behaviors.Add(kvp.Key, kvp.Value.GetBaseBehaviour(this));
-        }
+        Behaviors = EnemyModel.BehaviorData.ToDictionary(s => s.Key, s => s.Value.GetBaseBehaviour(this));
 
         base.Initialize();
 
@@ -124,35 +108,22 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
         if (!this.TryGetDetectionCollider(out var enemyCollider))
             return false;
 
-        var myPlane = ParentPlane;
-        var minX = AiData.Intern_MinPointX;
-        var maxX = AiData.Intern_MaxPointX;
-        var limitByPatrol = Global.Global_DetectionLimitedByPatrolLine;
-
         foreach (var player in Room.GetPlayers())
         {
-            if (player?.Character == null)
-                continue;
-
-            var character = player.Character;
-            if (character.CurrentLife <= 0)
-                continue;
-
-            if (character.StatusEffects.HasEffect(ItemEffectType.Invisibility))
-                continue;
-
-            if (myPlane != player.GetPlayersPlaneString())
+            if (player == null || player.Character == null)
                 continue;
 
             var temp = player.TempData;
-            if (temp == null)
-                continue;
+            var character = player.Character;
+            var statusEffects = character.StatusEffects;
 
-            if (limitByPatrol && (temp.Position.X <= minX || temp.Position.X >= maxX))
-                continue;
+            var collides = temp.PlayerCollider != null && enemyCollider.CheckCollision(temp.PlayerCollider);
+            var withinPatrol = !Global.Global_DetectionLimitedByPatrolLine || temp != null && temp.Position.X > AiData.Intern_MinPointX && temp.Position.X < AiData.Intern_MaxPointX;
+            var samePlane = ParentPlane == player.GetPlayersPlaneString();
+            var invisible = statusEffects.HasEffect(ItemEffectType.Invisibility);
+            var alive = character.CurrentLife > 0;
 
-            var playerCollider = temp.PlayerCollider;
-            if (playerCollider != null && enemyCollider.CheckCollision(playerCollider))
+            if (collides && withinPatrol && samePlane && !invisible && alive)
             {
                 EnemyAggroPlayer(player);
                 return true;
@@ -208,10 +179,10 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
         );
     }
 
-    public override void Damage(Player player, int damage)
+    public override void Damage(Player player, int damage, bool notifyAggro = true)
     {
         base.Damage(player, damage);
-        if (CurrentBehavior.ShouldAggroOnHit)
+        if (notifyAggro && CurrentBehavior.ShouldAggroOnHit)
             EnemyAggroPlayer(player);
     }
 
@@ -271,5 +242,15 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
             player.TempData.Position.X, player.TempData.Position.Y,
             Generic.Patrol_ForceDirectionX
         );
+    }
+
+    public override void StartActing(ActingStateType state, float duration)
+    {
+        if (CurrentState == StateType.Acting)
+            return;
+
+        AiData.Intern_AnimName = Enum.GetName(state);
+        AiData.Intern_BehaviorRequestTime = duration;
+        ChangeBehavior(StateType.Acting, Position.X, Position.Y, Generic.Patrol_ForceDirectionX);
     }
 }

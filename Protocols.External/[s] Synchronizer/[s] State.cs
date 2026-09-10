@@ -29,6 +29,7 @@ public class State : ExternalProtocol
     public override string ProtocolName => "ss";
     public PetAbilities PetAbilities { get; set; }
     public SyncEventManager SyncEventManager { get; set; }
+    public ItemRConfig ItemRConfig { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public WorldStatistics WorldStatistics { get; set; }
@@ -71,8 +72,6 @@ public class State : ExternalProtocol
                     Player.TempData.IsSuperStomping = true;
 
                     var attack = new ChargeAttack_SyncEvent(syncEvent);
-                    var superStompDamage = (int)Math.Ceiling(WorldStatistics.GetValue(ItemEffectType.AbilityPower, WorldStatisticsGroup.Player, Player.Character.GlobalLevel) +
-                        WorldStatistics.GlobalStats[Globals.StompDamageBonus]) * 2;
 
                     var itemId = -1;
                     var zoneId = -1;
@@ -98,7 +97,7 @@ public class State : ExternalProtocol
                         new Vector3(attack.MaxPosX, attack.MaxPosY, Player.TempData.Position.Z),
                         new Vector2(attack.SpeedX, attack.SpeedY),
                         15, ItemCatalog.GetItemFromId(attack.ItemId), attack.ZoneId,
-                        ServerRConfig
+                        ServerRConfig, ItemCatalog
                     );
 
                     Player.Room.AddProjectile(chargeAttackProjectile);
@@ -127,6 +126,9 @@ public class State : ExternalProtocol
                 case SyncEvent.EventType.PhysicBasic:
                     var physicsBasicEvent = new PhysicBasic_SyncEvent(syncEvent);
 
+                    if (!physicsBasicEvent.OnGround && newPlayer.TempData.IsSlowed)
+                        newPlayer.NullifySlowStatusEffect();
+                    
                     newPlayer.TempData.Position.SetPosition(
                         physicsBasicEvent.PositionX,
                         physicsBasicEvent.PositionY,
@@ -221,6 +223,7 @@ public class State : ExternalProtocol
         Player.ResetUnderwaterTime();
 
         Player.TempData.IsKnockedOut = false;
+        Player.TempData.Underwater = false;
     }
 
     public void LogEvent(SyncEvent syncEvent, string entityId, Room room)

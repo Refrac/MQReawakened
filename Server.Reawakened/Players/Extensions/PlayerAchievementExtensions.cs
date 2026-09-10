@@ -110,15 +110,7 @@ public static class PlayerAchievementExtensions
 
             if (amountLeft <= 0)
             {
-                if (achievement.Key.repeatable == true)
-                    player.Character.CurrentAchievementDailies.TryAdd(currentAchievement.id.ToString(), new DailiesModel()
-                    {
-                        GameObjectId = currentAchievement.id.ToString(),
-                        LevelId = 0,
-                        TimeOfHarvest = DateTime.UtcNow
-                    });
-
-                achievement.Key.rewards.RewardPlayer(player, internalAchievement, logger, rwConfig);
+                achievement.Key.rewards.RewardPlayer(player, internalAchievement, logger);
             }
         }
     }
@@ -185,22 +177,5 @@ public static class PlayerAchievementExtensions
         var _characterId = character.Id;
 
         return [.. internalAchievement.Definitions.achievements.Select(x => GetAchievement(character, x))];
-    }
-
-    private static bool CanStartDailyAchievement(Player player, string dailyObjectId)
-    {
-        if (player.Character.CurrentAchievementDailies == null)
-            return true;
-
-        if (!player.Character.CurrentAchievementDailies.ContainsKey(dailyObjectId) ||
-            player.Character.CurrentAchievementDailies.TryGetValue(dailyObjectId, out var dailyObject) &&
-            dailyObject.GameObjectId == dailyObjectId &&
-            DateTime.UtcNow.Date > dailyObject.TimeOfHarvest.Date)
-        {
-            player.Character.CurrentAchievementDailies.Remove(dailyObjectId);
-            return true;
-        }
-        else
-            return false;
     }
 }

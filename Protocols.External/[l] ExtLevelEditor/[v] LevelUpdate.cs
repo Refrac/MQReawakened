@@ -1,23 +1,15 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
-using Server.Base.Core.Abstractions;
-using Server.Base.Timers.Extensions;
-using Server.Base.Timers.Services;
 using Server.Reawakened.Chat.Services;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Core.Enums;
-using Protocols.External._Z__PetHandler;
-using Server.Reawakened.Core.Configs;
-using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Entities.Components.GameObjects.NPC;
-using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
-using Server.Reawakened.Rooms.Models.Timers;
 using Server.Reawakened.XMLs.Bundles;
 using Server.Reawakened.XMLs.Bundles.Base;
 using Server.Reawakened.XMLs.Bundles.Internal;
@@ -33,12 +25,12 @@ public class RoomUpdate : ExternalProtocol
 
     public MQRSlashCommands MQRSlashCommands { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
+    public ItemRConfig ItemRConfig { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
     public WorldStatistics WorldStatistics { get; set; }
     public PetAbilities PetAbilities { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public ILogger<RoomUpdate> Logger { get; set; }
-    public TimerThread TimerThread { get; set; }
     public InternalLeaderboards Leaderboards { get; set; }
     public TopScoresHandler TopScoresHandler { get; set; }
 
@@ -55,7 +47,6 @@ public class RoomUpdate : ExternalProtocol
             enemy.SendAiData(Player, Player.Room.GetPlayers().Length > 1);
 
         Player.TempData.CurrentArena = null;
-        Player.TempData.CashFromCurrentTrail = 0;
 
         if (Player.TempData.FirstLogin)
         {
@@ -90,14 +81,6 @@ public class RoomUpdate : ExternalProtocol
             Player.Character.SetHealthStat(ItemCatalog);
             Player.Room.SendSyncEvent(new Health_SyncEvent(Player.GameObjectId.ToString(), Player.Room.Time,
                 Player.Character.CurrentLife, Player.Character.MaxLife, Player.GameObjectId.ToString()));
-        }
-
-        //Reapply still-active status effects
-        Player.Character.StatusEffects.UpdateStatus();
-        foreach (var status in Player.Character.StatusEffects.Effects)
-        {
-            Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(Player.GameObjectId, Player.Room.Time,
-                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.UtcNow).TotalSeconds, true, status.Value.PrefabName, true));
         }
 
         foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
