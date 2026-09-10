@@ -9,18 +9,11 @@ public class AIStateWaitComp : BaseAIState<AIStateWaitMQR, AI_State>
     public float FxWaitDuration = 0;
     public float WaitDuration => ComponentData.WaitDuration + FxWaitDuration;
 
-    private float _waitTime = 0;
+    public float WaitTime { get; private set; } = 0;
+
+    public override void StartState(float time = -1) => base.StartState(WaitDuration);
 
     public override AI_State GetInitialAIState() => new([], loop: false);
 
-    public override void OnAIStateIn() => _waitTime = Room.Time + WaitDuration;
-
-    public override void Execute()
-    {
-        if (Room.Time < _waitTime)
-            return;
-
-        AddNextState<AIStatePatrolComp>();
-        GoToNextState();
-    }
+    public override void OnAIStateIn() => WaitTime = Room.Time + WaitDuration;
 }

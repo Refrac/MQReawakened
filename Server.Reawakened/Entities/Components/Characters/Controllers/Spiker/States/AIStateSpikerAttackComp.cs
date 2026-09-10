@@ -2,7 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
+using Server.Reawakened.Entities.Components.Characters.Controllers.SpiderBoss.States;
 using Server.Reawakened.Entities.DataComponentAccessors.Spiker.States;
+using Server.Reawakened.Rooms.Extensions;
+using Server.Reawakened.Rooms.Models.Planes;
 using UnityEngine;
 
 namespace Server.Reawakened.Entities.Components.Characters.Controllers.Spiker.States;
@@ -19,7 +22,8 @@ public class AIStateSpikerAttackComp : BaseAIState<AIStateSpikerAttackMQR, AI_St
     public int NumberOfProjectiles => ComponentData.NumberOfProjectiles;
     public float AngleBetweenProjectiles => ComponentData.AngleBetweenProjectiles;
 
-    private AIStatePatrolComp _patrolComp;
+    private float _prjTime;
+    private float _endTime;
 
     public override AI_State GetInitialAIState() => new(
         [
@@ -31,26 +35,43 @@ public class AIStateSpikerAttackComp : BaseAIState<AIStateSpikerAttackMQR, AI_St
     public override void InitializeComponent()
     {
         base.InitializeComponent();
-        _patrolComp = Room.GetEntityFromId<AIStatePatrolComp>(Id);
+        _prjTime = -1;
+        _endTime = -1;
     }
 
     public void Shoot()
     {
         Logger.LogTrace("Shoot called for {StateName} on {PrefabName}", StateName, PrefabName);
+        _prjTime = Room.Time + ProjectileTime;
 
-        var targetPlayer = _patrolComp.GetClosestPlayer();
+        // I don't know why this starts a tick late
+        // The 0.5f is just so the state runs on time
+        _endTime = Room.Time + ShootTime - 0.5f;
+    }
+
+    public override void Execute()
+    {
+        if (_prjTime > 0 && Room.Time >= _prjTime)
+            FireProjectiles();
+
+        else if (_endTime > 0 && Room.Time >= _endTime)
+        {
+            AddNextState<AIStateWaitComp>();
+            GoToNextState();
+        }
+    }
+
+    public void FireProjectiles()
+    {
+        Logger.LogTrace("Launched Projectiles for {PrefabName}", PrefabName);
+        var targetPlayer = Room.GetClosestPlayer(Position.ToUnityVector3(), 20f);
 
         if (targetPlayer == null)
             return;
 
-        var directionToPlayer = GetDirectionToPlayer(targetPlayer);
-        var baseAngle = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
-
-        var startingAngle = baseAngle + FirstProjectileAngleOffset;
-
         for (var i = 0; i < NumberOfProjectiles; i++)
         {
-            var currentAngle = startingAngle + i * AngleBetweenProjectiles;
+            var currentAngle = FirstProjectileAngleOffset + i * AngleBetweenProjectiles;
             var angleInRadians = currentAngle * Mathf.Deg2Rad;
 
             var projectileDirection = new Vector2(
@@ -61,10 +82,12 @@ public class AIStateSpikerAttackComp : BaseAIState<AIStateSpikerAttackMQR, AI_St
             var projectileSpeed = projectileDirection * ProjectileSpeed;
 
             EnemyController.FireProjectile(
-                Position,
+                new Vector3Model(Position.X, Position.Y + 1, Position.Z),
                 projectileSpeed,
                 false
             );
         }
+
+        _prjTime = -1;
     }
 }

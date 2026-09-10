@@ -8,19 +8,8 @@ public class AIStateIdleComp : BaseAIState<AIStateIdleMQR, AI_State>
 
     public override AI_State GetInitialAIState() => new([], loop: true);
 
-    public override void Execute()
+    public override void InitializeComponent()
     {
-        var patrolComp = Room.GetEntityFromId<AIStatePatrolComp>(Id);
-
-        if (patrolComp == null)
-            return;
-
-        var closestPlayer = patrolComp.GetClosestPlayer();
-
-        if (closestPlayer == null)
-            return;
-
-        AddNextState<AIStateWaitComp>();
-        GoToNextState();
+        base.InitializeComponent();
     }
 }

@@ -7,9 +7,9 @@ public interface IAIState
 {
     string StateName { get; }
 
-    void StartState();
+    void StartState(float time = -1);
     void UpdateState();
-    void StopState();
+    void StopState(float time = 0);
 
     ComponentSettings GetFullSettings();
     void SetStateMachine(IAIStateMachine machine);
