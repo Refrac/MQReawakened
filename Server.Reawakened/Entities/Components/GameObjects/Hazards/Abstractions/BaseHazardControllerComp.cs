@@ -152,7 +152,10 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
         // Reduces slow status effect spam.
         if ((EffectType == ItemEffectType.SlowStatusEffect || !player.TempData.OnGround) &&
-            player.TempData.IsSlowed || player.HasNullifyEffect(ItemCatalog))
+            player.TempData.IsSlowed)
+            return;
+        
+        if (EffectType == ItemEffectType.SlowStatusEffect && player.HasNullifyEffect(ItemCatalog))
             return;
 
         Damage = (int)Math.Ceiling(player.Character.MaxLife * HealthRatioDamage);
