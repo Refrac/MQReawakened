@@ -144,6 +144,9 @@ public class State : ExternalProtocol
 
                     newPlayer.TempData.OnGround = physicsBasicEvent.OnGround;
 
+                    if (newPlayer.TempData.Position.Z is not 0 and not 20)
+                        newPlayer.TemporaryInvincibility(ServerRConfig.CrossBridgeTime);
+
                     UpdatePlayerCollider(newPlayer);
                     break;
                 case SyncEvent.EventType.Direction:
@@ -161,14 +164,20 @@ public class State : ExternalProtocol
                         Player.ResetUnderwaterTime();
                         Player.TempData.Underwater = false;
                     }
+                    else if (Player.TempData.Underwater)
+                    {
+                        Player.RunUnderwaterTick(ServerRConfig);
+                    }
+                    else if (Player.TempData.Underwater && Player.TempData.UnderwaterTime != 0)
+                    {
+                        Player.ResetUnderwaterTime();
+                    }
                     break;
                 case SyncEvent.EventType.FX:
                     var fxEvent = new FX_SyncEvent(syncEvent);
 
                     if (fxEvent.PrefabName == ServerRConfig.FXWaterSplashName)
                         Player.RunUnderwaterTick(ServerRConfig);
-					else if (Player.TempData.UnderwaterTime != 0)
-                        Player.ResetUnderwaterTime();
                     break;
             }
 

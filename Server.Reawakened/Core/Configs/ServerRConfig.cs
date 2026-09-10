@@ -57,6 +57,8 @@ public class ServerRConfig : IRConfig
     public float PlayerWidth { get; }
     public float PlayerHeight { get; }
 
+    public int CrossBridgeTime { get; }
+    
     public int CashKitAmount { get; }
 
     public string DailyBoxName { get; }
@@ -191,6 +193,8 @@ public class ServerRConfig : IRConfig
             { GameVersion.v2011, string.Empty }
         };
 
+        CrossBridgeTime = 2;
+        
         LastClientUpdate = 0;
         CutOffFor2014 = 0;
 
