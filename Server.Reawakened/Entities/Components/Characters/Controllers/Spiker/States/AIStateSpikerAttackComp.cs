@@ -63,19 +63,16 @@ public class AIStateSpikerAttackComp : BaseAIState<AIStateSpikerAttackMQR, AI_St
 
     public void FireProjectiles()
     {
-        Logger.LogTrace("Launched Projectiles for {PrefabName}", PrefabName);
-        var targetPlayer = Room.GetClosestPlayer(Position.ToUnityVector3(), 20f);
-
-        if (targetPlayer == null)
-            return;
+        Logger.LogTrace("Launched Projectiles for {PrefabName}", PrefabName);;
 
         for (var i = 0; i < NumberOfProjectiles; i++)
         {
             var currentAngle = FirstProjectileAngleOffset + i * AngleBetweenProjectiles;
             var angleInRadians = currentAngle * Mathf.Deg2Rad;
 
+            var facingDir = StateMachine.GetForceDirectionX();
             var projectileDirection = new Vector2(
-                Mathf.Cos(angleInRadians),
+                Mathf.Cos(angleInRadians) * facingDir,
                 Mathf.Sin(angleInRadians)
             );
 

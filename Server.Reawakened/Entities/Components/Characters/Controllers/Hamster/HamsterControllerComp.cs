@@ -32,11 +32,6 @@ public class HamsterControllerComp : DamagableAiStateMachine<HamsterControllerMQ
 
     private void SetupStateVariables()
     {
-        var waitComp = Room.GetEntityFromId<AIStateWaitComp>(Id);
-
-        if (waitComp != null)
-            waitComp.FxWaitDuration = TimeToDirtFXInStunOut;
-
         var patrolComp = Room.GetEntityFromId<AIStatePatrolComp>(Id);
         var attackComp = Room.GetEntityFromId<AIStateHamsterAttackComp>(Id);
 

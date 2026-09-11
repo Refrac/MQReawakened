@@ -67,10 +67,6 @@ public class SpikerComponentComp : DamagableAiStateMachine<SpikerControllerMQR>
 
     private void SetupStateVariables()
     {
-        var waitComp = Room.GetEntityFromId<AIStateWaitComp>(Id);
-
-        waitComp?.FxWaitDuration = TimeToDirtFXInTaunt;
-
         var patrolComp = Room.GetEntityFromId<AIStatePatrolComp>(Id);
         var attackComp = Room.GetEntityFromId<AIStateSpikerAttackComp>(Id);
 
@@ -82,6 +78,9 @@ public class SpikerComponentComp : DamagableAiStateMachine<SpikerControllerMQR>
 
     public override void EnemyDamaged(bool isDead)
     {
+        if (isDead)
+            return;
+
         if (CurrentStates.Any(state => state is AIStateIdleComp or AIStatePatrolComp) && _patrol is not null)
             _patrol.StartDetectedState();
     }

@@ -5,9 +5,7 @@ namespace Server.Reawakened.Entities.Components.Characters.Controllers.Base.Stat
 public class AIStateWaitComp : BaseAIState<AIStateWaitMQR, AI_State>
 {
     public override string StateName => "AIStateWait";
-
-    public float FxWaitDuration = 0;
-    public float WaitDuration => ComponentData.WaitDuration + FxWaitDuration;
+    public float WaitDuration => ComponentData.WaitDuration;
 
     public float WaitTime { get; private set; } = 0;
 
