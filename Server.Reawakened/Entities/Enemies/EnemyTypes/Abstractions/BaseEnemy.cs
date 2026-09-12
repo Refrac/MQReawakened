@@ -7,6 +7,7 @@ using Server.Base.Timers.Services;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Entities.Colliders;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.GameObjects.Hazards.Abstractions;
 using Server.Reawakened.Entities.Components.GameObjects.InterObjs;
 using Server.Reawakened.Entities.Components.GameObjects.InterObjs.Interfaces;
 using Server.Reawakened.Entities.Components.GameObjects.Spawners;
@@ -75,16 +76,19 @@ public abstract class BaseEnemy : IDestructible
 
     public IServiceProvider Services;
 
+    public BaseHazardControllerComp<HazardController> HazardController;
+    
     public BaseEnemy(EnemyData data)
     {
         Room = data.Room;
         Id = data.EntityId;
         PrefabName = data.PrefabName;
-        EnemyController = Room.GetEntityFromId<IEnemyController>(Id);
         EnemyModel = data.EnemyModel;
         Services = data.Services;
 
-        IsFromSpawner = false;
+        EnemyController = Room.GetEntityFromId<IEnemyController>(Id);
+        
+        HazardController = Room.GetEntityFromId<BaseHazardControllerComp<HazardController>>(Id);
 
         Logger = Services.GetRequiredService<ILogger<BaseEnemy>>();
         InternalAchievement = Services.GetRequiredService<InternalAchievement>();
@@ -453,8 +457,8 @@ public abstract class BaseEnemy : IDestructible
         GameFlow.StatisticData.GetValue(
             ItemEffectType.AbilityPower, WorldStatisticsGroup.Enemy, Level
         );
-    
-    public virtual void OnCollideWithPlayer(Player player) {}
-    
+
+    public virtual void OnCollideWithPlayer(Player player) => HazardController?.ApplyHazardEffect(player);
+
     public abstract void StartActing(ActingStateType state, float duration);
 }
