@@ -38,6 +38,9 @@ public class TriggerReceiverComp : Component<TriggerReceiver>, ICoopTriggered
         if (Room == null || IsChest() || IsHazard()) return;
 
         _collider = new TriggerReceiverCollider(this);
+        
+        if (CollisionType == TriggerReceiver.ReceiverCollisionType.Never)
+            _collider.Active = false;
     }
 
     public override void DelayedComponentInitialization()
