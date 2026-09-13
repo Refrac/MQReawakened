@@ -6,6 +6,7 @@ using Server.Base.Timers.Services;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Entities.Colliders;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.GameObjects.Breakables;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
@@ -191,6 +192,12 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 break;
             case ItemEffectType.WaterBreathing:
                 ApplyWaterBreathing(player);
+                break;
+            case ItemEffectType.SpiderWeb:
+                Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.SpiderWeb, 1, 1, true, Id, false));
+                
+                var breakable = Room.GetEntityFromId<BreakableEventControllerComp>(Id);
+                breakable?.Damage(breakable.Damageable.CurrentHealth, ItemEffectType.BluntDamage, player);
                 break;
             default:
                 Logger.LogInformation("Unknown status effect {statusEffect} from {prefabName}", HurtEffect, PrefabName);
