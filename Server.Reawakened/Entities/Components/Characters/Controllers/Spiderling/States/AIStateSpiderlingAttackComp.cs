@@ -1,7 +1,6 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
-using Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
 using Server.Reawakened.Entities.DataComponentAccessors.Spiderling.States;
 using UnityEngine;
 
@@ -18,9 +17,9 @@ public class AIStateSpiderlingAttackComp : BaseAIState<AIStateSpiderlingAttackMQ
     public float FirstProjectileAngleOffset => ComponentData.FirstProjectileAngleOffset;
     public int NumberOfProjectiles => ComponentData.NumberOfProjectiles;
     public float AngleBetweenProjectiles => ComponentData.AngleBetweenProjectiles;
-
-    private AIStatePatrolComp _patrolComp;
-
+    
+    private float _endTime;
+    
     public override AI_State GetInitialAIState() => new(
         [
             new (ShootTime, "Shoot")
@@ -28,60 +27,35 @@ public class AIStateSpiderlingAttackComp : BaseAIState<AIStateSpiderlingAttackMQ
 
     public override ExtLevelEditor.ComponentSettings GetSettings() => [StateMachine.GetForceDirectionX().ToString()];
 
-    public override void InitializeComponent()
+    public override void OnAIStateIn() => _endTime = Room.Time + ShootTime - 8.5f;
+
+    public override void Execute()
     {
-        base.InitializeComponent();
-        _patrolComp = Room.GetEntityFromId<AIStatePatrolComp>(Id);
+        if (_endTime > 0 && Room.Time >= _endTime)
+        {
+            AddNextState<AIStateSpiderlingAlertComp>();
+            GoToNextState();
+        }
     }
-
-
+    
     public void Shoot()
     {
         Logger.LogTrace("Shoot called for {StateName} on {PrefabName}", StateName, PrefabName);
 
-        var targetPlayer = _patrolComp.GetClosestPlayer();
-        
-        if (targetPlayer == null)
-            return;
-
-        var targetPos = targetPlayer.TempData.Position;
-        var startPos = Position;
-
-        var distanceX = targetPos.X - startPos.X;
-        var distanceY = targetPos.Y - startPos.Y;
-
-        const float g = 15f;
-        var v = ProjectileSpeed;
-        var v2 = v * v;
-        var v4 = v2 * v2;
-        
-        float baseAngleDeg;
-
-        var discriminant = v4 - g * (g * distanceX * distanceX + 2 * distanceY * v2);
-
-        if (discriminant < 0)
-        {
-            baseAngleDeg = Mathf.Atan2(distanceY, distanceX) * Mathf.Rad2Deg;
-        }
-        else
-        {
-            var tanTheta = (v2 - Mathf.Sqrt(discriminant)) / (g * distanceX);
-            baseAngleDeg = Mathf.Atan(tanTheta) * Mathf.Rad2Deg;
-        }
-
-        var startAngle = baseAngleDeg + FirstProjectileAngleOffset;
-
         for (var i = 0; i < NumberOfProjectiles; i++)
         {
-            var currentAngleDeg = startAngle + i * AngleBetweenProjectiles;
-            var currentAngleRad = currentAngleDeg * Mathf.Deg2Rad;
+            var currentAngle = FirstProjectileAngleOffset + i * AngleBetweenProjectiles;
+            var angleInRadians = currentAngle * Mathf.Deg2Rad;
 
-            var projectileVelocity = new Vector2(
-                Mathf.Cos(currentAngleRad) * v,
-                Mathf.Sin(currentAngleRad) * v
+            var facingDir = StateMachine.GetForceDirectionX();
+            var projectileDirection = new Vector2(
+                Mathf.Cos(angleInRadians) * facingDir,
+                Mathf.Sin(angleInRadians)
             );
-            
-            EnemyController.FireProjectile(Position, projectileVelocity, true);
+
+            var projectileSpeed = projectileDirection * ProjectileSpeed;
+
+            EnemyController.FireProjectile(Position, projectileSpeed, true);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿﻿using A2m.Server;
+﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
 using PetDefines;
 using Server.Base.Core.Abstractions;
@@ -13,8 +13,6 @@ using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Planes;
 using Server.Reawakened.Rooms.Models.Timers;
 using Server.Reawakened.XMLs.Bundles.Base;
-using System.Diagnostics;
-using UnityEngine;
 
 namespace Server.Reawakened.Players.Models.Pets;
 
