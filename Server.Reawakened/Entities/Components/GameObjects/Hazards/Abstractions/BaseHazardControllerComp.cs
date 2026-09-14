@@ -75,7 +75,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
                 {
                     case "NoEffect":
                         EffectType = ItemEffectType.Unknown;
-                        break;
+                        return;
                     case "StandardDamage":
                         EffectType = ItemEffectType.BluntDamage;
                         break;
@@ -126,6 +126,10 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
     
     public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player)
     {
+        if (!notifyCollisionEvent.Colliding && EffectType != ItemEffectType.Unknown)
+            return;
+        
+        ApplyHazardEffect(player);
     }
 
     public void ApplyHazardEffect(Player player)
