@@ -25,6 +25,15 @@ public class StatusEffectsModel(CharacterDbEntry entry)
 
     public void Remove(ItemEffectType effect) => Effects.Remove(effect);
 
+    public void UpdateStatus()
+    {
+        foreach (var effect in Effects)
+        {
+            if (effect.Value == null || effect.Value.Expiry <= DateTime.UtcNow)
+                Remove(effect.Key);
+        }
+    }
+
     public float GetEffect(ItemEffectType effect)
     {
         var output = 0f;

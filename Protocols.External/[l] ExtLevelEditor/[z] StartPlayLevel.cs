@@ -14,6 +14,9 @@ public class StartPlayRoom : ExternalProtocol
 
     public override void Run(string[] message)
     {
+        if (Player.Character.StatusEffects.Effects.Any(effect => effect.Value == null))
+            Player.Character.StatusEffects.UpdateStatus();
+        
         Player.TemporaryInvincibility(2);
 		
         Player.QuickJoinRoom(Player.GetLevelId(), WorldHandler, out var reason);

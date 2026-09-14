@@ -133,11 +133,11 @@ public static class PlayerStatusEffectExtensions
 
         if (player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility)) return;
         
-        var itemEffect = new ItemEffect(ItemEffectType.Invincibility, 0, (int)durationInSeconds);
+        player.Character.StatusEffects.Effects.Add(ItemEffectType.Invincibility,
+            new StatusEffectModel(ItemEffectType.Invincibility, 1, DateTime.UtcNow + TimeSpan.FromSeconds(durationInSeconds), string.Empty));
             
-        player.Character.StatusEffects.Add(itemEffect);
-            
-        player.SendItemEffectToPlayer(itemEffect, string.Empty, true, true);
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+            (int)ItemEffectType.Invincibility, 1, 1, true, string.Empty, false));
             
         player.TempData.Invincible = true;
     }
