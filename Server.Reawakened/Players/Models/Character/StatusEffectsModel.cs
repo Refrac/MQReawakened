@@ -7,19 +7,19 @@ public class StatusEffectsModel(CharacterDbEntry entry)
 {
     public Dictionary<ItemEffectType, StatusEffectModel> Effects => entry.StatusEffects;
 
-    public void Add(ItemEffect effect)
+    public void Add(ItemEffect effect, string prefabName)
     {
         var shouldReplaceEffect = true;
 
         if (Effects.TryGetValue(effect.Type, out var statusData))
-            if (statusData.Value > effect.Value && statusData.Expiry > DateTime.Now)
+            if (statusData.Value > effect.Value && statusData.Expiry > DateTime.UtcNow)
                 shouldReplaceEffect = false;
 
         if (shouldReplaceEffect)
         {
             var duration = TimeSpan.FromSeconds(effect.Duration);
             Remove(effect.Type);
-            Effects.Add(effect.Type, new StatusEffectModel(effect.Type, effect.Value, DateTime.Now + duration));
+            Effects.Add(effect.Type, new StatusEffectModel(effect.Type, effect.Value, DateTime.UtcNow + duration, prefabName));
         }
     }
 
@@ -41,7 +41,7 @@ public class StatusEffectsModel(CharacterDbEntry entry)
         if (Effects.TryGetValue(effect, out var statusData))
             if (statusData.Effect == effect)
             {
-                if (statusData.Expiry > DateTime.Now)
+                if (statusData.Expiry > DateTime.UtcNow)
                     output = statusData.Value;
                 else
                     Remove(effect);
@@ -55,7 +55,7 @@ public class StatusEffectsModel(CharacterDbEntry entry)
         if (Effects.TryGetValue(effect, out var statusData))
             if (statusData.Effect == effect)
             {
-                if (statusData.Expiry > DateTime.Now)
+                if (statusData.Expiry > DateTime.UtcNow)
                     return true;
                 else
                     Remove(effect);

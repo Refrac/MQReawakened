@@ -58,7 +58,7 @@ public static class CharacterInventoryExtensions
                 case ItemEffectType.ResistEarth:
                 case ItemEffectType.ResistIce:
                 case ItemEffectType.ResistLightning:
-					player.Character.StatusEffects.Add(itemEffect);
+					player.Character.StatusEffects.Add(itemEffect, usedItem.PrefabName);
                     sendFx = false;
                     break;
                 case ItemEffectType.WaterBreathing:
@@ -66,7 +66,7 @@ public static class CharacterInventoryExtensions
                 case ItemEffectType.Invisibility:
                 case ItemEffectType.BananaMultiplier:
                 case ItemEffectType.ExperienceMultiplier:
-                    player.Character.StatusEffects.Add(itemEffect);
+                    player.Character.StatusEffects.Add(itemEffect, usedItem.PrefabName);
                     break;
                 case ItemEffectType.ColorTonic:
                     // ColorTonic effect doesn't exist yet
@@ -82,7 +82,7 @@ public static class CharacterInventoryExtensions
                         player.SendItemEffectToPlayer(itemEffect, string.Empty, sendFx, true);
                     }
 
-                    player.Character.StatusEffects.Add(itemEffect);
+                    player.Character.StatusEffects.Add(itemEffect, usedItem.PrefabName);
                     sendFx = true;
                     break;
                 case ItemEffectType.Invalid:

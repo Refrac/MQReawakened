@@ -82,6 +82,14 @@ public class RoomUpdate : ExternalProtocol
             Player.Room.SendSyncEvent(new Health_SyncEvent(Player.GameObjectId.ToString(), Player.Room.Time,
                 Player.Character.CurrentLife, Player.Character.MaxLife, Player.GameObjectId.ToString()));
         }
+        
+        //Reapply still-active status effects
+        Player.Character.StatusEffects.UpdateStatus();
+        foreach (var status in Player.Character.StatusEffects.Effects)
+        {
+            Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(Player.GameObjectId, Player.Room.Time,
+                (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.UtcNow).TotalSeconds, true, status.Value.PrefabName, true));
+        }
 
         foreach (var npc in Player.Room.GetEntitiesFromType<NPCControllerComp>())
             npc.SendNpcInfo(Player);
