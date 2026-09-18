@@ -429,9 +429,7 @@ public abstract class BaseEnemy : IDestructible
 
         if (player != null)
         {
-            player.CheckAchievement(AchConditionType.DefeatEnemy, [PrefabName], InternalAchievement, Logger);
             player.CheckAchievement(AchConditionType.DefeatEnemy, [Enum.GetName(EnemyModel.EnemyCategory)], InternalAchievement, Logger);
-            player.CheckAchievement(AchConditionType.DefeatEnemy, [EnemyController.PrefabName], InternalAchievement, Logger);
             player.CheckAchievement(AchConditionType.DefeatEnemyInLevel, [player.Room.LevelInfo.Name], InternalAchievement, Logger);
         }
     }
