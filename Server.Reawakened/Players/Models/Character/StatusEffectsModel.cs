@@ -27,7 +27,9 @@ public class StatusEffectsModel(CharacterDbEntry entry)
 
     public void UpdateStatus()
     {
-        foreach (var effect in Effects)
+        var effects = new Dictionary<ItemEffectType, StatusEffectModel>(Effects);
+        
+        foreach (var effect in effects)
         {
             if (effect.Value == null || effect.Value.Expiry <= DateTime.UtcNow)
                 Remove(effect.Key);

@@ -137,7 +137,7 @@ public static class PlayerStatusEffectExtensions
             new StatusEffectModel(ItemEffectType.Invincibility, 1, DateTime.UtcNow + TimeSpan.FromSeconds(durationInSeconds), string.Empty));
             
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
-            (int)ItemEffectType.Invincibility, 1, 1, true, string.Empty, false));
+            (int)ItemEffectType.Invincibility, 1, (int)durationInSeconds, true, string.Empty, false));
             
         player.TempData.Invincible = true;
     }
