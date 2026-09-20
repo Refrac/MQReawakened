@@ -9,6 +9,7 @@ using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players.Models.Pets;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Timers;
+using UnityEngine;
 using TimerCallback = Server.Base.Timers.Timer.TimerCallback;
 using Vector3 = UnityEngine.Vector3;
 
@@ -28,7 +29,7 @@ public static class PetAbilityExtensions
     {
         if (!petOwner.Character.Pets.TryGetValue(petOwner.GetItemIdOfEquippedPet(), out var pet))
             return;
-
+        
         pet.InCoopJumpState = false;
         pet.InCoopSwitchState = false;
         pet.AbilityCooldown = petOwner.Room.Time + pet.AbilityParams.CooldownTime;
@@ -97,8 +98,12 @@ public static class PetAbilityExtensions
             return;
         }
 
-        player.PetHeal((int)Math.Ceiling
-        (player.Character.MaxLife * pet.AbilityParams.ApplyOnHealthRatio));
+        var health = GameFlow.StatisticData.GetValue(ItemEffectType.IncreaseHitPoints, WorldStatisticsGroup.Player, player.Character.GlobalLevel);
+        
+        var ratio = health * pet.AbilityParams.ItemEffectStatRatio;
+        var healValue = (int)(Mathf.Ceil(ratio / 10f) * 10f);
+        
+        player.PetHeal(healValue);
     }
 
     private static void AttackEnemiesInZone(ITimerData data)
@@ -176,9 +181,18 @@ public static class PetAbilityExtensions
     private static void SendDefenseAbilityEffect(Player petOwner, PetModel pet)
     {
         if (pet.AbilityParams.AbilityType is PetAbilityType.Defence or PetAbilityType.DefensiveBarrier)
+        {
+            var damage = GameFlow.StatisticData.GetValue(ItemEffectType.AbilityPower, WorldStatisticsGroup.Enemy, petOwner.Character.GlobalLevel);
+            var defense = GameFlow.StatisticData.GetValue(ItemEffectType.Defence, WorldStatisticsGroup.Player, petOwner.Character.GlobalLevel);
+            
+            var abilityStat = pet.AbilityParams.AbilityType != PetAbilityType.DefensiveBarrier ? pet.AbilityParams.ItemEffectStatRatio : pet.AbilityParams.DefensiveBonusRatio;
+            var ratio = damage - defense - abilityStat * damage;
+            var defenseValue = (int)(Mathf.Ceil(ratio / 10f) * 10f);
+            
             petOwner.Room.SendSyncEvent(new StatusEffect_SyncEvent(petOwner.GameObjectId, petOwner.Room.Time,
-            (int)ItemEffectType.Defence, (int)pet.AbilityParams.DefensiveBonusRatio, (int)pet.AbilityParams.Duration,
+                (int)ItemEffectType.Defence, defenseValue, (int)pet.AbilityParams.Duration,
                 true, pet.PrefabName, false));
+        }
     }
 
     private static BaseEnemy GetClosestEnemy(this Dictionary<float, BaseEnemy> detectedEnemies)

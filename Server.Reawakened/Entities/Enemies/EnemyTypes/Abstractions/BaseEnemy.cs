@@ -345,12 +345,17 @@ public abstract class BaseEnemy : IDestructible
             Logger.LogError("Could not find pet that damaged {PrefabName}! Returning...", PrefabName);
             return;
         }
+        
+        var health = GameFlow.StatisticData.GetValue(ItemEffectType.IncreaseHitPoints, WorldStatisticsGroup.Enemy, player.Character.GlobalLevel);
+        var defense = GameFlow.StatisticData.GetValue(ItemEffectType.Defence, WorldStatisticsGroup.Enemy, player.Character.GlobalLevel);
+        
+        var ratio = 0f;
+        if (pet.AbilityParams.ItemEffectStatRatio != 0f)
+            ratio = health / pet.AbilityParams.ItemEffectStatRatio + defense;
+        
+        var damageValue = (int)(Mathf.Ceil(ratio / 10f) * 10f);
 
-        var health = WorldStatistics.GetValue(ItemEffectType.IncreaseHitPoints, WorldStatisticsGroup.Enemy, player.Character.GlobalLevel);
-;
-        var petDamage = (int)Math.Ceiling(health * pet.AbilityParams.ItemEffectStatRatio);
-
-        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, Health -= petDamage, petDamage, 1, 1, player.CharacterName, false, true));
+        Room.SendSyncEvent(new AiHealth_SyncEvent(Id.ToString(), Room.Time, Health -= damageValue, damageValue, 1, 1, player.CharacterName, false, true));
 
         NotifyDamaged(player);
     }
