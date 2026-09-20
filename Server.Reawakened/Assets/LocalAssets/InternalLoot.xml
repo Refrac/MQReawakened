@@ -313,7 +313,7 @@
             </Items>
         </LootInfo>
         <!--Puzzle Green Chest 2-->
-        <LootInfo objectId="3542" doLootWheel="False">
+        <LootInfo objectId="3543" doLootWheel="False">
             <Items rewardAmount="1">
                 <Item itemName="COL_POT_Healing01" count="1" />
                 <Item itemName="COL_BUFF_GlyphProtection01" count="1" />
