@@ -1,5 +1,7 @@
-﻿using A2m.Server;
+﻿﻿using A2m.Server;
+using Discord;
 using Microsoft.Extensions.Logging;
+using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players;
@@ -17,6 +19,8 @@ public class BuyItems : ExternalProtocol
     public InternalAchievement InternalAchievement { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public ILogger<BuyItems> Logger { get; set; }
+    public ServerRwConfig ServerRwConfig { get; set; }
+    public VendorCatalog VendorCatalog { get; set; }
 
     public override void Run(string[] message)
     {
@@ -30,7 +34,8 @@ public class BuyItems : ExternalProtocol
 
         var items = message[6].Split('|');
 
-        var bought = new List<Tuple<ItemDescription, int>>();
+        var itemList = new Dictionary<ItemDescription, int>();
+
         var price = 0;
 
         foreach (var item in items)
@@ -44,8 +49,14 @@ public class BuyItems : ExternalProtocol
 
             var itemDescription = ItemCatalog.GetItemFromId(itemId);
 
-            price += itemDescription.RegularPrice * amount;
-            bought.Add(new(itemDescription, amount));
+            var timeNow = DateTime.UtcNow;
+
+            var addPrice = itemDescription.RegularPrice;
+            if (itemDescription.isDiscounted())
+                addPrice = itemDescription.DiscountPrice;
+
+            price += addPrice * amount;
+            itemList.Add(itemDescription, amount);
         }
 
         if (price > Player.Character.NCash && price > 1)
@@ -54,12 +65,34 @@ public class BuyItems : ExternalProtocol
             return;
         }
 
-        foreach (var item in bought)
-        {
-            Player.RemoveNCash(item.Item1.RegularPrice * item.Item2);
-            Player.AddItem(item.Item1, item.Item2, ItemCatalog);
+        var valid = false;
 
-            Player.CheckAchievement(AchConditionType.BuyItem, [item.Item1.PrefabName], InternalAchievement, Logger);
+        var catalogs = VendorCatalog.GetCurrentCashShop().VendorCatalogIds;
+
+        foreach (var item in itemList)
+            foreach (var catalog in catalogs)
+                if (VendorCatalog.GetVendorItemList(catalog).Contains(item.Key.PrefabName))
+                {
+                    valid = true;
+                    break;
+                }
+
+        if (!valid)
+        {
+            Player.SendXt("wm", "302");
+            return;
+        }
+
+        foreach (var itemDescription in itemList)
+        {
+            price = itemDescription.Key.RegularPrice;
+            if (itemDescription.Key.isDiscounted())
+                price = itemDescription.Key.DiscountPrice;
+
+            Player.RemoveNCash(price * itemDescription.Value);
+            Player.AddItem(itemDescription.Key, itemDescription.Value, ItemCatalog);
+
+            Player.CheckAchievement(AchConditionType.BuyItem, [itemDescription.Key.PrefabName], InternalAchievement, Logger, ServerRwConfig);
         }
 
         Player.SendCashUpdate();

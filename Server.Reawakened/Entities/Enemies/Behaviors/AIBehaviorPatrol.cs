@@ -30,7 +30,7 @@ public class AIBehaviorPatrol(BehaviorEnemy enemy, PatrolProperties fallback) : 
         var method = behavior.GetMethod("CalculateProgressRatio");
         method.Invoke(behavior, [_aiData]);
 
-        var ratio = behavior.GetField("Patrol_InitialProgressRatio");
+        var ratio = behavior.GetBehaviorRatio(_aiData, enemy.Room.Time);
 
         return ratio is float f && float.IsNaN(f) ? [] : [ratio];
     }
