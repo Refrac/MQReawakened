@@ -18,7 +18,6 @@ public class TemporaryDataModel
     public int Direction { get; set; } = 0;
     public int Locale { get; set; }
 
-    public bool Invincible { get; set; } = false;
     public bool OnGround { get; set; } = false;
     public bool Underwater { get; set; } = false;
     public float UnderwaterTime { get; set; } = 0;

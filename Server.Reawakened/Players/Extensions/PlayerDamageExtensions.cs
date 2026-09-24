@@ -39,7 +39,7 @@ public static class PlayerDamageExtensions
     public static void ApplyCharacterDamage(this Player player, float damage, ItemEffectType effectType,
         string originId, int duration)
     {
-        if (player == null || player.TempData.Invincible || player.Character.CurrentLife <= 0) return;
+        if (player == null || player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.Character.CurrentLife <= 0) return;
 
         if (damage <= 0)
             damage = 1;
@@ -88,7 +88,6 @@ public static class PlayerDamageExtensions
         player.TempData.IsSlowed = false;
         player.TempData.IsSuperStomping = false;
         player.TempData.UnderwaterTime = 0;
-        player.TempData.Invincible = true;
         player.TempData.IsKnockedOut = true;
 
         if (player.TempData.PoisonEffectTimer != null)

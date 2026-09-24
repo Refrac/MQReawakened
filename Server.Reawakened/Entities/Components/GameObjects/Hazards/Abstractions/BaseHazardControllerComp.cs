@@ -138,7 +138,7 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
         if (player == null)
             return;
 
-        if (player.TempData.Invincible || player.TempData.IsKnockedOut)
+        if (player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.TempData.IsKnockedOut)
             return;
 
         if ((TimedHazard || EffectType == ItemEffectType.WaterBreathing) && !IsActive)

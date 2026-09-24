@@ -50,7 +50,7 @@ public class PlayerCollider(Player player) : BaseCollider
 
         if (received is StomperZoneCollider stomper)
         {
-            if (!player.TempData.Invincible)
+            if (!player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
             {
                 if (stomper.Hazard)
                     player.ApplyDamageByPercent(0.1, ItemEffectType.StompDamage, stomper.Id, 1);

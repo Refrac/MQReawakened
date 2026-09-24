@@ -25,7 +25,7 @@ public class EnemyCollider(BaseEnemy enemy, RectModel box) : BaseCollider
         }
         else if (received is PlayerCollider playerCollider)
         {
-            if (Room.IsObjectKilled(enemy.Id) || playerCollider.Player.TempData.Invincible)
+            if (Room.IsObjectKilled(enemy.Id) || playerCollider.Player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility))
                 return;
 
             enemy.OnCollideWithPlayer(playerCollider.Player);

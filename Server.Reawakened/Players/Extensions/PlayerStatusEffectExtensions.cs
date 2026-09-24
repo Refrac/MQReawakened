@@ -138,8 +138,6 @@ public static class PlayerStatusEffectExtensions
             
         player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
             (int)ItemEffectType.Invincibility, 1, (int)durationInSeconds, true, string.Empty, false));
-            
-        player.TempData.Invincible = true;
     }
 
     public static StatusEffectData GetPoisonEffectData(this Player player, int poisonDamage, string hazardId,
