@@ -51,6 +51,7 @@ public class PlayerContainer
             _playerList.RemoveAll(player => player == null);
 
             return _playerList.ToList().Where(p => p.CharacterId == characterId);
+        }
     }
 
     public IEnumerable<Player> GetPlayersByUserId(int playerId)
@@ -60,6 +61,7 @@ public class PlayerContainer
             _playerList.RemoveAll(player => player == null);
 
             return _playerList.ToList().Where(p => p.UserId == playerId);
+        }
     }
 
     public bool AnyPlayersByUserId(int playerId)

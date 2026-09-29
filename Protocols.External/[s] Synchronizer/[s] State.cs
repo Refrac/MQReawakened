@@ -70,12 +70,11 @@ public class State : ExternalProtocol
 
                     var itemId = -1;
                     var zoneId = -1;
-
+                    
+                    itemId = attack.ItemId;
+                    
                     if (ServerRConfig.GameVersion > GameVersion.vPets2012)
-                    {
-                        itemId = attack.ItemId;
                         zoneId = attack.ZoneId;
-                    }
 
                     Logger.LogTrace("Super attack is charging: '{Charging}' at ({X}, {Y}) in time: {Delay} " +
                         "at speed ({X}, {Y}) with max pos ({X}, {Y}) for item id: '{Id}' and zone: {Zone}",
@@ -91,7 +90,7 @@ public class State : ExternalProtocol
                         new Vector3Model(attack.PosX, attack.PosY, Player.TempData.Position.Z),
                         new Vector3(attack.MaxPosX, attack.MaxPosY, Player.TempData.Position.Z),
                         new Vector2(attack.SpeedX, attack.SpeedY),
-                        15, ItemCatalog.GetItemFromId(attack.ItemId), attack.ZoneId,
+                        15, ItemCatalog.GetItemFromId(itemId), zoneId,
                         ServerRConfig, ItemCatalog
                     );
 

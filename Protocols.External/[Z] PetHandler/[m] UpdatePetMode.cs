@@ -28,6 +28,10 @@ public class UpdatePetMode : ExternalProtocol
             Logger.LogInformation("{characterName} has no pet equipped!", Player.CharacterName);
             return;
         }
+        
+        // Enzo does not have a pet ability
+        if (pet.AbilityParams.AbilityType == PetAbilityType.Invalid)
+            return;
 
         var minimumEnergyRequired = pet.MaxEnergy / petAbilities.UseCount;
 
