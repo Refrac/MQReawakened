@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Protocols.External._Z__PetHandler;
 using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.XMLs.Bundles;
@@ -30,6 +30,13 @@ public class SetSlot : ExternalProtocol
             return;
         }
 
+        // On 2014 SetSlot is used for setting and swapping an item on the hotbar
+        if (ServerRConfig.GameVersion > GameVersion.vLate2013 && Player.Character.Hotbar.HotbarButtons.ContainsValue(item))
+        {
+            Player.SwapSlots(hotbarSlotId, item, ItemRConfig);
+            return;
+        }
+        
         if (ItemCatalog.GetItemFromId(itemId).IsPet() && Player.GetItemIdOfEquippedPet() != itemId.ToString() &&
             PetAbilities.PetAbilityData.TryGetValue(itemId, out var petAbility) && petAbility != null)
         {

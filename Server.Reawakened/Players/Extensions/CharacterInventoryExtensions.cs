@@ -253,4 +253,23 @@ public static class CharacterInventoryExtensions
     public static string GetGameObjectIdOfEquippedPet(this Player player) =>
         player != null && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet)
             ? pet.GameObjectId : "0";
+
+    public static void SwapSlots(this Player player, int slotId, ItemModel item, ItemRConfig itemRConfig)
+    {
+        foreach (var hotbarKVP in player.Character.Hotbar.HotbarButtons)
+        {
+            if (hotbarKVP.Value.ItemId == item.ItemId)
+            {
+                if (!player.Character.Hotbar.HotbarButtons.ContainsKey(slotId))
+                    continue;
+
+                var otherItem = player.Character.Hotbar.HotbarButtons[slotId];
+
+                player.SetHotbarSlot(hotbarKVP.Key, otherItem, itemRConfig);
+                player.SetHotbarSlot(slotId, item, itemRConfig);
+            }
+        }
+        
+        player.SendXt("hw",  player.Character.Hotbar);
+    }
 }
