@@ -207,7 +207,6 @@ public class State : ExternalProtocol
         Player.TemporaryInvincibility(2);
         Player.SendSyncEventToPlayer(new RequestRespawn_SyncEvent(entityId.ToString(), triggerTime));
 
-        Player.TempData.Invincible = true;
         Player.Character.Write.CurrentLife = Player.Character.MaxLife;
 
         Player.SendSyncEventToPlayer(new Health_SyncEvent(Player.GameObjectId.ToString(), Player.Room.Time,

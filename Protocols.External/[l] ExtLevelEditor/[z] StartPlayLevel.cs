@@ -25,7 +25,5 @@ public class StartPlayRoom : ExternalProtocol
 
         var tribe = Player.Room.LevelInfo.Tribe;
         Player.DiscoverTribe(tribe);
-
-        Player.TempData.Invincible = true;
     }
 }
