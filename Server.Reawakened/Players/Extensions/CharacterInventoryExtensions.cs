@@ -115,7 +115,12 @@ public static class CharacterInventoryExtensions
         gottenItem.Count -= count;
 
         if (gottenItem.Count <= 0)
-            player.SetEmptySlot(item.ItemId, config);
+        {
+            var slotId = player.Character.Hotbar.HotbarButtons
+                .FirstOrDefault(x => x.Value.ItemId == item.ItemId).Key;
+            
+            player.SetEmptySlot(slotId);
+        }
 
         player.CheckObjective(ObjectiveEnum.Inventorycheck, gottenItem.ItemId.ToString(), item.PrefabName, gottenItem.Count, itemCatalog);
     }
@@ -185,26 +190,28 @@ public static class CharacterInventoryExtensions
         player.SendUpdatedInventory(true);
     }
 
-    public static void SetHotbarSlot(this Player player, int slotId, ItemModel itemModel, ItemRConfig config)
+    public static void SetHotbarSlot(this Player player, int slotId, ItemModel itemModel, bool swappedItem = false)
     {
         var hotbar = player.Character.Hotbar;
 
-        foreach (var hotbarSlot in hotbar.HotbarButtons.Where
-            (slot => slot.Key != slotId && slot.Value.ItemId == itemModel.ItemId))
-            player.SetEmptySlot(hotbarSlot.Key, config);
+        // Remove slot if it is not from the swap slot protocol
+        if (!swappedItem)
+            foreach (var hotbarSlot in hotbar.HotbarButtons.Where
+                         (slot => slot.Key != slotId && slot.Value.ItemId == itemModel.ItemId))
+                player.SetEmptySlot(hotbarSlot.Key);
 
         hotbar.HotbarButtons.TryAdd(slotId, itemModel);
         hotbar.HotbarButtons[slotId] = itemModel;
     }
 
-    public static void SetEmptySlot(this Player player, int slotId, ItemRConfig config)
+    public static void SetEmptySlot(this Player player, int slotId)
     {
         var hotbar = player.Character.Hotbar;
 
         if (!hotbar.HotbarButtons.ContainsKey(slotId))
             return;
 
-        hotbar.HotbarButtons[slotId] = config.EmptySlot;
+        hotbar.HotbarButtons.Remove(slotId);
     }
 
     public static void EquipPet(this Player player, string petId, PetAbilityParams petAbilityParams, ItemCatalog itemCatalog,
@@ -254,7 +261,7 @@ public static class CharacterInventoryExtensions
         player != null && player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet)
             ? pet.GameObjectId : "0";
 
-    public static void SwapSlots(this Player player, int slotId, ItemModel item, ItemRConfig itemRConfig)
+    public static void SwapSlots(this Player player, int slotId, ItemModel item)
     {
         foreach (var hotbarKVP in player.Character.Hotbar.HotbarButtons)
         {
@@ -265,11 +272,11 @@ public static class CharacterInventoryExtensions
 
                 var otherItem = player.Character.Hotbar.HotbarButtons[slotId];
 
-                player.SetHotbarSlot(hotbarKVP.Key, otherItem, itemRConfig);
-                player.SetHotbarSlot(slotId, item, itemRConfig);
+                player.SetHotbarSlot(hotbarKVP.Key, otherItem, true);
+                player.SetHotbarSlot(slotId, item, true);
             }
         }
         
-        player.SendXt("hw",  player.Character.Hotbar);
+        player.SendXt("hw", player.Character.Hotbar);
     }
 }

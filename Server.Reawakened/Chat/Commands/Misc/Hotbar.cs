@@ -68,7 +68,7 @@ public class Hotbar : SlashCommand
 
             player.Character.Inventory.Items.TryAdd(item.ItemId, itemModel);
 
-            player.SetHotbarSlot(hotbarId - 1, itemModel, ItemRConfig);
+            player.SetHotbarSlot(hotbarId - 1, itemModel);
 
             player.SendXt("hs", player.Character.Hotbar);
 

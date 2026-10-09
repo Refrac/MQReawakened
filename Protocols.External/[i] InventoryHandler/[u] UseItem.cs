@@ -5,7 +5,6 @@ using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
-using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.XMLs.Bundles.Base;
 using Server.Reawakened.XMLs.Bundles.Internal;
@@ -74,7 +73,7 @@ public class UseItem : ExternalProtocol
     private void HandlePet(ItemDescription usedItem)
     {
         var itemModel = Player.Character.Inventory.Items[usedItem.ItemId];
-        Player.SetHotbarSlot(ServerRConfig.PetHotbarIndex, itemModel, ItemRConfig);
+        Player.SetHotbarSlot(ServerRConfig.PetHotbarIndex, itemModel);
         SendXt("hs", Player.Character.Hotbar);
     }
 

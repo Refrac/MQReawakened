@@ -14,8 +14,6 @@ public class RemoveSlot : ExternalProtocol
     public PetAbilities PetAbilities { get; set; }
     public WorldStatistics WorldStatistics { get; set; }
     public ItemRConfig ItemRConfig { get; set; }
-    public ServerRConfig ServerRConfig { get; set; }
-    public ItemRConfig ItemConfig { get; set; }
     public ItemCatalog ItemCatalog { get; set; }
     public ILogger<RemoveSlot> Logger { get; set; }
 
@@ -30,12 +28,18 @@ public class RemoveSlot : ExternalProtocol
             return;
         }
 
-        if (ItemCatalog.GetItemFromId(hotbarItem.ItemId) != null && ItemCatalog.GetItemFromId(hotbarItem.ItemId).IsPet() &&
+        if (ItemCatalog.GetItemFromId(hotbarItem.ItemId) != null &&
+            ItemCatalog.GetItemFromId(hotbarItem.ItemId).IsPet() &&
             Player.Character.Pets.TryGetValue(hotbarItem.ItemId.ToString(), out var pet) &&
             pet != null && PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.ItemId), out var petAbilityParams))
+        {
+            Player.SetEmptySlot(hotbarSlotId);
             Player.UnequipPet(pet.ItemId, petAbilityParams, ItemCatalog, WorldStatistics, ItemRConfig);
-
-        Player.SetEmptySlot(hotbarSlotId, ItemConfig);
+        }
+        else
+        {
+            Player.SetEmptySlot(hotbarSlotId);
+        }
 
         SendXt("hr", Player.Character.Hotbar);
     }

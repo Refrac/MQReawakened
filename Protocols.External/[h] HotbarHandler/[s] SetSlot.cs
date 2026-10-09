@@ -31,9 +31,10 @@ public class SetSlot : ExternalProtocol
         }
 
         // On 2014 SetSlot is used for setting and swapping an item on the hotbar
-        if (ServerRConfig.GameVersion > GameVersion.vLate2013 && Player.Character.Hotbar.HotbarButtons.ContainsValue(item))
+        if (ServerRConfig.GameVersion > GameVersion.vLate2013 && Player.Character.Hotbar.HotbarButtons.ContainsKey(hotbarSlotId) &&
+            Player.Character.Hotbar.HotbarButtons.Any(x => x.Value.ItemId == itemId))
         {
-            Player.SwapSlots(hotbarSlotId, item, ItemRConfig);
+            Player.SwapSlots(hotbarSlotId, item);
             return;
         }
         
@@ -41,12 +42,13 @@ public class SetSlot : ExternalProtocol
             PetAbilities.PetAbilityData.TryGetValue(itemId, out var petAbility) && petAbility != null)
         {
             Player.UnequipPet(Player.GetItemIdOfEquippedPet(), petAbility, ItemCatalog, WorldStatistics, ItemRConfig);
-            Player.SetHotbarSlot(ServerRConfig.PetHotbarIndex, item, ItemRConfig);
+            Player.SetHotbarSlot(ServerRConfig.PetHotbarIndex, item);
             Player.EquipPet(itemId.ToString(), petAbility, ItemCatalog, WorldStatistics, ServerRConfig, ItemRConfig);
         }
-
         else
-            Player.SetHotbarSlot(hotbarSlotId, item, ItemRConfig);
+        {
+            Player.SetHotbarSlot(hotbarSlotId, item);
+        }
 
         SendXt("hs", Player.Character.Hotbar);
     }
