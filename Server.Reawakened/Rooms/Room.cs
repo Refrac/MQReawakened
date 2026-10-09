@@ -697,6 +697,8 @@ public class Room : Timer
     {
         lock (_roomLock)
             _killedUpdatingObjects.Remove(killedEnemy);
+        
+        RemoveEnemy(killedEnemy);
     }
 
     // Enemies
