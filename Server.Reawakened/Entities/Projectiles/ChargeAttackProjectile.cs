@@ -30,8 +30,11 @@ public class ChargeAttackProjectile : BaseProjectile
         _itemId = item != null ? item.ItemId : -1;
         _zoneId = zoneId;
 
+        var superStompDamage = (int)Math.Ceiling(GameFlow.StatisticData.GetValue(ItemEffectType.AbilityPower, WorldStatisticsGroup.Player, player.Character.GlobalLevel) +
+                                                 GameFlow.StatisticData.GetGlobalStat(Globals.StompDamageBonus) * 2);
+        
         var itemEffects = item != null ? item.ItemEffects : new List<ItemEffect>
-            { new(ItemEffectType.StompDamage, 20, 0) };
+            { new(ItemEffectType.StompDamage, superStompDamage, 0) };
         var prefabName = item != null ? item.PrefabName : player.GameObjectId;
 
         Collider = new AttackCollider(id, Position, new RectModel(-0.4f, -0.5f, 0.8f, 0.8f),
