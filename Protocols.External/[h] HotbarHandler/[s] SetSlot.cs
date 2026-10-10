@@ -30,8 +30,7 @@ public class SetSlot : ExternalProtocol
             return;
         }
 
-        // On 2014 SetSlot is used for setting and swapping an item on the hotbar
-        if (ServerRConfig.GameVersion > GameVersion.vLate2013 && Player.Character.Hotbar.HotbarButtons.ContainsKey(hotbarSlotId) &&
+        if (Player.Character.Hotbar.HotbarButtons.ContainsKey(hotbarSlotId) &&
             Player.Character.Hotbar.HotbarButtons.Any(x => x.Value.ItemId == itemId))
         {
             Player.SwapSlots(hotbarSlotId, item);

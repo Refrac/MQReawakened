@@ -114,14 +114,6 @@ public static class CharacterInventoryExtensions
 
         gottenItem.Count -= count;
 
-        if (gottenItem.Count <= 0)
-        {
-            var slotId = player.Character.Hotbar.HotbarButtons
-                .FirstOrDefault(x => x.Value.ItemId == item.ItemId).Key;
-            
-            player.SetEmptySlot(slotId);
-        }
-
         player.CheckObjective(ObjectiveEnum.Inventorycheck, gottenItem.ItemId.ToString(), item.PrefabName, gottenItem.Count, itemCatalog);
     }
 

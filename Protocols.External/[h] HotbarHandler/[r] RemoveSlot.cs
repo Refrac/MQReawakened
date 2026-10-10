@@ -27,19 +27,14 @@ public class RemoveSlot : ExternalProtocol
                 Player.CharacterName, hotbarSlotId++);
             return;
         }
+        
+        Player.SetEmptySlot(hotbarSlotId);
 
         if (ItemCatalog.GetItemFromId(hotbarItem.ItemId) != null &&
             ItemCatalog.GetItemFromId(hotbarItem.ItemId).IsPet() &&
             Player.Character.Pets.TryGetValue(hotbarItem.ItemId.ToString(), out var pet) &&
             pet != null && PetAbilities.PetAbilityData.TryGetValue(int.Parse(pet.ItemId), out var petAbilityParams))
-        {
-            Player.SetEmptySlot(hotbarSlotId);
             Player.UnequipPet(pet.ItemId, petAbilityParams, ItemCatalog, WorldStatistics, ItemRConfig);
-        }
-        else
-        {
-            Player.SetEmptySlot(hotbarSlotId);
-        }
 
         SendXt("hr", Player.Character.Hotbar);
     }
