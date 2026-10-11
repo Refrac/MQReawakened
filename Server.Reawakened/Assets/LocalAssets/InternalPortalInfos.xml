@@ -228,6 +228,10 @@
         <Portal id="92" isPremium="false" levelId="301" level="Hovering Markets" toLevelId="465" toLevel="Hidden Hollow">
             <RequiredQuest id="831" />
         </Portal>
+        
+        <Portal id="13161309" isPremium="false" levelId="514" level="Crossroads Path" toLevelId="526" toLevel="Turtles Party">
+            <RequiredLevel level="5" />
+        </Portal>
     </GameVersion>
     <GameVersion version="vEarly2013">
         <Portal id="636" isPremium="false" levelId="47" level="Clock Tower Square" toLevelId="466" toLevel="Cannon Corral">

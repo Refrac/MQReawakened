@@ -169,7 +169,7 @@ public class ServerRConfig : IRConfig
         {
             { GameVersion.vLate2014, "boBegnopS_4102_TVE" },
             { GameVersion.vPetMasters2014, "sregnaRrewoP_4102_TVE" },
-            { GameVersion.vEarly2014, "10TNMT_3102_TVE" },
+            { GameVersion.vEarly2014, "TNMT_4102_TVE" },
             { GameVersion.vLate2013, "10TNMT_3102_TVE" },
             { GameVersion.vEarly2013, "TNMT_2102_ORP" },
             { GameVersion.vLate2012, "TNMT_2102_ORP" },
@@ -183,8 +183,8 @@ public class ServerRConfig : IRConfig
         {
             { GameVersion.vLate2014, "tnevEytraPboBegnopS" },
             { GameVersion.vPetMasters2014, string.Empty },
-            { GameVersion.vEarly2014, string.Empty },
-            { GameVersion.vLate2013, string.Empty },
+            { GameVersion.vEarly2014, "tnevEytraPTNMT" },
+            { GameVersion.vLate2013, "tnevEytraPTNMT" },
             { GameVersion.vEarly2013, string.Empty },
             { GameVersion.vLate2012, string.Empty },
             { GameVersion.vMinigames2012, string.Empty },
