@@ -31,8 +31,6 @@ public class SpiderlingControllerComp : DamagableAiStateMachine<SpiderlingContro
             AddNextState<AIStateSpiderlingDigOutComp>();
         else
             AddNextState<AIStatePatrolComp>();
-
-        GoToNextState();
     }
 
     public override void Update()

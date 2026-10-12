@@ -1,6 +1,7 @@
 ﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
 using Server.Reawakened.Entities.DataComponentAccessors.Hampster.States;
 
 namespace Server.Reawakened.Entities.Components.Characters.Controllers.Hamster.States;
@@ -15,6 +16,8 @@ public class AIStateHamsterAttackComp : BaseAIState<AIStateHamsterAttackMQR, AI_
 
     // TODO!!!
     public vector3 TargetPosition = new (0f, 0f, 0f);
+    
+    public float EndTime;
 
     public override AI_State_HamsterAttack GetInitialAIState() => new (
         [
@@ -25,15 +28,20 @@ public class AIStateHamsterAttackComp : BaseAIState<AIStateHamsterAttackMQR, AI_
 
     public override ExtLevelEditor.ComponentSettings GetSettings() => [
         Position.X.ToString(), Position.Y.ToString(), Position.Z.ToString(),
-        TargetPosition.x.ToString(), TargetPosition.y.ToString(), TargetPosition.z.ToString()
+        TargetPosition.x.ToString(), (TargetPosition.y - JumpHeight).ToString(), TargetPosition.z.ToString()
     ];
 
-    public override void OnAIStateIn() =>
+    public override void OnAIStateIn()
+    {
+        EndTime = Room.Time + 1.5f;
+        
         State.Init(Position.ToVector3(), TargetPosition);
+    }
 
     public override void Execute() => Position.SetPosition(State.CurrentPosition);
 
     public void AttackIn() => Logger.LogTrace("AttackIn called for {StateName} on {PrefabName}", StateName, PrefabName);
     public void AttackLoop() => Logger.LogTrace("AttackLoop called for {StateName} on {PrefabName}", StateName, PrefabName);
+
     public void AttackOut() => Logger.LogTrace("AttackOut called for {StateName} on {PrefabName}", StateName, PrefabName);
 }

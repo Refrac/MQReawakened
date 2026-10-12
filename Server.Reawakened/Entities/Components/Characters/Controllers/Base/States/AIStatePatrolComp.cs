@@ -1,8 +1,7 @@
-﻿using A2m.Server;
-using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+﻿using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Hamster.States;
 using Server.Reawakened.Players;
 using Server.Reawakened.Rooms.Extensions;
-using Server.Reawakened.Rooms.Models.Planes;
 using UnityEngine;
 using static A2m.Server.ExtLevelEditor;
 
@@ -56,7 +55,6 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
             time = _timestamp;
 
         base.StartState(time);
-
     }
 
     public override void StopState(float time = 0) => base.StopState(_timestamp);
@@ -140,6 +138,15 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
         {
             var dirX = player.TempData.Position.X - Position.X;
             StateMachine.SetForceDirectionX(Math.Sign(dirX));
+
+            var attackComp = DetectionAiState;
+
+            switch (attackComp)
+            {
+                case AIStateHamsterAttackComp comp:
+                    comp.TargetPosition = player.TempData.Position.ToVector3();
+                    break;
+            }
         }
 
         AddNextState(DetectionAiState.GetType());

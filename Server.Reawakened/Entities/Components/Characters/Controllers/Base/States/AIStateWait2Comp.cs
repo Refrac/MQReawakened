@@ -5,22 +5,13 @@ namespace Server.Reawakened.Entities.Components.Characters.Controllers.Base.Stat
 public class AIStateWait2Comp : BaseAIState<AIStateWait2MQR, AI_State>
 {
     public override string StateName => "AIStateWait2";
+    public float WaitDuration => ComponentData.WaitDuration;
 
-    public float FxWaitDuration = 0;
-    public float WaitDuration => ComponentData.WaitDuration + FxWaitDuration;
+    public float WaitTime { get; private set; } = 0;
 
-    private float _waitTime = 0;
+    public override void StartState(float time = -1) => base.StartState(WaitDuration);
 
     public override AI_State GetInitialAIState() => new([], loop: false);
 
-    public override void OnAIStateIn() => _waitTime = Room.Time + WaitDuration;
-
-    public override void Execute()
-    {
-        if (Room.Time < _waitTime)
-            return;
-
-        AddNextState<AIStatePatrolComp>();
-        GoToNextState();
-    }
+    public override void OnAIStateIn() => WaitTime = Room.Time + WaitDuration;
 }
