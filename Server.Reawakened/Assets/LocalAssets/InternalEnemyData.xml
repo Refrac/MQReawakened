@@ -2633,6 +2633,122 @@
                 </LootTable>
             </Enemy>
         </EnemyCategory>
+        <EnemyCategory name="PwrRngr">
+            <Enemy name="PF_Spite_PR_XborgBoss01">
+                <GenericScript>
+                    <AttackBehavior value="Aggro" />
+                    <AwareBehaviorDuration value="0.5" />
+                    <AwareBehavior value="LookAround" />
+                    <UnawareBehavior value="Patrol" />
+                    <HealthRegenAmount value="0" />
+                    <HealthRegenFrequency value="0" />
+                </GenericScript>
+                <GlobalProperties>
+                    <DetectionLimitedByPatrolLine value="true" />
+                    <FrontDetectionRangeX value="6" />
+                    <FrontDetectionRangeUpY value="1" />
+                    <FrontDetectionRangeDownY value="0.25" />
+                    <BackDetectionRangeX value="3" />
+                    <BackDetectionRangeUpY value="1" />
+                    <BackDetectionRangeDownY value="0" />
+                    <ViewOffsetY value="0" />
+                    <ProjectilePrefabName value="" />
+                </GlobalProperties>
+                <Behaviors>
+                    <Patrol speed="1.8" smoothMove="false" endPathWaitTime="3" />
+                    <Aggro speed="4.8" moveBeyondTargetDistance="0" stayOnPatrolPath="true" attackBeyondPatrolLine="0" detectionRangeUpY="0" detectionRangeDownY="0" />
+                    <LookAround lookTime="3" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
+                </Behaviors>
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_PR_XborgPatroller01">
+                <GenericScript>
+                    <AttackBehavior value="Aggro" />
+                    <AwareBehaviorDuration value="0.5" />
+                    <AwareBehavior value="LookAround" />
+                    <UnawareBehavior value="Patrol" />
+                    <HealthRegenAmount value="0" />
+                    <HealthRegenFrequency value="0" />
+                </GenericScript>
+                <GlobalProperties>
+                    <DetectionLimitedByPatrolLine value="true" />
+                    <FrontDetectionRangeX value="6" />
+                    <FrontDetectionRangeUpY value="1" />
+                    <FrontDetectionRangeDownY value="0.25" />
+                    <BackDetectionRangeX value="3" />
+                    <BackDetectionRangeUpY value="1" />
+                    <BackDetectionRangeDownY value="0" />
+                    <ViewOffsetY value="0" />
+                    <ProjectilePrefabName value="" />
+                </GlobalProperties>
+                <Behaviors>
+                    <Patrol speed="1.6" smoothMove="false" endPathWaitTime="3" />
+                    <Aggro speed="4.0" moveBeyondTargetDistance="0" stayOnPatrolPath="true" attackBeyondPatrolLine="0" detectionRangeUpY="0" detectionRangeDownY="0" />
+                    <LookAround lookTime="3" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
+                </Behaviors>
+                <LootTable>
+                </LootTable>
+            </Enemy>
+        </EnemyCategory>
+        <EnemyCategory name="SpngBob">
+            <Enemy name="PF_Spite_MiniRoboPlankton01">
+                <GenericScript>
+                    <AttackBehavior value="Aggro" />
+                    <AwareBehaviorDuration value="0.5" />
+                    <AwareBehavior value="LookAround" />
+                    <UnawareBehavior value="Patrol" />
+                    <HealthRegenAmount value="0" />
+                    <HealthRegenFrequency value="0" />
+                </GenericScript>
+                <GlobalProperties>
+                    <DetectionLimitedByPatrolLine value="true" />
+                    <FrontDetectionRangeX value="6" />
+                    <FrontDetectionRangeUpY value="1" />
+                    <FrontDetectionRangeDownY value="0.25" />
+                    <BackDetectionRangeX value="3" />
+                    <BackDetectionRangeUpY value="1" />
+                    <BackDetectionRangeDownY value="0" />
+                    <ViewOffsetY value="0" />
+                    <ProjectilePrefabName value="" />
+                </GlobalProperties>
+                <Behaviors>
+                    <Patrol speed="1.6" smoothMove="false" endPathWaitTime="3" />
+                    <Aggro speed="4.0" moveBeyondTargetDistance="0" stayOnPatrolPath="true" attackBeyondPatrolLine="0" detectionRangeUpY="0" detectionRangeDownY="0" />
+                    <LookAround lookTime="3" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
+                </Behaviors>
+                <LootTable>
+                </LootTable>
+            </Enemy>
+            <Enemy name="PF_Spite_MiniRoboPlankton02">
+                <GenericScript>
+                    <AttackBehavior value="Aggro" />
+                    <AwareBehaviorDuration value="0.5" />
+                    <AwareBehavior value="LookAround" />
+                    <UnawareBehavior value="Patrol" />
+                    <HealthRegenAmount value="0" />
+                    <HealthRegenFrequency value="0" />
+                </GenericScript>
+                <GlobalProperties>
+                    <DetectionLimitedByPatrolLine value="true" />
+                    <FrontDetectionRangeX value="6" />
+                    <FrontDetectionRangeUpY value="1" />
+                    <FrontDetectionRangeDownY value="0.25" />
+                    <BackDetectionRangeX value="3" />
+                    <BackDetectionRangeUpY value="1" />
+                    <BackDetectionRangeDownY value="0" />
+                    <ViewOffsetY value="0" />
+                    <ProjectilePrefabName value="" />
+                </GlobalProperties>
+                <Behaviors>
+                    <Patrol speed="1.6" smoothMove="false" endPathWaitTime="3" />
+                    <Aggro speed="4.0" moveBeyondTargetDistance="0" stayOnPatrolPath="true" attackBeyondPatrolLine="0" detectionRangeUpY="0" detectionRangeDownY="0" />
+                    <LookAround lookTime="3" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
+                </Behaviors>
+                <LootTable>
+                </LootTable>
+            </Enemy>
+        </EnemyCategory>
     </AiType>
     <AiType name="State">
         <EnemyCategory name="Spiderling">
@@ -2718,14 +2834,6 @@
                 <LootTable>
                 </LootTable>
             </Enemy>
-            <Enemy name="PF_Spite_MiniRoboPlankton01">
-                <LootTable>
-                </LootTable>
-            </Enemy>
-            <Enemy name="PF_Spite_MiniRoboPlankton02">
-                <LootTable>
-                </LootTable>
-            </Enemy>
         </EnemyCategory>
         <EnemyCategory name="TMNT">
             <!-- Uses HAMSTER AI State Controller -->
@@ -2740,14 +2848,6 @@
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="PwrRngr">
-            <Enemy name="PF_Spite_PR_XborgBoss01">
-                <LootTable>
-                </LootTable>
-            </Enemy>
-            <Enemy name="PF_Spite_PR_XborgPatroller01">
-                <LootTable>
-                </LootTable>
-            </Enemy>
             <Enemy name="PF_Spite_PR_XborgShooter01">
                 <LootTable>
                 </LootTable>
