@@ -14,7 +14,6 @@ public class AIStateHamsterAttackComp : BaseAIState<AIStateHamsterAttackMQR, AI_
     public float OutTime => ComponentData.OutTime;
     public float JumpHeight => ComponentData.JumpHeight;
 
-    // TODO!!!
     public vector3 TargetPosition = new (0f, 0f, 0f);
     
     public float EndTime;
@@ -33,7 +32,7 @@ public class AIStateHamsterAttackComp : BaseAIState<AIStateHamsterAttackMQR, AI_
 
     public override void OnAIStateIn()
     {
-        EndTime = Room.Time + 1.5f;
+        EndTime = Room.Time + InTime + LoopTime + OutTime;
         
         State.Init(Position.ToVector3(), TargetPosition);
     }
