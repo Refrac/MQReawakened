@@ -60,21 +60,36 @@ public class HamsterControllerComp : DamagableAiStateMachine<HamsterControllerMQ
                 GoToNextState();
             }
         }
-
-        else if (CurrentStates.OfType<AIStateWaitComp>().FirstOrDefault() is AIStateWaitComp wait)
-        {
-            if (Room.Time >= wait.WaitTime)
-            {
-                AddNextState<AIStatePatrolComp>();
-                GoToNextState();
-            }
-        }
         
         else if (CurrentStates.OfType<AIStateWait2Comp>().FirstOrDefault() is AIStateWait2Comp wait2)
         {
             if (Room.Time >= wait2.WaitTime)
             {
+                var move = Room.GetEntityFromId<AIStateMoveComp>(Id);
+                var closestPlayer = _patrol.GetClosestPlayer();
+
+                if (move != null && _patrol != null && closestPlayer != null)
+                    move.TargetPosition = closestPlayer.TempData.Position.ToVector3();
+                
+                AddNextState<AIStateMoveComp>();
+                GoToNextState();
+            }
+        }
+        
+        else if (CurrentStates.OfType<AIStateMoveComp>().FirstOrDefault() is AIStateMoveComp move)
+        {
+            if (Room.Time >= move.EndTime)
+            {
                 AddNextState<AIStateWaitComp>();
+                GoToNextState();
+            }
+        }
+        
+        else if (CurrentStates.OfType<AIStateWaitComp>().FirstOrDefault() is AIStateWaitComp wait)
+        {
+            if (Room.Time >= wait.WaitTime)
+            {
+                AddNextState<AIStatePatrolComp>();
                 GoToNextState();
             }
         }

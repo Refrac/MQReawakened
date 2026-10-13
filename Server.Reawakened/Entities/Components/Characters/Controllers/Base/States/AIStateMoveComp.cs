@@ -1,6 +1,7 @@
 ﻿using A2m.Server;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.DataComponentAccessors.Base.States;
+using static A2m.Server.ExtLevelEditor;
 
 namespace Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
 public class AIStateMoveComp : BaseAIState<AIStateMoveMQR, AI_State_Move>
@@ -11,20 +12,40 @@ public class AIStateMoveComp : BaseAIState<AIStateMoveMQR, AI_State_Move>
 
     private readonly vector3 _dampingVelocity = new(0f, 0f, 0f);
 
-    // TODO!!!
+    private float _spawnX;
+    private float _spawnY;
+    private float _spawnZ;
+    
     public vector3 TargetPosition = new(0f, 0f, 0f);
 
+    public float EndTime;
+
+    public override void InitializeComponent()
+    {
+        base.InitializeComponent();
+
+        _spawnX = Position.X;
+        _spawnY = Position.Y;
+        _spawnZ = Position.Z;
+    }
+    
+    protected override ComponentSettings GetStartSettings() => ["ST", Room.Time.ToString()];
+    
     public override AI_State_Move GetInitialAIState() => new (MovementSpeed);
 
-    public override ExtLevelEditor.ComponentSettings GetSettings() => [
-        Position.X.ToString(), Position.Y.ToString(), Position.Z.ToString(),
+    public override ComponentSettings GetSettings() => [
+        _spawnX.ToString(), _spawnY.ToString(), _spawnZ.ToString(),
         TargetPosition.x.ToString(), TargetPosition.y.ToString(), TargetPosition.z.ToString()
     ];
 
     public override void OnAIStateIn()
     {
-        State.Init(Position.ToVector3(), TargetPosition);
-        StateMachine.SetForceDirectionX(Convert.ToInt32(TargetPosition.x - Position.X));
+        EndTime = Room.Time + 0.5f;
+        
+        var spawnPosition = new vector3(_spawnX, _spawnY, _spawnZ);
+        
+        State.Init(spawnPosition, TargetPosition);
+        StateMachine.SetForceDirectionX(Convert.ToInt32(TargetPosition.x - spawnPosition.x));
     }
 
     public override void Execute()
