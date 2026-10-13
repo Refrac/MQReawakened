@@ -19,7 +19,7 @@ public class GenericProjectile : BaseProjectile
     public GenericProjectile(string id, Player player, float lifeTime, Vector3 position, ItemRConfig config,
         int direction, ItemDescription item, bool isGrenade, ServerRConfig rConfig, ItemCatalog itemCatalog)
         : base(id, lifeTime, player.Room,
-            new Vector3Model(position.x + config.ProjectileXOffset * (direction > 0 ? 1 : - 1 - config.ProjectileWidth), position.y + config.ProjectileYOffset - config.ProjectileHeight, position.z),
+            new Vector3Model(position.x + config.ProjectileXOffset * (direction > 0 ? 1 : -1), position.y + config.ProjectileYOffset, position.z),
             new Vector2(config.ProjectileSpeedX * (direction > 0 ? 1 : -1), isGrenade ? config.GrenadeSpeedY : config.ProjectileSpeedY),
             null, false)
     {
