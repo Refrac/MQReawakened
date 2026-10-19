@@ -27,7 +27,40 @@ public class RemoveScore : SlashCommand
         {
             Name = "minigame",
             Description = "The minigame to remove a score from",
-            Optional = false
+            Optional = false,
+            Options = 
+            [
+                new OptionModel()
+                {
+                    Name = "warriorrun",
+                    Description = "Warrior Run",
+                    Parameters = []
+                },
+                new OptionModel()
+                {
+                    Name = "midnightwarriorrun",
+                    Description = "Midnight Warrior Run",
+                    Parameters = []
+                },
+                new OptionModel()
+                {
+                    Name = "torchfrenzy",
+                    Description = "Torch Frenzy",
+                    Parameters = []
+                },
+                new OptionModel()
+                {
+                    Name = "midnighttorchfrenzy",
+                    Description = "Midnight Torch Frenzy",
+                    Parameters = []
+                },
+                new OptionModel()
+                {
+                    Name = "monkeyblast",
+                    Description = "Monkey Blast",
+                    Parameters = []
+                },
+            ]
         },
         new ParameterModel()
         {
