@@ -21,7 +21,7 @@ public class AIBehaviorActing(BehaviorEnemy enemy, ActingProperties fallback) : 
         Fallback(enemy.Global.LookAround_SnapOnGround, false)
     );
 
-    public override object[] GetStartArgs() => [ActingState];
+    public override object[] GetStartArgs(bool _) => [ActingState];
 
     public override StateType GetStateType() => StateType.Acting;
 

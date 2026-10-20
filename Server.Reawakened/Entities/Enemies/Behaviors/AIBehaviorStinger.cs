@@ -23,7 +23,7 @@ public class AIBehaviorStinger(BehaviorEnemy enemy, StingerProperties fallback) 
             3
         );
 
-    public override object[] GetStartArgs() {
+    public override object[] GetStartArgs(bool _) {
         var properties = GetInternalProperties();
 
         // Some of these are hardcoded

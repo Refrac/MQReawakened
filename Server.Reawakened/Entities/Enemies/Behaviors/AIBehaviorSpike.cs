@@ -27,7 +27,7 @@ public class AIBehaviorSpike(BehaviorEnemy enemy, SpikeProperties fallback) : AI
 
     private SpikeProperties GetInternalProperties() => fallback;
 
-    public override object[] GetStartArgs()
+    public override object[] GetStartArgs(bool _)
     {
         var properties = GetInternalProperties();
         return [

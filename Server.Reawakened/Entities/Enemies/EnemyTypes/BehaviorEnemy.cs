@@ -219,7 +219,8 @@ public class BehaviorEnemy(EnemyData data) : BaseEnemy(data)
 				AISyncEventHelper.AIDo(
 					AiData.Sync_PosX, AiData.Sync_PosY, 1.0f,
 					AiData.Sync_TargetPosX, AiData.Sync_TargetPosY, AiData.Intern_Dir, Global != null && CurrentState == Global.AwareBehavior,
-					this
+					this,
+                    true
 				)
 			);
     }
