@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
 using Server.Reawakened.Entities.Enemies.EnemyTypes.Abstractions;
 using Server.Reawakened.Entities.Enemies.Extensions;
 using Server.Reawakened.Entities.Enemies.Models;
@@ -37,7 +38,7 @@ public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
             AISyncEventHelper.AIDo(
                 Id, Room,
                 Position.X, Position.Y, 1.0f,
-                Position.X, Position.Y, 1,
+                Position.X, Position.Y, 0,
                 false, AISyncEventHelper.IndexOf(StateType.Unknown, []), string.Empty
             )
         );
@@ -57,7 +58,7 @@ public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
                 AISyncEventHelper.AIDo(
                     Id, Room,
                     Position.X, Position.Y, 1.0f,
-                    Position.X, Position.Y, 1,
+                    Position.X, Position.Y, 0,
                     false, AISyncEventHelper.IndexOf(StateType.Unknown, []), string.Empty
                 )
             );
@@ -73,6 +74,14 @@ public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
     
     public override void StartActing(ActingStateType state, float duration)
     {
-        // put code here
+        var stunned = Room.GetEntityFromId<AIStateStunnedComp>(Id);
+
+        if (stunned != null && state == ActingStateType.Stunned)
+        {
+            stunned.StunTime = duration;
+            
+            stunned.AddNextState<AIStateStunnedComp>();
+            stunned.GoToNextState();
+        }
     }
 }

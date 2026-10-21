@@ -70,13 +70,7 @@ public abstract class BaseAIState<T, T2> : Component<T>, IAIState where T2 : cla
         }
     }
 
-    public virtual void StartState(float time = -1)
-    {
-        if (time == -1)
-            time = Room.Time;
-
-        SetStateStartTime(time);
-    }
+    public void StartState(float time) => SetStateStartTime(time);
 
     public void UpdateState()
     {
@@ -93,7 +87,7 @@ public abstract class BaseAIState<T, T2> : Component<T>, IAIState where T2 : cla
             Execute();
     }
 
-    public virtual void StopState(float time = 0) => SetStateStartTime(time);
+    public void StopState() => SetStateStartTime(0);
 
     // Internal state machine methods
 
@@ -113,11 +107,11 @@ public abstract class BaseAIState<T, T2> : Component<T>, IAIState where T2 : cla
 
     public void SetEnemyController(AIStateEnemy enemyController) => EnemyController = enemyController;
 
-    protected virtual ComponentSettings GetStartSettings() => ["ST", _stateStartTime.ToString()];
+    protected virtual ComponentSettings GetStartSettings(float time) => ["ST", time.ToString()];
 
-    public ComponentSettings GetFullSettings()
+    public ComponentSettings GetFullSettings(float time = -1)
     {
-        var startSettings = GetStartSettings();
+        var startSettings = GetStartSettings(time);
         startSettings.AddRange(GetSettings());
         return startSettings;
     }

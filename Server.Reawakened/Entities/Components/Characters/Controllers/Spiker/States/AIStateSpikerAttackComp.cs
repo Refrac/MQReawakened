@@ -1,10 +1,8 @@
-﻿using A2m.Server;
+﻿using static A2m.Server.ExtLevelEditor;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
-using Server.Reawakened.Entities.Components.Characters.Controllers.SpiderBoss.States;
 using Server.Reawakened.Entities.DataComponentAccessors.Spiker.States;
-using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Planes;
 using UnityEngine;
 
@@ -24,13 +22,13 @@ public class AIStateSpikerAttackComp : BaseAIState<AIStateSpikerAttackMQR, AI_St
 
     private float _prjTime;
     private float _endTime;
-
+    
     public override AI_State GetInitialAIState() => new(
         [
             new (ShootTime, "Shoot")
         ], loop: false);
 
-    public override ExtLevelEditor.ComponentSettings GetSettings() => [StateMachine.GetForceDirectionX().ToString()];
+    public override ComponentSettings GetSettings() => [StateMachine.GetForceDirectionX().ToString()];
 
     public override void InitializeComponent()
     {

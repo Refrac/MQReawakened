@@ -28,7 +28,7 @@ public class SpiderlingControllerComp : DamagableAiStateMachine<SpiderlingContro
         SetupStateVariables();
 
         if (StartIdle)
-            AddNextState<AIStateSpiderlingDigOutComp>();
+            AddNextState<AIStateSpiderlingAlertComp>();
         else
             AddNextState<AIStatePatrolComp>();
     }
@@ -41,7 +41,7 @@ public class SpiderlingControllerComp : DamagableAiStateMachine<SpiderlingContro
         if (CurrentStates.Length <= 0)
             GoToNextState();
 
-        else if (!_hasStarted && CurrentStates.Any(state => state is AIStateSpiderlingDigOutComp) && _patrol is not null)
+        else if (!_hasStarted && CurrentStates.Any(state => state is AIStateSpiderlingAlertComp) && _patrol is not null)
         {
             if (_patrol.GetClosestPlayer() is not null)
             {
@@ -55,6 +55,15 @@ public class SpiderlingControllerComp : DamagableAiStateMachine<SpiderlingContro
             if (Room.Time >= alert.WaitTime)
             {
                 AddNextState<AIStatePatrolComp>();
+                GoToNextState();
+            }
+        }
+        
+        else if (CurrentStates.OfType<AIStateStunnedComp>().FirstOrDefault() is AIStateStunnedComp stunned)
+        {
+            if (Room.Time >= stunned.WaitTime)
+            {
+                AddNextState<AIStateSpiderlingAlertComp>();
                 GoToNextState();
             }
         }
@@ -78,7 +87,8 @@ public class SpiderlingControllerComp : DamagableAiStateMachine<SpiderlingContro
         if (isDead)
             return;
 
-        if (CurrentStates.Any(state => state is AIStateSpiderlingDigOutComp or AIStatePatrolComp) && _patrol is not null)
+        if (CurrentStates.Any(state => state is AIStateSpiderlingAlertComp or AIStatePatrolComp) && _patrol is not null &&
+            Room.Time - _patrol.DetectionStartTime >= _patrol.MinimumTimeBeforeDetection)
             _patrol.StartDetectedState();
     }
 }

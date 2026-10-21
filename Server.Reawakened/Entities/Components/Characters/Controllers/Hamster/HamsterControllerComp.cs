@@ -29,6 +29,8 @@ public class HamsterControllerComp : DamagableAiStateMachine<HamsterControllerMQ
     {
         SetupStateVariables();
 
+        Room.GetCollidersById(Id).FirstOrDefault()?.Active = false;
+        
         if (StartIdle)
             AddNextState<AIStateIdleComp>();
         else
@@ -52,33 +54,9 @@ public class HamsterControllerComp : DamagableAiStateMachine<HamsterControllerMQ
             }
         }
         
-        else if (CurrentStates.OfType<AIStateHamsterAttackComp>().FirstOrDefault() is AIStateHamsterAttackComp attack)
-        {
-            if (Room.Time >= attack.EndTime)
-            {
-                AddNextState<AIStateWait2Comp>();
-                GoToNextState();
-            }
-        }
-        
         else if (CurrentStates.OfType<AIStateWait2Comp>().FirstOrDefault() is AIStateWait2Comp wait2)
         {
             if (Room.Time >= wait2.WaitTime)
-            {
-                var move = Room.GetEntityFromId<AIStateMoveComp>(Id);
-                var closestPlayer = _patrol.GetClosestPlayer();
-
-                if (move != null && _patrol != null && closestPlayer != null)
-                    move.TargetPosition = closestPlayer.TempData.Position.ToVector3();
-                
-                AddNextState<AIStateMoveComp>();
-                GoToNextState();
-            }
-        }
-        
-        else if (CurrentStates.OfType<AIStateMoveComp>().FirstOrDefault() is AIStateMoveComp move)
-        {
-            if (Room.Time >= move.EndTime)
             {
                 AddNextState<AIStateWaitComp>();
                 GoToNextState();
@@ -90,6 +68,17 @@ public class HamsterControllerComp : DamagableAiStateMachine<HamsterControllerMQ
             if (Room.Time >= wait.WaitTime)
             {
                 AddNextState<AIStatePatrolComp>();
+                GoToNextState();
+                
+                Room.GetCollidersById(Id).FirstOrDefault()?.Active = false;
+            }
+        }
+        
+        else if (CurrentStates.OfType<AIStateStunnedComp>().FirstOrDefault() is AIStateStunnedComp stunned)
+        {
+            if (Room.Time >= stunned.WaitTime)
+            {
+                AddNextState<AIStateWaitComp>();
                 GoToNextState();
             }
         }
@@ -113,7 +102,8 @@ public class HamsterControllerComp : DamagableAiStateMachine<HamsterControllerMQ
         if (isDead)
             return;
 
-        if (CurrentStates.Any(state => state is AIStateIdleComp or AIStatePatrolComp) && _patrol is not null)
+        if (CurrentStates.Any(state => state is AIStateIdleComp or AIStatePatrolComp) && _patrol is not null &&
+            Room.Time - _patrol.DetectionStartTime >= _patrol.MinimumTimeBeforeDetection)
             _patrol.StartDetectedState();
     }
 }

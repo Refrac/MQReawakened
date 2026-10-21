@@ -1,4 +1,4 @@
-﻿using A2m.Server;
+﻿using static A2m.Server.ExtLevelEditor;
 using Microsoft.Extensions.Logging;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.DataComponentAccessors.Spiderling.States;
@@ -26,7 +26,7 @@ public class AIStateSpiderlingAttackComp : BaseAIState<AIStateSpiderlingAttackMQ
             new (ShootTime, "Shoot")
         ], loop: false);
 
-    public override ExtLevelEditor.ComponentSettings GetSettings() => [StateMachine.GetForceDirectionX().ToString()];
+    public override ComponentSettings GetSettings() => [StateMachine.GetForceDirectionX().ToString()];
     
     public override void InitializeComponent()
     {

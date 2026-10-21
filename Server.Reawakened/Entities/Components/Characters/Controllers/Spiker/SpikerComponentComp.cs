@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
+﻿using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Base.States;
-using Server.Reawakened.Entities.Components.Characters.Controllers.SpiderBoss.States;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Spiker.States;
 using Server.Reawakened.Entities.DataComponentAccessors.Spiker;
-using UnityEngine;
 
 namespace Server.Reawakened.Entities.Components.Characters.Controllers.Spiker;
 public class SpikerComponentComp : DamagableAiStateMachine<SpikerControllerMQR>
@@ -30,6 +27,8 @@ public class SpikerComponentComp : DamagableAiStateMachine<SpikerControllerMQR>
     {
         SetupStateVariables();
 
+        Room.GetCollidersById(Id).FirstOrDefault()?.Active = false;
+        
         if (StartIdle)
             AddNextState<AIStateIdleComp>();
         else
@@ -57,6 +56,26 @@ public class SpikerComponentComp : DamagableAiStateMachine<SpikerControllerMQR>
         {
             if (Room.Time >= wait.WaitTime)
             {
+                AddNextState<AIStateIdleComp>();
+                GoToNextState();
+                
+                Room.GetCollidersById(Id).FirstOrDefault()?.Active = false;
+            }
+        }
+        
+        else if (CurrentStates.OfType<AIStateStunnedComp>().FirstOrDefault() is AIStateStunnedComp stunned)
+        {
+            if (Room.Time >= stunned.WaitTime)
+            {
+                AddNextState<AIStateWaitComp>();
+                GoToNextState();
+            }
+        }
+        
+        else if (CurrentStates.OfType<AIStateIdleComp>().FirstOrDefault() is AIStateIdleComp idle)
+        {
+            if (Room.Time >= idle.WaitTime)
+            {
                 AddNextState<AIStatePatrolComp>();
                 GoToNextState();
             }
@@ -81,7 +100,8 @@ public class SpikerComponentComp : DamagableAiStateMachine<SpikerControllerMQR>
         if (isDead)
             return;
 
-        if (CurrentStates.Any(state => state is AIStateIdleComp or AIStatePatrolComp) && _patrol is not null)
+        if (CurrentStates.Any(state => state is AIStateIdleComp or AIStatePatrolComp) && _patrol is not null &&
+            Room.Time - _patrol.DetectionStartTime >= _patrol.MinimumTimeBeforeDetection)
             _patrol.StartDetectedState();
     }
 }

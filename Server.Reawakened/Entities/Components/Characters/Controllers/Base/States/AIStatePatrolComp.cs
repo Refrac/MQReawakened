@@ -1,5 +1,6 @@
 ﻿using Server.Reawakened.Entities.Components.Characters.Controllers.Base.Abstractions;
 using Server.Reawakened.Entities.Components.Characters.Controllers.Hamster.States;
+using Server.Reawakened.Entities.Components.Characters.Controllers.Spiker.States;
 using Server.Reawakened.Players;
 using Server.Reawakened.Rooms.Extensions;
 using UnityEngine;
@@ -29,16 +30,16 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
     private Vector3 _dampingVelocity = new(0, 0, 0);
 
     public IAIState DetectionAiState;
-    private float _detectionStartTime = 0f;
+    public float DetectionStartTime = 0f;
     private bool _isDetecting = false;
 
     private float _spawnX;
     private float _spawnY;
     private float _spawnZ;
 
-    private float _timestamp = -1f;
+    private bool _initialized = false;
 
-    public override void InitializeComponent()
+    public override void DelayedComponentInitialization()
     {
         base.InitializeComponent();
 
@@ -46,18 +47,6 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
         _spawnY = Position.Y;
         _spawnZ = Position.Z;
     }
-
-    protected override ComponentSettings GetStartSettings() => ["ST", Room.Time.ToString()];
-
-    public override void StartState(float time = -1)
-    {
-        if (_timestamp >= 0)    
-            time = _timestamp;
-
-        base.StartState(time);
-    }
-
-    public override void StopState(float time = 0) => base.StopState(_timestamp);
 
     public override AI_State_Patrol GetInitialAIState()
     {
@@ -90,15 +79,19 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
         ], movementX, movementY, SinusPathNbHalfPeriod);
     }
 
-    public override ComponentSettings GetSettings() =>
+    public override ComponentSettings GetSettings() => _initialized ? [] :
         [_spawnX.ToString(), _spawnY.ToString(), _spawnZ.ToString()];
 
     public override void OnAIStateIn()
     {
-        _detectionStartTime = Room.Time;
+        DetectionStartTime = Room.Time;
         _isDetecting = false;
 
-        State.Init(new vector3(_spawnX, _spawnY, _spawnZ));
+        if (!_initialized)
+        {
+            _initialized = true;
+            State.Init(new vector3(_spawnX, _spawnY, _spawnZ));
+        }
     }
 
     public Player GetClosestPlayer() => Room.GetClosestPlayer(Position.ToUnityVector3(), DetectionRange);
@@ -113,9 +106,9 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
         MathUtils.CriticallyDampedSpring1D(springK, inPosition.x, currentPosition.x, ref _dampingVelocity.x, ref dampenedPosition.x, Room.DeltaTime);
         MathUtils.CriticallyDampedSpring1D(springK, inPosition.y, currentPosition.y, ref _dampingVelocity.y, ref dampenedPosition.y, Room.DeltaTime);
         MathUtils.CriticallyDampedSpring1D(springK, inPosition.z, currentPosition.z, ref _dampingVelocity.z, ref dampenedPosition.z, Room.DeltaTime);
-
+        
         Position.SetPosition(dampenedPosition);
-
+    
         StateMachine.SetForceDirectionX(State.GetDirection());
 
         if (DetectionAiState == null)
@@ -123,7 +116,7 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
 
         var hasDetectedPlayer = Room.GetPlayers().Any(CanDetectPlayer);
 
-        if (hasDetectedPlayer && Room.Time - _detectionStartTime >= MinimumTimeBeforeDetection)
+        if (hasDetectedPlayer && Room.Time - DetectionStartTime >= MinimumTimeBeforeDetection)
         {
             StartDetectedState();
         }
@@ -132,7 +125,6 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
     public void StartDetectedState()
     {
         var player = GetClosestPlayer();
-        _timestamp = Room.Time;
 
         if (player != null)
         {
@@ -144,11 +136,20 @@ public class AIStatePatrolComp : BaseAIState<AIStatePatrol, AI_State_Patrol>
             switch (attackComp)
             {
                 case AIStateHamsterAttackComp comp:
+                    Room.GetCollidersById(Id).FirstOrDefault()?.Active = true;
                     comp.TargetPosition = player.TempData.Position.ToVector3();
+                    break;
+                case AIStateSpikerAttackComp:
+                    Room.GetCollidersById(Id).FirstOrDefault()?.Active = true;
                     break;
             }
         }
 
+        var move = Room.GetEntityFromId<AIStateMoveComp>(Id);
+            
+        if (move != null)
+            move.TargetPosition = new vector3(_spawnX, _spawnY, _spawnZ);
+        
         AddNextState(DetectionAiState.GetType());
         GoToNextState();
     }

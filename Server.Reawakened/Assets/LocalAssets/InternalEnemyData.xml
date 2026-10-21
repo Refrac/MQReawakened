@@ -2599,9 +2599,9 @@
                     <LookAround lookTime="3" startDirection="0" forceDirection="0" initialProgressRatio="0" snapOnGround="false" />
                 </Behaviors>
                 <LootTable>
-                    <Drop type="item" id="524" chance="0.4" minLevel="1" maxLevel="65" />
-                    <Drop type="item" id="12836" chance="0.3" minLevel="1" maxLevel="65" />
-                    <Drop type="item" id="12837" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="524" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="12836" chance="0.4" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="12837" chance="0.35" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <Enemy name="PF_Spite_TMNT_FootPatroller01">
@@ -2755,6 +2755,7 @@
             <!-- Spiderling -->
             <Enemy name="PF_Spite_Spiderling_Boss01">
                 <LootTable>
+                    <Drop type="item" id="404" chance="0.2" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
         </EnemyCategory>
@@ -2773,51 +2774,82 @@
             <!-- Spiker -->
             <Enemy name="PF_Spite_Squirrel_Ice">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13403" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13404" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13405" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <Enemy name="PF_Spite_Squirrel_Shadow">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13403" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13404" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13405" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <Enemy name="PF_Spite_Squirrel_Rock">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13403" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13404" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13405" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Draicon">
             <Enemy name="PF_Critter_Drake_Boss01">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13400" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13401" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13402" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <!-- Draicon -->
             <Enemy name="PF_Critter_Drake01">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13400" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13401" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13402" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Stormbeast">
             <Enemy name="PF_Critter_Dragon_Boss01">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13400" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13401" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13402" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <!-- Stormbeast -->
             <Enemy name="PF_Critter_Dragon01">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13400" chance="0.25" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13401" chance="0.3" minLevel="1" maxLevel="65" />
+                    <Drop type="item" id="13402" chance="0.25" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
         </EnemyCategory>
         <EnemyCategory name="Stomper">
             <Enemy name="PF_Spite_Hamster_Ice">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <Enemy name="PF_Spite_Hamster_Rock">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
             <!-- Stomper -->
             <Enemy name="PF_Spite_Hamster_Shadow">
                 <LootTable>
+                    <Drop type="item" id="13415" chance="0.2" minLevel="1" maxLevel="65" />
                 </LootTable>
             </Enemy>
         </EnemyCategory>
