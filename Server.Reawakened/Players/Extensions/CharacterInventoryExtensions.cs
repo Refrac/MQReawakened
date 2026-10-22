@@ -257,11 +257,14 @@ public static class CharacterInventoryExtensions
     {
         foreach (var hotbarKVP in player.Character.Hotbar.HotbarButtons)
         {
+            if (!player.Character.Hotbar.HotbarButtons.ContainsKey(slotId))
+            {
+                player.SetHotbarSlot(slotId, item);
+                break;
+            }
+            
             if (hotbarKVP.Value.ItemId == item.ItemId)
             {
-                if (!player.Character.Hotbar.HotbarButtons.ContainsKey(slotId))
-                    continue;
-
                 var otherItem = player.Character.Hotbar.HotbarButtons[slotId];
 
                 player.SetHotbarSlot(hotbarKVP.Key, otherItem, true);
