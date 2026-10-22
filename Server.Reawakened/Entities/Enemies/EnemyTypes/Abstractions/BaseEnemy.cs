@@ -472,7 +472,7 @@ public abstract class BaseEnemy : IDestructible
             {
                 if (pet.GuardingPlayer)
                 {
-                    Room.GetEnemy(Id).PetDamage(player);
+                    PetDamage(player);
                     return;
                 }
             }
