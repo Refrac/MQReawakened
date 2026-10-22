@@ -45,7 +45,7 @@ public static class PlayerDamageExtensions
             damage = 1;
 
         if (player.Character.Pets.TryGetValue(player.GetItemIdOfEquippedPet(), out var pet) && pet.ShieldingPlayer)
-            Math.Ceiling(damage *= pet.AbilityParams.DefensiveBonusRatio);
+            Math.Ceiling(damage -= damage * pet.AbilityParams.DefensiveBonusRatio);
 
         if (player.Character.StatusEffects.HasEffect(ItemEffectType.IncreaseAllResist))
             Math.Ceiling(damage -= (float)(damage * (player.Character.StatusEffects.GetEffect(ItemEffectType.IncreaseAllResist) / 100.0)));

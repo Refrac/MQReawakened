@@ -461,7 +461,25 @@ public abstract class BaseEnemy : IDestructible
             ItemEffectType.AbilityPower, WorldStatisticsGroup.Enemy, Level
         );
 
-    public virtual void OnCollideWithPlayer(Player player) => HazardController?.ApplyHazardEffect(player);
+    public virtual void OnCollideWithPlayer(Player player)
+    {
+        if (player.TempData.IsKnockedOut)
+            return;
+        
+        if (Room.ContainsEnemy(Id))
+        {
+            if (player.Character.Pets.TryGetValue(player.Character.PetItemId.ToString(), out var pet) && pet != null)
+            {
+                if (pet.GuardingPlayer)
+                {
+                    Room.GetEnemy(Id).PetDamage(player);
+                    return;
+                }
+            }
+        }
+        
+        HazardController?.ApplyHazardEffect(player);
+    }
 
     public abstract void StartActing(ActingStateType state, float duration);
 }
