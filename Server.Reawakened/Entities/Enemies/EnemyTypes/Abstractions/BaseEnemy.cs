@@ -206,7 +206,7 @@ public abstract class BaseEnemy : IDestructible
         var offset = box.GetOffset();
 
         var width = size.x * Math.Abs(EnemyController.Scale.X);
-        var height = size.y * Math.Abs(EnemyController.Scale.Y);
+        var height = size.y * Math.Abs(EnemyController.Scale.Y) + 0.5f;
 
         var bottomX = offset.x * EnemyController.Scale.X;
         var bottomY = offset.y * EnemyController.Scale.Y;
