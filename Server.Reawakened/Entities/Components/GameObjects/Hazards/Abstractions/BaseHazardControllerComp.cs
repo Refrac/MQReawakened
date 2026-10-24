@@ -50,10 +50,11 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
     public ItemCatalog ItemCatalog { get; set; }
     public ILogger<BaseHazardControllerComp<HazardController>> Logger { get; set; }
 
-    public override object[] GetInitData(Player player) => [0];
+    public override object[] GetInitData(Player player) => [InitialProgressRatio];
 
     public override void InitializeComponent()
     {
+        _activationStartTime = InitialProgressRatio;
         _enemyController = Room.GetEnemyFromId(Id);
 
         //Activate timed hazards.
