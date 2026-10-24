@@ -1,8 +1,7 @@
-﻿﻿using A2m.Server;
-using Discord;
+﻿using A2m.Server;
 using Microsoft.Extensions.Logging;
-using Server.Reawakened.Chat.Commands.Item;
 using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Extensions;
@@ -20,14 +19,14 @@ public class BuyItems : ExternalProtocol
     public ItemCatalog ItemCatalog { get; set; }
     public InternalAchievement InternalAchievement { get; set; }
     public ILogger<BuyItems> Logger { get; set; }
-    public ServerRwConfig ServerRwConfig { get; set; }
     public InternalVendor InternalVendor { get; set; }
     public VendorCatalog VendorCatalog { get; set; }
 
     public override void Run(string[] message)
     {
         var items = message[6].Split('|');
-        var vendorGoId = int.Parse(message[5]);
+        // On 2014, vendorGoId[5] is the vendor id (unused)
+        var vendorGoId = int.Parse(message[ServerConfig.GameVersion >= GameVersion.vEarly2014 ? 7 : 5]);
         var itemList = new Dictionary<ItemDescription, int>();
 
         var bananaPrice = 0;
@@ -82,7 +81,7 @@ public class BuyItems : ExternalProtocol
         {
             foreach (var vendor in vendors)
             {
-                if (VendorCatalog.GetVendorItemList(vendor.CatalogId).Contains(item.Key.PrefabName))
+                if (VendorCatalog.GetVendorItemList(vendor.CatalogId).Contains(item.Key.ItemId))
                 {
                     valid = true;
                     break;
@@ -112,7 +111,7 @@ public class BuyItems : ExternalProtocol
 
             Player.CheckObjective(ObjectiveEnum.Buyitem, vendorGoId.ToString(), itemDescription.Key.PrefabName, itemDescription.Value, ItemCatalog);
 
-            Player.CheckAchievement(AchConditionType.BuyItem, [itemDescription.Key.PrefabName], InternalAchievement, Logger, ServerRwConfig);
+            Player.CheckAchievement(AchConditionType.BuyItem, [itemDescription.Key.PrefabName], InternalAchievement, Logger);
         }
 
         Player.SendCashUpdate();
