@@ -62,6 +62,11 @@ public class RoomUpdate : ExternalProtocol
             // Add existing scores to leaderboards
             UpdateLeaderboards();
             
+            // Fix daily quest bugs
+            if (Player.Character.ActiveQuestId != 0 &&
+                Player.Character.QuestLog.All(q => q.Id != Player.Character.ActiveQuestId))
+                Player.Character.Write.ActiveQuestId = 0;
+            
             Player.TempData.FirstLogin = false;
         }
         else

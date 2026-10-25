@@ -63,6 +63,9 @@ public class ChooseQuestReward : ExternalProtocol
         if (completedQuest != null)
         {
             Player.Character.QuestLog.Remove(completedQuest);
+            
+            if (Player.Character.ActiveQuestId == completedQuest.Id)
+                Player.Character.Write.ActiveQuestId = 0;
 
             if (questline.QuestType == QuestType.Daily)
             {
