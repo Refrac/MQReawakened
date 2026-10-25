@@ -81,24 +81,38 @@ public class RemoveScore : SlashCommand
     {
         var firstName = args[1];
         var lastName = args[2];
-        var targetName = firstName + " " + lastName;
+        var minigame = args[3];
+        var score = args[4];
 
+        if (args.Length < 5)
+        {
+            Log("Invalid command format. Usage: /removescore <firstName> <lastName> <minigame> <top/all>", player);
+            return;
+        }
+
+        var targetName = firstName + " " + lastName;
         var target = PlayerContainer.GetPlayerByName(targetName);
-        var targetImage = new CharacterDbEntry();
+        CharacterDbEntry targetImage = null;
 
         if (target is null)
         {
             var targetEntity = CharacterHandler.GetCharacterFromName(targetName);
+
+            if (targetEntity is null)
+            {
+                Log("Invalid player name.", player);
+                return;
+            }
+
             targetImage = CharacterHandler.Get(targetEntity.Id);
-        }
-        
-        if (targetImage is null)
-        {
-            Log("Please provide a valid player name.", player);
-            return;
+
+            if (targetImage is null)
+            {
+                Log("Invalid player name.", player);
+                return;
+            }
         }
 
-        var minigame = args[3];
         var minigameId = 0;
 
         switch (minigame)
@@ -127,6 +141,9 @@ public class RemoveScore : SlashCommand
                 minigame = "PetBattleArenaLevel";
                 minigameId = InternalLeaderboards.Games.Find(x => x.name == "PetBattleArenaLevel").id;
                 break;
+            default:
+                Log("Invalid minigame type.", player);
+                return;
         }
         
         var minigameType = TopScoresHandler.GetScoresFromGame(minigameId);
@@ -151,7 +168,13 @@ public class RemoveScore : SlashCommand
             CharacterHandler.Update(targetImage);
         }
 
-        var score = args[4];
+
+
+        if (!score.Equals("all", StringComparison.OrdinalIgnoreCase) &&!score.Equals("top", StringComparison.OrdinalIgnoreCase))
+        {
+            Log("Score must be 'top' or 'all'.", player);
+            return;
+        }
 
         if (score.Equals("all", StringComparison.OrdinalIgnoreCase))
         {
@@ -167,9 +190,15 @@ public class RemoveScore : SlashCommand
         else
         {
             var existingScore = minigameType.Find(x => x.CharacterId == targetId && x.ScoreType == ScoreType.AllTime);
-            
+
+            if (existingScore is null)
+            {
+                Log("No matching score found for " + targetName + ".", player);
+                return;
+            }
+
             TopScoresHandler.Remove(existingScore.Id);
-            
+
             Log("Removed top score from " + targetName + ".", player);
         }
     }
