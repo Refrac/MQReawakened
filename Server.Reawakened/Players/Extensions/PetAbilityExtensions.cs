@@ -37,7 +37,7 @@ public static class PetAbilityExtensions
         if (petOwner.TempData.IsKnockedOut)
             return;
 
-        petOwner.SendXt("Zm", petOwner.UserId, true);
+        petOwner.SendXt("Zm", petOwner.UserId, "1");
 		
         petOwner.Room.SendSyncEvent(new PetState_SyncEvent(petOwner.GameObjectId, petOwner.Room.Time,
             PetInformation.StateSyncType.Ability, petOwner.GetSyncParams(serverRConfig)));
