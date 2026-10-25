@@ -90,7 +90,7 @@ public class RoomUpdate : ExternalProtocol
         
         //Reapply still-active status effects
         Player.Character.StatusEffects.UpdateStatus();
-        foreach (var status in Player.Character.StatusEffects.Effects)
+        foreach (var status in Player.Character.StatusEffects.Snapshot())
         {
             Player.Room.SendSyncEvent(new StatusEffect_SyncEvent(Player.GameObjectId, Player.Room.Time,
                 (int)status.Key, (int)status.Value.Value, (int)(status.Value.Expiry - DateTime.UtcNow).TotalSeconds, true, status.Value.PrefabName, true));

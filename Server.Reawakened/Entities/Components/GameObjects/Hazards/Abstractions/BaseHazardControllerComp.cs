@@ -20,6 +20,8 @@ namespace Server.Reawakened.Entities.Components.GameObjects.Hazards.Abstractions
 
 public abstract class BaseHazardControllerComp<T> : Component<T> where T : HazardController
 {
+    private const float DeathPlaneGracePeriod = 20f;
+
     public string HurtEffect => ComponentData.HurtEffect;
     public float HurtLength => ComponentData.HurtLenght;
     public float InitialDamageDelay => ComponentData.InitialDamageDelay;
@@ -32,17 +34,17 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
     public float DeactivationDuration => ComponentData.DeactivationDuration;
     public float HealthRatioDamage => ComponentData.HealthRatioDamage;
     public int HurtSelfOnDamage => ComponentData.HurtSelfOnDamage;
+    public ItemEffectType EffectType { get; private set; } = ItemEffectType.Unknown;
 
-    public ItemEffectType EffectType = ItemEffectType.Unknown;
-
-    public bool IsActive = true;
-    public bool TimedHazard = false;
-
-    public int Damage;
+    public volatile bool IsActive = true;
+    public bool TimedHazard { get; private set; }
 
     private IEnemyController _enemyController;
-    private float _activationStartTime = 0;
     private HazardEffectCollider _collider;
+    private float _activationStartTime;
+
+    private int DamageDelayMs => Convert.ToInt32(DamageDelay);
+    private int InitialDamageDelayMs => Convert.ToInt32(InitialDamageDelay);
 
     public TimerThread TimerThread { get; set; }
     public HazardRConfig HazardRConfig { get; set; }
@@ -57,47 +59,55 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
         _activationStartTime = InitialProgressRatio;
         _enemyController = Room.GetEnemyFromId(Id);
 
-        //Activate timed hazards.
-        if (ActiveDuration > 0 && DeactivationDuration > 0)
-            TimedHazard = true;
+        TimedHazard = ActiveDuration > 0 && DeactivationDuration > 0;
 
-        if (!Enum.TryParse(HurtEffect, true, out EffectType))
+        if (!ResolveEffectType())
+            return;
+
+        if (_enemyController != null)
+            return;
+
+        if (EffectType == ItemEffectType.SlowStatusEffect)
+            Rectangle.X = 0;
+
+        _collider = new HazardEffectCollider(this, Logger);
+
+        Logger.LogDebug("Created hazard collider with ID: {Id} for prefab: {PrefabName}", Id, PrefabName);
+    }
+
+    private bool ResolveEffectType()
+    {
+        if (Enum.TryParse<ItemEffectType>(HurtEffect, true, out var parsed))
         {
-            if (PrefabName.Contains("ToxicCloud"))
-            {
-                EffectType = ItemEffectType.PoisonDamage;
-            }
-            else if (PrefabName.Contains("Deathplane"))
-            {
-                EffectType = ItemEffectType.BluntDamage;
-            }
-            else
-            {
-                switch (HurtEffect)
-                {
-                    case "NoEffect":
-                        EffectType = ItemEffectType.Unknown;
-                        return;
-                    case "StandardDamage":
-                        EffectType = ItemEffectType.BluntDamage;
-                        break;
-                    default:
-                        Logger.LogError("Could not find effect type of: '{effect}' for '{prefabName}' ({id})!", HurtEffect, PrefabName, Id);
-                        break;
-                }
-            }
+            EffectType = parsed;
+            return true;
         }
 
-        //Prevents enemies and hazards sharing same collider Ids.
-        if (_enemyController == null)
+        if (PrefabName.Contains("ToxicCloud"))
         {
-            //Prevents spider webs from inaccurately adjusting collider positioning.
-            if (EffectType == ItemEffectType.SlowStatusEffect)
-                Rectangle.X = 0;
+            EffectType = ItemEffectType.PoisonDamage;
+            return true;
+        }
 
-            _collider = new HazardEffectCollider(this, Logger);
-            
-            Logger.LogInformation("Created Hazard Collider with ID: {Id} for Prefab: {PrefabName}", Id, PrefabName);
+        if (PrefabName.Contains("Deathplane"))
+        {
+            EffectType = ItemEffectType.BluntDamage;
+            return true;
+        }
+
+        switch (HurtEffect)
+        {
+            case "NoEffect":
+                EffectType = ItemEffectType.Unknown;
+                return false;
+            case "StandardDamage":
+                EffectType = ItemEffectType.BluntDamage;
+                return true;
+            default:
+                EffectType = ItemEffectType.Unknown;
+                Logger.LogError("Could not find effect type of: '{Effect}' for '{PrefabName}' ({Id})!",
+                    HurtEffect, PrefabName, Id);
+                return true;
         }
     }
 
@@ -108,156 +118,195 @@ public abstract class BaseHazardControllerComp<T> : Component<T> where T : Hazar
 
         base.Update();
 
-        if (TimedHazard)
-        {
-            var time = Room.Time;
-            if (IsActive && time - _activationStartTime > ActiveDuration)
-            {
-                _activationStartTime += ActiveDuration;
-                IsActive = false;
-            }
-            else if (!IsActive && time - _activationStartTime > DeactivationDuration)
-            {
-                _activationStartTime += DeactivationDuration;
-                IsActive = true;
-            }
-        }
+        UpdateTimedActivation();
 
         _collider?.RunCollisionDetection();
     }
-    
+
+    private void UpdateTimedActivation()
+    {
+        if (!TimedHazard)
+            return;
+
+        var elapsed = Room.Time - _activationStartTime;
+
+        if (IsActive && elapsed > ActiveDuration)
+        {
+            _activationStartTime += ActiveDuration;
+            IsActive = false;
+        }
+        else if (!IsActive && elapsed > DeactivationDuration)
+        {
+            _activationStartTime += DeactivationDuration;
+            IsActive = true;
+        }
+    }
+
     public override void NotifyCollision(NotifyCollision_SyncEvent notifyCollisionEvent, Player player)
     {
         if (!notifyCollisionEvent.Colliding && EffectType != ItemEffectType.Unknown)
             return;
-        
+
         ApplyHazardEffect(player);
     }
 
     public void ApplyHazardEffect(Player player)
     {
-        if (player == null)
+        if (player == null || Room == null || !CanAffect(player))
             return;
 
-        if (player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility) || player.TempData.IsKnockedOut)
-            return;
-
-        if ((TimedHazard || EffectType == ItemEffectType.WaterBreathing) && !IsActive)
-            return;
-
-        if (HitOnlyVisible && player.Character.StatusEffects.HasEffect(ItemEffectType.Invisibility))
-            return;
-
-        if (DeathPlane && Room.Time < 20)
-            return;
-
-        // Reduces slow status effect spam.
-        if ((EffectType == ItemEffectType.SlowStatusEffect || !player.TempData.OnGround) &&
-            player.TempData.IsSlowed)
-            return;
-        
-        if (EffectType == ItemEffectType.SlowStatusEffect && player.HasNullifyEffect(ItemCatalog))
-            return;
-
-        Damage = (int)Math.Ceiling(player.Character.MaxLife * HealthRatioDamage);
+        var effectType = EffectType;
+        var damage = (int)Math.Ceiling(player.Character.MaxLife * HealthRatioDamage);
 
         var enemy = Room.GetEnemy(Id);
 
         if (enemy != null)
         {
-            EffectType = enemy.EnemyController.EnemyEffectType;
-
-            Damage = EnemyDamagePlayer(player, enemy);
+            effectType = enemy.EnemyController.EnemyEffectType;
+            damage = EnemyDamagePlayer(player, enemy);
         }
 
-        Logger.LogTrace("Applying {statusEffect} to {characterName} from {prefabName}", EffectType, player.CharacterName, PrefabName);
+        Logger.LogTrace("Applying {StatusEffect} to {CharacterName} from {PrefabName}",
+            effectType, player.CharacterName, PrefabName);
 
-        switch (EffectType)
+        switch (effectType)
         {
-            // Some hazards actually use Unknown, so don't discern by this one
-            //case ItemEffectType.Unknown:
-            //    return;
             case ItemEffectType.SlowStatusEffect:
                 ApplySlowEffect(player);
                 break;
+
             case ItemEffectType.BluntDamage:
             case ItemEffectType.FireDamage:
             case ItemEffectType.AirDamage:
             case ItemEffectType.EarthDamage:
             case ItemEffectType.IceDamage:
             case ItemEffectType.LightningDamage:
-                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay));
+                player.ApplyCharacterDamage(damage, effectType, Id, DamageDelayMs);
                 break;
+
             case ItemEffectType.PoisonDamage:
-                if (!player.TempData.IsPoisoned)
-                {
-                    ApplyPoisonDamage(player.GetPoisonEffectData(Damage, Id, HazardRConfig,
-                        TimerThread, Convert.ToInt32(InitialDamageDelay), Convert.ToInt32(DamageDelay)));
-                }
+                ApplyPoison(player, damage);
                 break;
+
             case ItemEffectType.WaterBreathing:
                 ApplyWaterBreathing(player);
                 break;
+
             case ItemEffectType.SpiderWeb:
-                Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.SpiderWeb, 1, 1, true, Id, false));
-                
-                var breakable = Room.GetEntityFromId<BreakableEventControllerComp>(Id);
-                breakable?.Damage(breakable.Damageable.CurrentHealth, ItemEffectType.BluntDamage, player);
+                ApplySpiderWeb(player);
                 break;
+
             default:
-                Logger.LogInformation("Unknown status effect {statusEffect} from {prefabName}", HurtEffect, PrefabName);
+                Logger.LogInformation("Unknown status effect {StatusEffect} from {PrefabName}",
+                    HurtEffect, PrefabName);
 
-                Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time, (int)ItemEffectType.BluntDamage, 1, 1, true, Id, false));
-                player.ApplyCharacterDamage(Damage, EffectType, Id, Convert.ToInt32(DamageDelay));
+                Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time,
+                    (int)ItemEffectType.BluntDamage, 1, 1, true, Id, false));
 
+                player.ApplyCharacterDamage(damage, effectType, Id, DamageDelayMs);
                 break;
         }
+    }
+    private bool CanAffect(Player player)
+    {
+        var statusEffects = player.Character.StatusEffects;
+
+        if (statusEffects.HasEffect(ItemEffectType.Invincibility) || player.TempData.IsKnockedOut)
+            return false;
+
+        if ((TimedHazard || EffectType == ItemEffectType.WaterBreathing) && !IsActive)
+            return false;
+
+        if (HitOnlyVisible && statusEffects.HasEffect(ItemEffectType.Invisibility))
+            return false;
+
+        if (DeathPlane && Room.Time < DeathPlaneGracePeriod)
+            return false;
+
+        // Reduces slow status effect spam.
+        if ((EffectType == ItemEffectType.SlowStatusEffect || !player.TempData.OnGround) &&
+            player.TempData.IsSlowed)
+            return false;
+
+        if (EffectType == ItemEffectType.SlowStatusEffect && player.HasNullifyEffect(ItemCatalog))
+            return false;
+
+        return true;
     }
 
     public int EnemyDamagePlayer(Player player, BaseEnemy enemy) => enemy.EnemyDamagePlayer(player);
 
-    private void ActivateHazardDelay(ITimerData data)
+    // POISON
+    private void ApplyPoison(Player player, int damage)
     {
-        if (data is not BaseHazardControllerComp<T> hazard)
-            return;
+        lock (player.TempData)
+        {
+            if (player.TempData.IsPoisoned)
+                return;
 
-        hazard.IsActive = true;
+            ApplyPoisonDamage(player.GetPoisonEffectData(damage, Id, HazardRConfig,
+                TimerThread, InitialDamageDelayMs, DamageDelayMs));
+        }
+    }
+
+    // SPIDER WEB
+    private void ApplySpiderWeb(Player player)
+    {
+        Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time,
+            (int)ItemEffectType.SpiderWeb, 1, 1, true, Id, false));
+
+        var breakable = Room.GetEntityFromId<BreakableEventControllerComp>(Id);
+        breakable?.Damage(breakable.Damageable.CurrentHealth, ItemEffectType.BluntDamage, player);
     }
 
     // WATER BREATHING
-    public void ApplyWaterBreathing(object playerData)
+    public void ApplyWaterBreathing(Player player)
     {
-        if (playerData == null || playerData is not Player player)
+        if (player == null)
             return;
 
         Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, Room.Time,
-                    (int)ItemEffectType.WaterBreathing, 1, 1, true, Id, false));
+            (int)ItemEffectType.WaterBreathing, 1, 1, true, Id, false));
 
         IsActive = false;
 
-        TimerThread.RunDelayed(ActivateHazardDelay, this, TimeSpan.FromSeconds(1));
+        TimerThread.RunDelayed(ReactivateHazard, this, TimeSpan.FromSeconds(1));
 
         player.ResetUnderwaterTime();
 
-        Logger.LogInformation("Reset underwater timer for {characterName}", player.CharacterName);
+        Logger.LogDebug("Reset underwater timer for {CharacterName}", player.CharacterName);
+    }
+
+    private static void ReactivateHazard(ITimerData data)
+    {
+        if (data is BaseHazardControllerComp<T> hazard)
+            hazard.IsActive = true;
     }
 
     // SLOW EFFECT
     private void ApplySlowEffect(Player player)
     {
+        lock (player.TempData)
+        {
+            if (player.TempData.IsSlowed)
+                return;
+
+            player.TempData.IsSlowed = true;
+        }
+
         player.ApplySlowEffect();
 
-        player.TempData.IsSlowed = true;
-
-        TimerThread.RunDelayed(DisableSlowEffect, new PlayerTimer() { Player = player }, TimeSpan.FromSeconds(HazardRConfig.SlowEffectInterval));
+        TimerThread.RunDelayed(DisableSlowEffect, new PlayerTimer { Player = player },
+            TimeSpan.FromSeconds(HazardRConfig.SlowEffectInterval));
     }
 
     private void DisableSlowEffect(ITimerData data)
     {
-        if (data is not PlayerTimer playerTimer)
+        if (data is not PlayerTimer { Player: { } player })
             return;
 
-        var player = playerTimer.Player;
+        if (Room == null || _collider == null)
+            return;
 
         if (_collider.CheckCollision(player.GetCollider()))
             player.NullifySlowStatusEffect();

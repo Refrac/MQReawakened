@@ -85,7 +85,7 @@ public class Room : Timer
 
     public float DeltaTime => Time - _lastTickTime;
 
-    public bool IsOpen;
+    public volatile bool IsOpen;
 
     public Room(int roomId, Level level, IServiceProvider services, TimerThread timerThread, ServerRConfig config) :
         base(TimeSpan.Zero, TimeSpan.FromSeconds(1.0 / config.RoomTickRate), 0, timerThread)
@@ -194,6 +194,9 @@ public class Room : Timer
     {
         lock (_roomLock)
         {
+            if (!IsOpen)
+                return;
+
             _entitiesTickCache.Clear();
             foreach (var entityList in _entities.Values)
                 _entitiesTickCache.AddRange(entityList);
@@ -209,17 +212,29 @@ public class Room : Timer
         }
 
         foreach (var entityComponent in _entitiesTickCache)
-            if (!IsObjectKilled(entityComponent.Id) || _killedUpdatingObjects.Contains(entityComponent.Id))
+        {
+            if (!IsOpen) return;
+
+            if (!IsObjectKilled(entityComponent.Id) || IsUpdatingKilled(entityComponent.Id))
                 entityComponent.Update();
+        }
 
         foreach (var projectile in _projectilesTickCache)
+        {
+            if (!IsOpen) return;
             projectile?.Update();
+        }
 
         foreach (var enemy in _enemiesTickCache)
+        {
+            if (!IsOpen) return;
             enemy?.Update();
+        }
 
         foreach (var player in _playersTickCache)
         {
+            if (!IsOpen) return;
+
             if (GetTime.GetCurrentUnixMilliseconds() - player.TempData.CurrentPing > _config.KickAfterTime)
             {
                 player.Remove(Logger);
@@ -230,6 +245,12 @@ public class Room : Timer
         }
 
         _lastTickTime = Time;
+    }
+
+    private bool IsUpdatingKilled(string id)
+    {
+        lock (_roomLock)
+            return _killedUpdatingObjects.Contains(id);
     }
 
     public void AddClient(Player currentPlayer, out JoinReason reason)
@@ -289,37 +310,35 @@ public class Room : Timer
     {
         Logger.LogTrace("Removing player from room {RoomId}", _roomId);
 
+        Player[] remaining;
+
         lock (_roomLock)
         {
             _players.Remove(player.GameObjectId);
             _gameObjectIds.Remove(player.GameObjectId);
             RemoveCollider(player.GameObjectId);
+            remaining = [.. _players.Values];
         }
 
         if (LevelInfo.LevelId <= 0)
             return;
 
-        if (_players.Count != 0)
+        if (remaining.Length != 0)
         {
-            lock (_roomLock)
-            {
-                foreach (var currentPlayer in _players.Values)
-                    player.SendUserGoneDataTo(currentPlayer);
+            foreach (var currentPlayer in remaining)
+                player.SendUserGoneDataTo(currentPlayer);
 
-                foreach (var entity in GetEntitiesFromType<TriggerCoopControllerComp>())
-                    entity.RemovePhysicalInteractor(player, player.GameObjectId);
-            }
-
+            player.RemoveAssociatedTriggers();
             return;
         }
 
         lock (_level.Lock)
-        {
             _level.Rooms.Remove(_roomId);
-        }
 
         lock (_roomLock)
         {
+            if (!IsOpen)
+                return;
             CleanData();
         }
 
@@ -764,10 +783,12 @@ public class Room : Timer
         _entities.Clear();
         _projectiles.Clear();
 
+        /*
         _entitiesTickCache.Clear();
         _projectilesTickCache.Clear();
         _enemiesTickCache.Clear();
         _playersTickCache.Clear();
+        */
     }
 
     public override string ToString() =>

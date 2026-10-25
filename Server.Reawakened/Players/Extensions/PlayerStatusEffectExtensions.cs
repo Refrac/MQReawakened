@@ -129,12 +129,16 @@ public static class PlayerStatusEffectExtensions
 
     public static void TemporaryInvincibility(this Player player, double durationInSeconds)
     {
-        if (durationInSeconds <= 0) return;
+        if (durationInSeconds <= 0 || player?.Room == null) return;
 
-        if (player.Character.StatusEffects.HasEffect(ItemEffectType.Invincibility)) return;
-        
-        player.Character.StatusEffects.Effects.Add(ItemEffectType.Invincibility,
-            new StatusEffectModel(ItemEffectType.Invincibility, 1, DateTime.UtcNow + TimeSpan.FromSeconds(durationInSeconds), string.Empty));
+        var added = player.Character.StatusEffects.TryAddIfInactive(
+            new StatusEffectModel(ItemEffectType.Invincibility, 1,
+                DateTime.UtcNow + TimeSpan.FromSeconds(durationInSeconds), string.Empty));
+
+        if (!added) return;
+
+        player.Room.SendSyncEvent(new StatusEffect_SyncEvent(player.GameObjectId, player.Room.Time,
+            (int)ItemEffectType.Invincibility, 1, (int)durationInSeconds, true, string.Empty, false));
     }
 
     public static StatusEffectData GetPoisonEffectData(this Player player, int poisonDamage, string hazardId,
