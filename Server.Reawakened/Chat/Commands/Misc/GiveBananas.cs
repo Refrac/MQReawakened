@@ -37,9 +37,7 @@ public class GiveBananas : SlashCommand
     public override AccessLevel AccessLevel => AccessLevel.Owner;
 
     public InternalAchievement InternalAchievement { get; set; }
-    public ServerRConfig ServerRConfig { get; set; }
     public ILogger<GiveBananas> Logger { get; set; }
-    public ServerRwConfig ServerRwConfig { get; set; }
     public PlayerContainer PlayerContainer { get; set; }
     public CharacterHandler CharacterHandler { get; set; }
 
@@ -50,7 +48,7 @@ public class GiveBananas : SlashCommand
 
         if (args.Length < 2)
         {
-            player.AddBananas(10000, InternalAchievement, Logger, ServerRwConfig);
+            player.AddBananas(10000, InternalAchievement, Logger);
             return;
         }
 
@@ -89,7 +87,7 @@ public class GiveBananas : SlashCommand
             target = player;
 
         if (target != null)
-            target.AddBananas(amount, InternalAchievement, Logger, ServerRwConfig);
+            target.AddBananas(amount, InternalAchievement, Logger);
         else
         {
             targetImage.Cash += amount;
