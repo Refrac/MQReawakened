@@ -112,6 +112,9 @@ public class BuyItems : ExternalProtocol
             Player.CheckObjective(ObjectiveEnum.Buyitem, vendorGoId.ToString(), itemDescription.Key.PrefabName, itemDescription.Value, ItemCatalog);
 
             Player.CheckAchievement(AchConditionType.BuyItem, [itemDescription.Key.PrefabName], InternalAchievement, Logger);
+            
+            if (itemDescription.Key.IsPet())
+                Player.CheckAchievement(AchConditionType.BuyPet, [itemDescription.Key.PrefabName], InternalAchievement, Logger);
         }
 
         Player.SendCashUpdate();
