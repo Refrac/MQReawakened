@@ -13,17 +13,19 @@ namespace Server.Reawakened.Entities.Enemies.EnemyTypes;
 
 public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
 {
+    public IAIStateMachine StateMachine;
+    
     public override void Initialize()
     {
-        var stateMachine = Room.GetEntityFromId<IAIStateMachine>(Id);
+        StateMachine = Room.GetEntityFromId<IAIStateMachine>(Id);
 
-        if (stateMachine == null)
+        if (StateMachine == null)
         {
             Logger.LogError("Enemy for: '{Name}' does not have a state machine! " +
                 "Are you sure it is an AI state enemy?", PrefabName);
         }
         else
-            stateMachine.SetAIStateEnemy(this);
+            StateMachine.SetAIStateEnemy(this);
 
         base.Initialize();
         
@@ -38,7 +40,7 @@ public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
             AISyncEventHelper.AIDo(
                 Id, Room,
                 Position.X, Position.Y, 1.0f,
-                Position.X, Position.Y, 0,
+                Position.X, Position.Y, StateMachine?.GetForceDirectionX() ?? 0,
                 false, AISyncEventHelper.IndexOf(StateType.Unknown, []), string.Empty
             )
         );
@@ -58,7 +60,7 @@ public class AIStateEnemy(EnemyData data) : BaseEnemy(data)
                 AISyncEventHelper.AIDo(
                     Id, Room,
                     Position.X, Position.Y, 1.0f,
-                    Position.X, Position.Y, 0,
+                    Position.X, Position.Y, StateMachine?.GetForceDirectionX() ?? 0,
                     false, AISyncEventHelper.IndexOf(StateType.Unknown, []), string.Empty
                 )
             );
