@@ -31,13 +31,17 @@ public class QuitBattle : ExternalProtocol
             var xp = enemyModel.GetXp(model.Enemy, WorldStatistics, ServerConfig, ItemCatalog);
             var battlePoints = enemyModel.GetBattlePoints(model.Enemy, true, ItemCatalog);
             
+            // PvP Trophies
+            var trophies = 0;
+            var totalTrophies = 0;
+            
             enemyModel.BattleOver = true;
             
-            model.Enemy.SendXt("BC", 1, 1, 0, 0, 0, 0, bananas, xp, battlePoints, 0, 0);
+            model.Enemy.SendXt("BC", 1, 1, 0, 0, 0, bananas, xp, battlePoints, trophies, totalTrophies);
         }
         
         model.BattleOver = true;
         
-        Player.SendXt("BC", 0, 0, 1, 1, 0, 0, 0, 0, 0, 0);
+        Player.SendXt("BC", 0, 0, 1, 1, 0, 0, 0, 0, 0);
     }
 }

@@ -37,9 +37,13 @@ public class BattleAttack : ExternalProtocol
             var xp = model.GetXp(Player, WorldStatistics, ServerRConfig, ItemCatalog);
             var battlePoints = model.GetBattlePoints(Player, true, ItemCatalog);
             
+            // PvP Trophies
+            var trophies = 0;
+            var totalTrophies = 0;
+            
             model.BattleOver = true;
             
-            Player.SendXt("BC", 1, 1, 0, 0, 0, bananas, xp, battlePoints, 0, 0);
+            Player.SendXt("BC", 1, 1, 0, 0, 0, bananas, xp, battlePoints, trophies, totalTrophies);
             return;
         }
         
@@ -49,9 +53,13 @@ public class BattleAttack : ExternalProtocol
             var xp = model.GetXp(Player, WorldStatistics, ServerRConfig, ItemCatalog);
             var battlePoints = model.GetBattlePoints(Player, false, ItemCatalog);
             
+            // PvP Trophies
+            var trophies = 0;
+            var totalTrophies = 0;
+            
             model.BattleOver = true;
             
-            Player.SendXt("BC", 0, 0, 1, 0, 0, bananas, xp, battlePoints, 0, 0);
+            Player.SendXt("BC", 0, 0, 1, 0, 0, bananas, xp, battlePoints, trophies, totalTrophies);
             return;
         }
         
