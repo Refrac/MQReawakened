@@ -29,6 +29,12 @@ public class DroppingsControllerComp : Component<DroppingsController>
             if (time - _activationStartTime > DropRate)
             {
                 _activationStartTime += DropRate;
+                
+                var players = Room.GetNearbyPlayers(Position.ToUnityVector3(), 15f);
+            
+                if (players.Count == 0)
+                    return;
+                
                 SendDrop();
             }
         }
@@ -44,10 +50,9 @@ public class DroppingsControllerComp : Component<DroppingsController>
             y = -6
         };
 
-        var damage = 0;
         var effect = ItemEffectType.Freezing;
 
-        Room.AddRangedProjectile(Id, Position, speed, 3, damage, effect, false, PrefabName);
+        Room.AddRangedProjectile(Id, Position, speed, 3, effect, false, PrefabName);
     }
 
     public void FreezePlayer(Player player)

@@ -1,34 +1,30 @@
-﻿using Microsoft.Extensions.Logging;
 using Server.Base.Accounts.Enums;
 using Server.Reawakened.Chat.Models;
 using Server.Reawakened.Core.Configs;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
-using Server.Reawakened.XMLs.Bundles.Internal;
 using Server.Reawakened.XMLs.Data.Commands;
 
 namespace Server.Reawakened.Chat.Commands.Misc;
-public class Bananas : SlashCommand
+public class Cash : SlashCommand
 {
-    public override string CommandName => "/bananas";
+    public override string CommandName => "/cash";
 
-    public override string CommandDescription => "Adds bananas or default to cash kit amount.";
+    public override string CommandDescription => "Adds cash or default to cash kit amount.";
 
     public override List<ParameterModel> Parameters =>
     [
         new ParameterModel()
         {
             Name = "amount",
-            Description = "The amount of bananas to receive.",
+            Description = "The amount of cash to receive.",
             Optional = true
         }
     ];
 
     public override AccessLevel AccessLevel => AccessLevel.Player;
 
-    public InternalAchievement InternalAchievement { get; set; }
     public ServerRConfig ServerRConfig { get; set; }
-    public ILogger<Bananas> Logger { get; set; }
 
     public override void Execute(Player player, string[] args)
     {
@@ -38,6 +34,6 @@ public class Bananas : SlashCommand
             amount = ServerRConfig.CashKitAmount;
         }
 
-        player.AddBananas(amount, InternalAchievement, Logger);
+        player.AddNCash(amount);
     }
 }

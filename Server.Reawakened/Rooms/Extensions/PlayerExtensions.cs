@@ -1,8 +1,11 @@
 ﻿using A2m.Server;
 using Server.Base.Accounts.Extensions;
 using Server.Reawakened.Core.Configs;
+using Server.Reawakened.Core.Enums;
 using Server.Reawakened.Database.Characters;
 using Server.Reawakened.Entities.Colliders;
+using Server.Reawakened.Entities.Colliders.Abstractions;
+using Server.Reawakened.Entities.Components.GameObjects.Trigger;
 using Server.Reawakened.Network.Extensions;
 using Server.Reawakened.Players;
 using Server.Reawakened.Players.Extensions;
@@ -53,12 +56,27 @@ public static class PlayerExtensions
     public static int GetLevelId(this Player player) =>
         player.Character?.LevelId ?? -1;
 
+    public static BaseCollider GetCollider(this Player player) => 
+        player.TempData.PlayerCollider;
+    
     public static void SentEntityTriggered(this Room room, string id, Player player, bool success, bool active)
     {
         var collectedEvent =
             new Trigger_SyncEvent(id.ToString(), room.Time, success, player.GameObjectId.ToString(), active);
 
         room.SendSyncEvent(collectedEvent);
+    }
+    
+    public static void RemoveAssociatedTriggers(this Player player)
+    {
+        var triggers = player.Room.GetEntitiesFromType<TriggerCoopControllerComp>() ?? Enumerable.Empty<TriggerCoopControllerComp>();
+
+        foreach (var trigger in triggers.Where(coopTrig =>
+                     coopTrig.CurrentPhysicalInteractors.Contains(player.GameObjectId)))
+        {
+            trigger.RemovePhysicalInteractor(player, player.GameObjectId);
+            trigger.RunTrigger(player);
+        }
     }
 
     public static void SendUserEnterDataTo(this Player send, Player receive) =>
@@ -89,7 +107,7 @@ public static class PlayerExtensions
         receive.SendXt("ci", send.UserId, info, send.GameObjectId, levelInfo.Name);
     }
 
-    public static void SendLevelUp(this Player player, ServerRConfig rConfig)
+    public static void SendLevelUp(this Player player, ServerRConfig rConfig, ItemCatalog itemCatalog)
     {
         var levelUpData = new LevelUpDataModel
         {
@@ -105,10 +123,24 @@ public static class PlayerExtensions
             GameVersion = rConfig.GameVersion
         };
 
-        foreach (var currentPlayer in player.Room.GetPlayers())
-            currentPlayer.SendXt("ce", levelUpData, player.UserId);
+        if (levelUpData.GameVersion <= GameVersion.vEarly2013)
+            if (itemCatalog.InternalLevelReward.LevelRewardData.TryGetValue(levelUpData.Level, out var rewardData))
+            {
+                var item = itemCatalog.GetItemFromPrefabName(rewardData.PrefabName);
+                var amount = rewardData.Amount;
+
+                if (item != null)
+                {
+                    levelUpData.ItemId = item.ItemId;
+            
+                    player.AddItem(item, amount, itemCatalog);
+                }
+            }
 
         player.Character.Write.BadgePoints++;
+        
+		foreach (var currentPlayer in player.Room.GetPlayers())
+            currentPlayer.SendXt("ce", levelUpData, player.UserId);
 
         player.Character.AddHealthOnLevelUp(100);
 
@@ -118,7 +150,7 @@ public static class PlayerExtensions
 
         player.SendSyncEventToPlayer(new Health_SyncEvent(player.GameObjectId.ToString(), player.Room.Time,
             player.Character.MaxLife, player.Character.MaxLife, player.GameObjectId.ToString()));
-			
+
         if (player.Character.Allegiance != TribeType.Invalid)
         {
             if (player.Character.Write.TribesProgression.TryGetValue(player.Character.Allegiance, out var tribe))

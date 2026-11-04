@@ -63,6 +63,9 @@ public class ChooseQuestReward : ExternalProtocol
         if (completedQuest != null)
         {
             Player.Character.QuestLog.Remove(completedQuest);
+            
+            if (Player.Character.ActiveQuestId == completedQuest.Id)
+                Player.Character.Write.ActiveQuestId = 0;
 
             if (questline.QuestType == QuestType.Daily)
             {
@@ -70,7 +73,7 @@ public class ChooseQuestReward : ExternalProtocol
                 {
                     GameObjectId = completedQuest.Id.ToString(),
                     LevelId = Player.Room.LevelInfo.LevelId,
-                    TimeOfHarvest = DateTime.Now
+                    TimeOfHarvest = DateTime.UtcNow
                 });
             }
             else
@@ -154,7 +157,7 @@ public class ChooseQuestReward : ExternalProtocol
         Player.UpdateAllNpcsInLevel();
 
         Player.AddBananas(quest.BananaReward, InternalAchievement, Logger);
-        Player.AddReputation(quest.ReputationReward, Config);
+        Player.AddReputation(quest.ReputationReward, Config, ItemCatalog);
 
         Player.CheckAchievement(AchConditionType.CompleteQuest, [quest.Name], InternalAchievement, Logger); // Specific Quest by name for example EVT_SB_1_01
         Player.CheckAchievement(AchConditionType.CompleteQuestInLevel, [Player.Room.LevelInfo.Name], InternalAchievement, Logger); // Quest by Level/Trail if any exist

@@ -13,14 +13,7 @@ jobs:
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Cache Portable Tools
-        id: cache-tools
-        uses: actions/cache@v4
-        with:
-          path: MQData/Tools
-          key: ${{ runner.os }}-tools-v5
+        uses: actions/checkout@v7
 
       - name: Create Project Directory Structure
         run: |
@@ -36,7 +29,6 @@ jobs:
           New-Item -ItemType Directory -Path "$buildPath/ClientOverride" -Force
 
       - name: Download and Extract Latest Portable Git
-        if: steps.cache-tools.outputs.cache-hit != 'true'
         run: |
           # 1. Get the latest URL
           $apiUri = "https://api.github.com/repos/git-for-windows/git/releases/latest"
@@ -68,7 +60,6 @@ jobs:
           if (Test-Path "git-setup.exe") { Remove-Item "git-setup.exe" }
 
       - name: Download .NET SDK
-        if: steps.cache-tools.outputs.cache-hit != 'true'
         run: |
           # Download the official installation script
           Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
@@ -88,7 +79,6 @@ jobs:
           Remove-Item "dotnet-install.ps1"
 
       - name: Download NanaZip
-        if: steps.cache-tools.outputs.cache-hit != 'true'
         run: |
           # 1. Query GitHub API for the latest release assets
           $apiUri = "https://api.github.com/repos/M2Team/NanaZip/releases/latest"
@@ -151,13 +141,15 @@ jobs:
           }
           
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        id: create_github_release
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: latest
-          name: "Latest Build"
-          body: "Automated portable build from main branch. Commit: ${{ github.sha }}"
-          files: MQRLauncher.zip
-          prerelease: false
-          make_latest: true
+            artifacts: "MQRLauncher.zip"
+            generateReleaseNotes: true
+            tag: ${{ github.run_number }}
+            draft: false
+            prerelease: false
+            name: Release v${{ github.run_number }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
