@@ -363,7 +363,8 @@ public class ItemCatalog : ItemHandler, ILocalizationXml
 
     public bool CanAddItem(ItemDescription item)
     {
-        if (item.InventoryCategoryID is not ItemFilterCategory.RecipesAndCraftingIngredients and not ItemFilterCategory.QuestItems)
+        if (item.InventoryCategoryID is not ItemFilterCategory.RecipesAndCraftingIngredients and not ItemFilterCategory.QuestItems
+            && item.CategoryId != ItemCategory.PetBattlePoints)
             if (!Config.LoadedAssets.Contains(item.PrefabName))
                 return false;
 
