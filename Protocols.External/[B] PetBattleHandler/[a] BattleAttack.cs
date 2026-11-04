@@ -34,7 +34,7 @@ public class BattleAttack : ExternalProtocol
         if (model.Pets.Skip(3).All(PetIsDead))
         {
             var bananas = model.GetBananas(Player, WorldStatistics, InternalAchievement, Logger);
-            var xp = model.GetXp(Player, WorldStatistics, ServerRConfig);
+            var xp = model.GetXp(Player, WorldStatistics, ServerRConfig, ItemCatalog);
             var battlePoints = model.GetBattlePoints(Player, true, ItemCatalog);
             
             model.BattleOver = true;
@@ -46,7 +46,7 @@ public class BattleAttack : ExternalProtocol
         if (model.Pets.SkipLast(3).All(PetIsDead))
         {
             var bananas = model.GetBananas(Player, WorldStatistics, InternalAchievement, Logger);
-            var xp = model.GetXp(Player, WorldStatistics, ServerRConfig);
+            var xp = model.GetXp(Player, WorldStatistics, ServerRConfig, ItemCatalog);
             var battlePoints = model.GetBattlePoints(Player, false, ItemCatalog);
             
             model.BattleOver = true;

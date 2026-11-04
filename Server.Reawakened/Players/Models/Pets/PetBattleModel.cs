@@ -36,13 +36,13 @@ public class PetBattleModel
         return bananaReward;
     }
 
-    public float GetXp(Player player, WorldStatistics worldStatistics, ServerRConfig rConfig)
+    public float GetXp(Player player, WorldStatistics worldStatistics, ServerRConfig rConfig, ItemCatalog itemCatalog)
     {
         var xpReward = (player.Character.ReputationForNextLevel - player.Character.ReputationForCurrentLevel) *
             worldStatistics.GlobalStats[Globals.MinigameXPMultiplier] + worldStatistics.GetValue(ItemEffectType.IncreaseExpFromMinigameLT16,
                 WorldStatisticsGroup.Player, player.Character.GlobalLevel);
         
-        player.AddReputation((int)xpReward, rConfig);
+        player.AddReputation((int)xpReward, rConfig, itemCatalog);
         
         return xpReward;
     }

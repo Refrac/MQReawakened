@@ -28,7 +28,7 @@ public class QuitBattle : ExternalProtocol
             var enemyModel = model.Enemy.TempData.PetBattleModel;
             
             var bananas = enemyModel.GetBananas(model.Enemy, WorldStatistics, InternalAchievement, Logger);
-            var xp = enemyModel.GetXp(model.Enemy, WorldStatistics, ServerConfig);
+            var xp = enemyModel.GetXp(model.Enemy, WorldStatistics, ServerConfig, ItemCatalog);
             var battlePoints = enemyModel.GetBattlePoints(model.Enemy, true, ItemCatalog);
             
             enemyModel.BattleOver = true;
