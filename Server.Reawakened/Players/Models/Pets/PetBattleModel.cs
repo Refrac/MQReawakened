@@ -59,6 +59,8 @@ public class PetBattleModel
         if (pointsItem != null)
             player.AddItem(pointsItem, battlePoints, itemCatalog);
         
+        player.SendUpdatedInventory();
+        
         return battlePoints;
     }
 }
