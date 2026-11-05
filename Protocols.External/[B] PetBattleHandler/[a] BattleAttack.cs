@@ -26,6 +26,9 @@ public class BattleAttack : ExternalProtocol
         
         var model = Player.TempData.PetBattleModel;
         
+        if (model == null)
+            return;
+        
         model.MyTurn = !model.MyTurn;
         
         DecipherAbilityType(attack, pet, target, model);
@@ -71,6 +74,9 @@ public class BattleAttack : ExternalProtocol
         var battlePet = model.Pets[pet];
         var ability = battlePet.abilities.FirstOrDefault(x => x.index == attack);
         
+        if (ability == null)
+            return;
+        
         var isAoeAbility = target == -1;
         
         if (!isAoeAbility && (PetIsDead(model.Pets[target]) || PetMissed(pet, target, model)))
@@ -112,31 +118,7 @@ public class BattleAttack : ExternalProtocol
 
         //Healing.
         if (ability.healthValue > 0)
-        {
-            var targetPet = model.Pets[target];
-            
-            // Lifesteal or normal heal
-            if (ability.damageValue > 0)
-            {
-                var originalPet = PetBattlePets.GetPetEvolutionFamily(battlePet.itemId).FirstOrDefault();
-                
-                var healValue = Math.Clamp(ability.healthValue, 0, originalPet.health);
-                
-                battlePet.health += healValue;
-                
-                Player.SendXt("BH", pet, healValue, battlePet.health, "0");
-            }
-            else
-            {
-                var originalPet = PetBattlePets.GetPetEvolutionFamily(targetPet.itemId).FirstOrDefault();
-                
-                var healValue = Math.Clamp(ability.healthValue, 0, originalPet.health);
-                
-                targetPet.health += healValue;
-                
-                Player.SendXt("BH", target, healValue, targetPet.health, "0");
-            }
-        }
+            HealPet(ability, pet, target, model);
         
         //Shielding.
         if (ability.healthMitigation > 0)
@@ -264,5 +246,51 @@ public class BattleAttack : ExternalProtocol
             return true;
         }
         return false;
+    }
+
+    private void HealPet(PetBattlePetsXML.PetBattlePetAbility ability, int pet, int target, PetBattleModel model)
+    {
+        var battlePet = model.Pets[pet];
+        var targetPet = model.Pets[target];
+        
+        // Lifesteal or normal heal
+        if (ability.damageValue > 0)
+        {
+            var originalPet = PetBattlePets.GetPetEvolutionFamily(battlePet.itemId).FirstOrDefault(x => x.itemId == battlePet.itemId);
+            
+            if (battlePet.health >= originalPet.health)
+                return;
+            
+            var healValue = ability.healthValue;
+            
+            if (healValue < 0)
+                healValue = 0;
+            
+            if (battlePet.health + healValue >= originalPet.health)
+                healValue = originalPet.health - battlePet.health;
+            
+            battlePet.health += healValue;
+            
+            Player.SendXt("BH", pet, healValue, battlePet.health, "0");
+        }
+        else
+        {
+            var originalPet = PetBattlePets.GetPetEvolutionFamily(targetPet.itemId).FirstOrDefault(x => x.itemId == targetPet.itemId);
+            
+            if (targetPet.health >= originalPet.health)
+                return;
+            
+            var healValue = ability.healthValue;
+            
+            if (healValue < 0)
+                healValue = 0;
+            
+            if (targetPet.health + healValue >= originalPet.health)
+                healValue = originalPet.health - targetPet.health;
+            
+            targetPet.health += healValue;
+            
+            Player.SendXt("BH", target, healValue, targetPet.health, "0");
+        }
     }
 }

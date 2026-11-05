@@ -22,6 +22,9 @@ public class QuitBattle : ExternalProtocol
         var characterName = message[5];
 
         var model = Player.TempData.PetBattleModel;
+        
+        if (model == null)
+            return;
 
         if (!model.IsAI)
         {

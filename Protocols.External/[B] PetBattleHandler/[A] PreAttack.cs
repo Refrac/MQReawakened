@@ -13,6 +13,9 @@ public class PreAttack : ExternalProtocol
         var target = int.Parse(message[8]);
         var team = bool.Parse(message[9]);
 
+        if (Player.TempData.PetBattleModel == null)
+            return;
+        
         Player.SendXt("BV", pet, attack, target, team);
     }
 }

@@ -11,6 +11,9 @@ public class SkipTurn : ExternalProtocol
 
         var model = Player.TempData.PetBattleModel;
         
+        if (model == null)
+            return;
+        
         if (model.BattleOver)
             return;
         

@@ -12,11 +12,14 @@ public class CompleteBattle : ExternalProtocol
     public override void Run(string[] message)
     {
         var characterName = message[5];
-
-        SendXt("BQ", characterName);
         
         var model = Player.TempData.PetBattleModel;
 
+        if (model == null)
+            return;
+
+        SendXt("BQ", characterName);
+        
         WorldHandler.ChangePlayerRoom(Player, model.LevelId);
 
         Player.TempData.PetBattleModel = null;
