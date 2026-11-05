@@ -25,6 +25,13 @@ public class EvolvePet : ExternalProtocol
         
         if (petItem == null)
             return;
+
+        if (!Player.Character.Inventory.Items.ContainsKey(itemId))
+        {
+            Logger.LogError("[ANTICHEAT] Player \"{Name}\" attempted to level an unowned pet {PrefabName}",
+                Player.CharacterName, petItem.PrefabName);
+            return;
+        }
         
         var points = Player.Character.GetBattlePoints(ItemCatalog);
         var pointsItem = ItemCatalog.GetItemFromPrefabName("COL_PetBattlePoints");
