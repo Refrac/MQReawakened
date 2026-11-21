@@ -7,6 +7,7 @@ using Server.Reawakened.Entities.Components.GameObjects.NPC;
 using Server.Reawakened.Network.Protocols;
 using Server.Reawakened.Players.Extensions;
 using Server.Reawakened.Players.Helpers;
+using Server.Reawakened.Players.Models.Protocol;
 using Server.Reawakened.Rooms;
 using Server.Reawakened.Rooms.Extensions;
 using Server.Reawakened.Rooms.Models.Entities;
@@ -66,6 +67,9 @@ public class RoomUpdate : ExternalProtocol
             if (Player.Character.ActiveQuestId != 0 &&
                 Player.Character.QuestLog.All(q => q.Id != Player.Character.ActiveQuestId))
                 Player.Character.Write.ActiveQuestId = 0;
+            
+            // Chat Favorites
+            SendXt("as", GetAllFavorites());
             
             Player.TempData.FirstLogin = false;
         }
@@ -214,5 +218,25 @@ public class RoomUpdate : ExternalProtocol
             
             TopScoresHandler.Create(gameId, (int)leaderboardScore, 0, DateTime.UtcNow, Player.Character.Id, ScoreType.AllTime);
         }
+    }
+
+    private string GetAllFavorites()
+    {
+        var sb = new SeparatedStringBuilder('#');
+
+        if (Player.Character.ChatFavorites == null)
+            Player.Character.Write.ChatFavorites = [];
+        
+        foreach (var favorite in Player.Character.ChatFavorites)
+        {
+            var sb2 = new SeparatedStringBuilder('$');
+            
+            sb2.Append(favorite.Key);
+            sb2.Append(favorite.Value.ToString());
+            
+            sb.Append(sb2.ToString());
+        }
+        
+        return sb.ToString();
     }
 }
